@@ -1,0 +1,6 @@
+// Build settings shared by every target. Team IDs are not secret.
+DEVELOPMENT_TEAM = 76R46WBD5H
+CODE_SIGN_STYLE = Automatic
+
+// Supabase URL + publishable key (M3). Copy Secrets.example.xcconfig to Secrets.xcconfig.
+#include? "Secrets.xcconfig"

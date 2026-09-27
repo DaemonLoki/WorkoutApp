@@ -14,33 +14,37 @@ Native iOS 27 + watchOS 27 strength-training tracker (SwiftUI, SwiftData, Health
 # Logic tests (fast, no simulator) — run after every change to Packages/
 swift test --package-path Packages/OnlyWorkoutKit
 
-# Build the apps
+# Build the iOS app, and run the Session-flow UI test (it saves screenshots into the .xcresult)
 xcodebuild -project OnlyWorkout.xcodeproj -scheme OnlyWorkout -destination 'platform=iOS Simulator,name=iPhone 18 Pro,OS=27.0' build
-xcodebuild -project OnlyWorkout.xcodeproj -scheme OnlyWorkoutWatch -destination 'platform=watchOS Simulator,name=Apple Watch Series 12 (46mm),OS=27.0' build
+xcodebuild -project OnlyWorkout.xcodeproj -scheme OnlyWorkout -destination 'platform=iOS Simulator,name=iPhone 18 Pro,OS=27.0' test
 
-# Formatting (bundled with the toolchain; config in .swift-format)
-xcrun swift-format lint --strict --recursive Packages OnlyWorkout OnlyWorkoutWatch OnlyWorkoutWidgets OnlyWorkoutWatchWidgets
+# Formatting (bundled with the toolchain; config in .swift-format) — add new target folders here and in CI
+xcrun swift-format lint --strict --recursive Packages/OnlyWorkoutKit/Sources Packages/OnlyWorkoutKit/Tests OnlyWorkout OnlyWorkoutWidgets OnlyWorkoutUITests
 xcrun swift-format format --in-place --recursive <paths>
 
 # Supabase (M3+; `brew install supabase/tap/supabase`)
 supabase start && supabase db reset   # local stack + migrations
 ```
 
-Until M1's bootstrap lands, these paths don't exist yet. The Xcode project uses **synchronized folders**: create files on disk inside a target folder and they join the target — only edit `project.pbxproj` for targets, capabilities and build settings.
+The Xcode project uses **synchronized folders**: create files on disk inside a target folder and they join the target — only edit `project.pbxproj` for targets, capabilities and build settings. Shared build settings (team, secrets include) live in `Config/Shared.xcconfig`.
+
+Launch argument `-uiTesting` starts the app with an in-memory store and a sample "Push Day" Workout; previews use `SampleData.previewContainer()`.
 
 ## Architecture in one breath
 
 - `Packages/OnlyWorkoutKit/OnlyWorkoutCore` holds **all** domain logic as pure, `Sendable` value types (progression, Rotation, `SessionEngine`, stats, `RecordMerger`, messages). Views and SwiftData models stay thin and call into it.
-- `OnlyWorkoutStore` = SwiftData models + mapping to Core. `OnlyWorkoutConnectivity` = WatchConnectivity/HealthKit. `OnlyWorkoutDesign` = `DesignTokens` + shared components. `OnlyWorkoutSync` = Supabase, iOS only, the sole importer of `supabase-swift`.
+- `OnlyWorkoutStore` = SwiftData models + `TrainingLog` (all reads/writes views need; feeds Core with plain values) + Exercise Catalog seed. `OnlyWorkoutDesign` = `DesignTokens` + shared components. `OnlyWorkoutLiveActivity` = the `ActivityAttributes` shared by app and widget extension. Later: `OnlyWorkoutConnectivity` = WatchConnectivity/HealthKit (M2), `OnlyWorkoutSync` = Supabase, iOS only, the sole importer of `supabase-swift` (M3).
+- The stored Set type is `SetEntry` because `Set` is Swift's collection; in Core the value type is `LoggedSet`.
+- On iPhone, `SessionController` wraps `SessionEngine` for a live Session: every event is saved via `TrainingLog.save` (which also stores the encoded engine so a Session resumes after termination).
 - Every synced record carries `id`, `createdAt`, `updatedAt`, `deletedAt`; delete by setting `deletedAt`.
 - The Watch syncs only with the iPhone; only the iPhone talks to Supabase.
 
 ## Working rules
 
 - **Test-first** for everything in `OnlyWorkoutCore`, via the `tdd` skill: Swift Testing (`@Test`, `#expect`), one behaviour per test, named in glossary terms (`stallAfterThreeMissesWithoutNewBest`). UI is verified with SwiftUI previews fed by sample data; the single UI test covers the core Session flow.
-- **SwiftUI/Swift**: follow the `swiftui-pro` skill when writing or reviewing Swift. App targets use `MainActor` default isolation; `@Observable` for shared state; `NavigationStack` + `navigationDestination(for:)`; one type per file; folders by feature.
+- **SwiftUI/Swift**: follow the `swiftui-pro` skill when writing or reviewing Swift. App and widget targets use `MainActor` default isolation (the UI-test target is `nonisolated`, with `@MainActor` test classes); `@Observable` for shared state; `NavigationStack` + `navigationDestination(for:)`; one type per file; folders by feature.
 - **Design & motion**: consult `apple-design` and `emil-design-eng` for any animation, gesture, haptic or visual decision; README §9 holds the chosen values. Pull fonts, spacing, radii and animations from `DesignTokens`; orange accent only for primary actions and progress moments.
-- **Strings**: every user-facing string goes into `Localizable.xcstrings` with a symbol key and `extractionState: manual`, used as `Text(.keyName)`.
+- **Strings**: every user-facing string goes into `OnlyWorkout/Resources/Localizable.xcstrings` with a symbol key and `extractionState: manual`, used as `Text(.keyName)` or `String(localized: .keyName)`. `%lld` becomes an `Int` argument, `%@` a `String`; counts use plural variations (`.setCount(n)`). Package modules take text as parameters instead of owning strings.
 - **Dependencies**: `supabase-swift` is the only third-party package; ask the owner before adding another.
 - **Secrets** live in `Config/Secrets.xcconfig` (gitignored; copy `Config/Secrets.example.xcconfig`) and in `supabase secrets`. The repo and binary carry only the Supabase publishable key.
 - **Health data** (heart rate, energy) stays on device — keep it out of synced models and the Supabase schema.

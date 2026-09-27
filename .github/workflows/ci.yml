@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # Needs a runner image that ships Xcode 27; bump both lines when GitHub's images change.
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 27
+        run: sudo xcode-select -s /Applications/Xcode_27.0.app
+
+      - name: Logic tests
+        run: swift test --package-path Packages/OnlyWorkoutKit
+
+      - name: Build iOS app
+        run: >
+          xcodebuild -project OnlyWorkout.xcodeproj -scheme OnlyWorkout
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO build
+
+      - name: Formatting
+        run: xcrun swift-format lint --strict --recursive Packages/OnlyWorkoutKit/Sources Packages/OnlyWorkoutKit/Tests OnlyWorkout OnlyWorkoutWidgets OnlyWorkoutUITests

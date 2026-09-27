@@ -413,13 +413,14 @@ Packages/OnlyWorkoutKit/        # local Swift package
     OnlyWorkoutConnectivity/    # WatchConnectivity + HealthKit workout/mirroring wrappers
     OnlyWorkoutSync/            # Supabase client, auth, push/pull (iOS only — the only module importing supabase-swift)
     OnlyWorkoutDesign/          # DesignTokens, shared components (rings, number views, celebration)
+    OnlyWorkoutLiveActivity/    # ActivityAttributes shared by the app and the widget extension (iOS only)
   Tests/
     OnlyWorkoutCoreTests/  OnlyWorkoutStoreTests/
 supabase/
   config.toml
   migrations/                   # schema, RLS, sync RPCs
   functions/                    # strava-connect, strava-upload, strava-disconnect, delete-account
-Config/                         # *.xcconfig (Secrets.xcconfig gitignored)
+Config/                         # Shared.xcconfig (team, includes Secrets.xcconfig — gitignored)
 docs/adr/
 .github/workflows/ci.yml
 ```
@@ -457,6 +458,8 @@ docs/adr/
 Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) for everything in `OnlyWorkoutCore`.
 
 ### M1 — iPhone app, local only
+**Status:** implemented on branch `m1-iphone-app`; the "Done when" flow is covered by `SessionFlowUITests`. CI is written but not yet run on GitHub.
+
 - Project bootstrap: Xcode project with iOS app, widget extension and UI-test targets (Watch targets can be added in M2); local package; `Localizable.xcstrings`; `AccentColor`; `Config/Secrets.example.xcconfig`; `.swift-format`; CI workflow (`swift test` on the package, build both apps, `swift-format lint`).
 - Core: domain types, progression rules (§4), Rotation (§5), SessionEngine (§6), stats, messages, RecordMerger — all with tests.
 - Store: SwiftData models, Exercise Catalog seed (§17) on first launch.

@@ -1,0 +1,554 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		34A696A1990784621D7B721A /* OnlyWorkoutCore in Frameworks */ = {isa = PBXBuildFile; productRef = 9DCCB72DC755525C9ADCC42A /* OnlyWorkoutCore */; };
+		D80827BD1F9859D27F750910 /* OnlyWorkoutStore in Frameworks */ = {isa = PBXBuildFile; productRef = 8D0FE65976DF20D1EDEC047D /* OnlyWorkoutStore */; };
+		CB9D8F3EEDBA6E6A00B66066 /* OnlyWorkoutDesign in Frameworks */ = {isa = PBXBuildFile; productRef = 2EEC1393FAD6CC61CA311D66 /* OnlyWorkoutDesign */; };
+		738DB39DBB25DAE13972D4A4 /* OnlyWorkoutLiveActivity in Frameworks */ = {isa = PBXBuildFile; productRef = BB45211D22C90D8EC18D2BF6 /* OnlyWorkoutLiveActivity */; };
+		DBF1E45D896578D4EEAFD3E9 /* OnlyWorkoutWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E0399D5BA8EBD616500F8D6F /* OnlyWorkoutWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4D116510309097A6D3F7559A /* OnlyWorkoutCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3D5F13717486A48C167552BD /* OnlyWorkoutCore */; };
+		17D93C0528079E0A8BEFD685 /* OnlyWorkoutDesign in Frameworks */ = {isa = PBXBuildFile; productRef = 9A40C41331AB817936EF8947 /* OnlyWorkoutDesign */; };
+		7B67876BE17CCFC5B95DF626 /* OnlyWorkoutLiveActivity in Frameworks */ = {isa = PBXBuildFile; productRef = 992F4F6E1EFA15D50354950C /* OnlyWorkoutLiveActivity */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		25656408F9FC3148830F1658 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 52E1FB0344068263D182D555;
+			remoteInfo = OnlyWorkoutWidgets;
+		};
+		5587E0A19522ECDCDEA4802A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 69570A3A2FABA8E9170EC176;
+			remoteInfo = OnlyWorkout;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C0F45B9F5F4E7743CFA9A1A4 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				DBF1E45D896578D4EEAFD3E9 /* OnlyWorkoutWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		C2C84D772346390C275EF56B /* OnlyWorkout.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OnlyWorkout.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E0399D5BA8EBD616500F8D6F /* OnlyWorkoutWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OnlyWorkoutWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E4FCBB52492692F2A4C43F5 /* OnlyWorkoutUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OnlyWorkoutUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		06CF9B5775BCF621072FED01 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		96F68B86669E2614A72E010F /* Exceptions for "OnlyWorkoutWidgets" folder in "OnlyWorkoutWidgets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 52E1FB0344068263D182D555 /* OnlyWorkoutWidgets */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		083ED3920107FC329A0E0B1C /* OnlyWorkout */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = OnlyWorkout;
+			sourceTree = "<group>";
+		};
+		FA52B5282B3F6DEF84ECF7A9 /* OnlyWorkoutWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				96F68B86669E2614A72E010F /* Exceptions for "OnlyWorkoutWidgets" folder in "OnlyWorkoutWidgets" target */,
+			);
+			path = OnlyWorkoutWidgets;
+			sourceTree = "<group>";
+		};
+		8978904BE8BF3D68882BAF6D /* OnlyWorkoutUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = OnlyWorkoutUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1F4F16FA6991608A9035E443 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34A696A1990784621D7B721A /* OnlyWorkoutCore in Frameworks */,
+				D80827BD1F9859D27F750910 /* OnlyWorkoutStore in Frameworks */,
+				CB9D8F3EEDBA6E6A00B66066 /* OnlyWorkoutDesign in Frameworks */,
+				738DB39DBB25DAE13972D4A4 /* OnlyWorkoutLiveActivity in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6F3D735F1B6ECE8CCCF44959 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4D116510309097A6D3F7559A /* OnlyWorkoutCore in Frameworks */,
+				17D93C0528079E0A8BEFD685 /* OnlyWorkoutDesign in Frameworks */,
+				7B67876BE17CCFC5B95DF626 /* OnlyWorkoutLiveActivity in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C668A37E30AFE4FCF9C86710 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2B731CEFC6751AAE0EC69B98 = {
+			isa = PBXGroup;
+			children = (
+				5386A2EAF0036C0154CF9012 /* Config */,
+				083ED3920107FC329A0E0B1C /* OnlyWorkout */,
+				FA52B5282B3F6DEF84ECF7A9 /* OnlyWorkoutWidgets */,
+				8978904BE8BF3D68882BAF6D /* OnlyWorkoutUITests */,
+				86024CAD1E83101D97359D73 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5386A2EAF0036C0154CF9012 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				06CF9B5775BCF621072FED01 /* Shared.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		86024CAD1E83101D97359D73 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C2C84D772346390C275EF56B /* OnlyWorkout.app */,
+				E0399D5BA8EBD616500F8D6F /* OnlyWorkoutWidgets.appex */,
+				4E4FCBB52492692F2A4C43F5 /* OnlyWorkoutUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		69570A3A2FABA8E9170EC176 /* OnlyWorkout */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A5482650FCC48D893EA60499 /* Build configuration list for PBXNativeTarget "OnlyWorkout" */;
+			buildPhases = (
+				33A7A71A466CFE618FB94F89 /* Sources */,
+				1F4F16FA6991608A9035E443 /* Frameworks */,
+				737ABAAF8DC0A6F30C6C80C1 /* Resources */,
+				C0F45B9F5F4E7743CFA9A1A4 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				28AC3EFB73D5898CDA277E08 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				083ED3920107FC329A0E0B1C /* OnlyWorkout */,
+			);
+			name = OnlyWorkout;
+			packageProductDependencies = (
+				9DCCB72DC755525C9ADCC42A /* OnlyWorkoutCore */,
+				8D0FE65976DF20D1EDEC047D /* OnlyWorkoutStore */,
+				2EEC1393FAD6CC61CA311D66 /* OnlyWorkoutDesign */,
+				BB45211D22C90D8EC18D2BF6 /* OnlyWorkoutLiveActivity */,
+			);
+			productName = OnlyWorkout;
+			productReference = C2C84D772346390C275EF56B /* OnlyWorkout.app */;
+			productType = "com.apple.product-type.application";
+		};
+		52E1FB0344068263D182D555 /* OnlyWorkoutWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 92F1D0DA943DA0720D10D59D /* Build configuration list for PBXNativeTarget "OnlyWorkoutWidgets" */;
+			buildPhases = (
+				FDFA52973DAA6137BA6B9B53 /* Sources */,
+				6F3D735F1B6ECE8CCCF44959 /* Frameworks */,
+				1FD443A62D98CEC1A5259CBC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				FA52B5282B3F6DEF84ECF7A9 /* OnlyWorkoutWidgets */,
+			);
+			name = OnlyWorkoutWidgets;
+			packageProductDependencies = (
+				3D5F13717486A48C167552BD /* OnlyWorkoutCore */,
+				9A40C41331AB817936EF8947 /* OnlyWorkoutDesign */,
+				992F4F6E1EFA15D50354950C /* OnlyWorkoutLiveActivity */,
+			);
+			productName = OnlyWorkoutWidgets;
+			productReference = E0399D5BA8EBD616500F8D6F /* OnlyWorkoutWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		7CDEF1D031E2E867D3218F3B /* OnlyWorkoutUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 077741C97FEE1FA44E8513C2 /* Build configuration list for PBXNativeTarget "OnlyWorkoutUITests" */;
+			buildPhases = (
+				849454B500C48DA89D9D6CF1 /* Sources */,
+				C668A37E30AFE4FCF9C86710 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				72ADACB37E27ECE4D853C333 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				8978904BE8BF3D68882BAF6D /* OnlyWorkoutUITests */,
+			);
+			name = OnlyWorkoutUITests;
+			packageProductDependencies = (
+			);
+			productName = OnlyWorkoutUITests;
+			productReference = 4E4FCBB52492692F2A4C43F5 /* OnlyWorkoutUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		46F86FAA6BBF9AC94A7E4595 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					69570A3A2FABA8E9170EC176 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					52E1FB0344068263D182D555 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					7CDEF1D031E2E867D3218F3B = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 69570A3A2FABA8E9170EC176;
+					};
+				};
+			};
+			buildConfigurationList = 2929D8BC0CA11EC77EAF5AA0 /* Build configuration list for PBXProject "OnlyWorkout" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 2B731CEFC6751AAE0EC69B98;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B35E0AF5159E93A496F0D0AF /* XCLocalSwiftPackageReference "Packages/OnlyWorkoutKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 86024CAD1E83101D97359D73 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				69570A3A2FABA8E9170EC176 /* OnlyWorkout */,
+				52E1FB0344068263D182D555 /* OnlyWorkoutWidgets */,
+				7CDEF1D031E2E867D3218F3B /* OnlyWorkoutUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		737ABAAF8DC0A6F30C6C80C1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1FD443A62D98CEC1A5259CBC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		33A7A71A466CFE618FB94F89 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FDFA52973DAA6137BA6B9B53 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		849454B500C48DA89D9D6CF1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		28AC3EFB73D5898CDA277E08 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 52E1FB0344068263D182D555 /* OnlyWorkoutWidgets */;
+			targetProxy = 25656408F9FC3148830F1658 /* PBXContainerItemProxy */;
+		};
+		72ADACB37E27ECE4D853C333 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 69570A3A2FABA8E9170EC176 /* OnlyWorkout */;
+			targetProxy = 5587E0A19522ECDCDEA4802A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		9F92596D2ACB03E6970814CB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 06CF9B5775BCF621072FED01 /* Shared.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 0.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		DCFE6FAD829FE854C13AE7BD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = OnlyWorkout;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkout;
+			};
+			name = Debug;
+		};
+		68EA0DEB402A57B98A1EFAF0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				INFOPLIST_FILE = OnlyWorkoutWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = OnlyWorkout;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkout.Widgets;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		4868F74F603C17A0A2321858 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkoutUITests;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				TEST_TARGET_NAME = OnlyWorkout;
+			};
+			name = Debug;
+		};
+		B8BBA4EBA303474FDD62EA0C /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 06CF9B5775BCF621072FED01 /* Shared.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 0.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7C832FCBAAB818AEBF8FCCD1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = OnlyWorkout;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkout;
+			};
+			name = Release;
+		};
+		A2B952F0EF35F3ED407F5517 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				INFOPLIST_FILE = OnlyWorkoutWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = OnlyWorkout;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkout.Widgets;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		06768A21C1752A8790730811 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkoutUITests;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				TEST_TARGET_NAME = OnlyWorkout;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2929D8BC0CA11EC77EAF5AA0 /* Build configuration list for PBXProject "OnlyWorkout" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F92596D2ACB03E6970814CB /* Debug */,
+				B8BBA4EBA303474FDD62EA0C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A5482650FCC48D893EA60499 /* Build configuration list for PBXNativeTarget "OnlyWorkout" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DCFE6FAD829FE854C13AE7BD /* Debug */,
+				7C832FCBAAB818AEBF8FCCD1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		92F1D0DA943DA0720D10D59D /* Build configuration list for PBXNativeTarget "OnlyWorkoutWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68EA0DEB402A57B98A1EFAF0 /* Debug */,
+				A2B952F0EF35F3ED407F5517 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		077741C97FEE1FA44E8513C2 /* Build configuration list for PBXNativeTarget "OnlyWorkoutUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4868F74F603C17A0A2321858 /* Debug */,
+				06768A21C1752A8790730811 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		B35E0AF5159E93A496F0D0AF /* XCLocalSwiftPackageReference "Packages/OnlyWorkoutKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/OnlyWorkoutKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9DCCB72DC755525C9ADCC42A /* OnlyWorkoutCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OnlyWorkoutCore;
+		};
+		8D0FE65976DF20D1EDEC047D /* OnlyWorkoutStore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OnlyWorkoutStore;
+		};
+		2EEC1393FAD6CC61CA311D66 /* OnlyWorkoutDesign */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OnlyWorkoutDesign;
+		};
+		BB45211D22C90D8EC18D2BF6 /* OnlyWorkoutLiveActivity */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OnlyWorkoutLiveActivity;
+		};
+		3D5F13717486A48C167552BD /* OnlyWorkoutCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OnlyWorkoutCore;
+		};
+		9A40C41331AB817936EF8947 /* OnlyWorkoutDesign */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OnlyWorkoutDesign;
+		};
+		992F4F6E1EFA15D50354950C /* OnlyWorkoutLiveActivity */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OnlyWorkoutLiveActivity;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+}
