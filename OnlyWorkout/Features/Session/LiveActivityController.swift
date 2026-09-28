@@ -9,20 +9,23 @@ final class LiveActivityController {
 
     private var activityID: String?
 
-    func start(workoutName: String, state: State) {
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+    /// - Returns: Whether a Live Activity is now showing (starting fails while the app is in the background).
+    @discardableResult
+    func start(workoutName: String, state: State) -> Bool {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return false }
         // A Session resumed after relaunch may still have its Live Activity.
         if let existing = Activity<SessionActivityAttributes>.activities.first(where: {
             $0.attributes.workoutName == workoutName
         }) {
             activityID = existing.id
             update(state: state)
-            return
+            return true
         }
         activityID = try? Activity.request(
             attributes: SessionActivityAttributes(workoutName: workoutName),
             content: ActivityContent(state: state, staleDate: nil)
         ).id
+        return activityID != nil
     }
 
     func update(state: State) {

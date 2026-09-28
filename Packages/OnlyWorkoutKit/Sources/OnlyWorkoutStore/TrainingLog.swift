@@ -101,6 +101,15 @@ public struct TrainingLog {
         return try? context.fetch(descriptor).first
     }
 
+    /// Finished Sessions recorded on a device since a date, newest first.
+    public func finishedSessions(recordedOn device: Session.Device, since date: Date) -> [Session] {
+        let raw = device.rawValue
+        let descriptor = FetchDescriptor<Session>(
+            predicate: #Predicate { $0.recordedOnRaw == raw && $0.endedAt != nil && $0.startedAt >= date },
+            sortBy: [SortDescriptor(\.startedAt, order: .reverse)])
+        return (try? context.fetch(descriptor)) ?? []
+    }
+
     public func inProgressSession() -> Session? {
         let descriptor = FetchDescriptor<Session>(
             predicate: #Predicate { $0.deletedAt == nil && $0.endedAt == nil },
@@ -233,6 +242,14 @@ public struct TrainingLog {
         save(engine, to: session, now: now)
         session.endedAt = now
         session.engineState = nil
+        session.updatedAt = now
+        try? context.save()
+    }
+
+    /// Remembers the Apple Health workout saved for a Session.
+    public func attachHealthWorkout(_ id: UUID?, to session: Session, now: Date = .now) {
+        guard let id else { return }
+        session.healthWorkoutID = id
         session.updatedAt = now
         try? context.save()
     }

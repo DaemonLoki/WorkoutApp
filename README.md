@@ -270,7 +270,7 @@ Standalone watchOS app with its own SwiftData store; works fully without the iPh
 
 ### Phone ↔ Watch data
 - **Phone → Watch**: `updateApplicationContext` with a full plan snapshot — Exercises, Workouts, Planned Exercises, pending suggestions, and per Planned Exercise the summaries of its last 3 Sessions + last performed date (enough for the Watch to evaluate Target Hit, Stall and Layoff offline).
-- **Watch → Phone**: `transferUserInfo` (queued, guaranteed delivery) with each finished Session and any changed Planned Exercise / Progression Suggestion records.
+- **Watch → Phone**: the plan plus the Watch's Sessions of the last 14 days, sent as an immediate message when the iPhone is reachable *and* queued with `transferUserInfo`. Resent whenever the link activates, the iPhone becomes reachable, or a queued transfer fails (they can time out while the iPhone is off); merging makes repeats harmless.
 - Both directions use the **same record-level merge** as cloud sync (§10). The Watch never talks to Supabase.
 
 ---
@@ -405,12 +405,13 @@ OnlyWorkoutWatch/               # watchOS app — com.stefanblos.OnlyWorkout.wat
   App/  Features/Home/  Features/Session/  Features/Summary/  Resources/
 OnlyWorkoutWidgets/             # iOS widget extension: Live Activity
 OnlyWorkoutWatchWidgets/        # watchOS widget extension: complication / Smart Stack
+SharedUI/                       # compiled into both apps: Localizable.xcstrings + shared wording (offers, messages, titles)
 OnlyWorkoutUITests/             # one UI test: the core Session flow
 Packages/OnlyWorkoutKit/        # local Swift package
   Sources/
     OnlyWorkoutCore/            # pure domain: value types, progression, rotation, SessionEngine, stats, RecordMerger, messages. No Apple frameworks beyond Foundation.
     OnlyWorkoutStore/           # SwiftData @Model types, mapping to Core, Exercise Catalog seeding
-    OnlyWorkoutConnectivity/    # WatchConnectivity + HealthKit workout/mirroring wrappers
+    OnlyWorkoutConnectivity/    # WorkoutRecorder (HealthKit + mirroring), PhoneWatchLink (WatchConnectivity), MirrorMessage
     OnlyWorkoutSync/            # Supabase client, auth, push/pull (iOS only — the only module importing supabase-swift)
     OnlyWorkoutDesign/          # DesignTokens, shared components (rings, number views, celebration)
     OnlyWorkoutLiveActivity/    # ActivityAttributes shared by the app and the widget extension (iOS only)
@@ -420,7 +421,7 @@ supabase/
   config.toml
   migrations/                   # schema, RLS, sync RPCs
   functions/                    # strava-connect, strava-upload, strava-disconnect, delete-account
-Config/                         # Shared.xcconfig (team, includes Secrets.xcconfig — gitignored)
+Config/                         # Shared.xcconfig (team, includes Secrets.xcconfig — gitignored), Info.plists, entitlements
 docs/adr/
 .github/workflows/ci.yml
 ```
@@ -447,7 +448,7 @@ docs/adr/
 
 | # | Question | Plan |
 |---|---|---|
-| 1 | Can the iPhone *start* a Live Activity in the background when a mirrored Watch Session begins? | Spike at the very start of M2. Fallback: start it on next foreground. |
+| 1 | ~~Can the iPhone *start* a Live Activity in the background when a mirrored Watch Session begins?~~ | **Resolved (M2):** no. ActivityKit starts Live Activities only in the foreground, except via a `LiveActivityIntent` or an ActivityKit push. The iPhone starts it the next time the app is active during a Watch Session. Push-to-start from a Supabase function is possible after M3. |
 | 2 | Exact Strava API for structured strength uploads and its exercise-type list | Verify against official docs at M4 start before writing mappings. |
 | 3 | Strava muscle map reportedly inconsistent for API uploads | Accept; muscle groups are still in the Strava payload and in our own stats. |
 
@@ -468,6 +469,8 @@ Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) fo
 - **Done when**: a full Session incl. a Superset can be run on the iPhone, a Target Hit produces a Step Up card and a Ready to Step Up row, a synthetic Stall and Layoff produce Step Downs, and the Progress chart shows the history.
 
 ### M2 — Apple Watch + Health
+**Status:** implemented on branch `m2-watch-health`. Verified in paired simulators: plan reaches the Watch, a full Session incl. Step Up runs on the Watch with the iPhone off, and the result (weights, pending Step Ups) appears on the iPhone. Not verifiable in the simulator without granting Health access: saving to Health, heart rate, mirroring to the iPhone and starting on the Watch from the iPhone — try these on devices.
+
 - Spike: open question #1.
 - watchOS app + widget extension; plan snapshot sync and Session transfer via WatchConnectivity.
 - HealthKit on both devices; Watch as primary with mirroring; iPhone as mirrored controller; Live Activity for Watch Sessions.

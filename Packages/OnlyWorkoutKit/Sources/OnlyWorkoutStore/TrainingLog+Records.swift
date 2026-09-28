@@ -1,0 +1,157 @@
+import Foundation
+import OnlyWorkoutCore
+import SwiftData
+
+extension TrainingLog {
+    // MARK: - Export
+
+    /// The whole plan: Exercises, Workouts, Planned Exercises and suggestions, tombstones included.
+    public func exportPlan() -> RecordBatch {
+        var batch = RecordBatch()
+        batch.exercises = fetchAll(Exercise.self).map(ExerciseRecord.init)
+        batch.workouts = fetchAll(Workout.self).map(WorkoutRecord.init)
+        batch.plannedExercises = fetchAll(PlannedExercise.self).map(PlannedExerciseRecord.init)
+        batch.suggestions = fetchAll(ProgressionSuggestion.self).map(SuggestionRecord.init)
+        return batch
+    }
+
+    /// The given Sessions with their Session Exercises and Sets.
+    public func exportSessions(_ sessions: [Session]) -> RecordBatch {
+        var batch = RecordBatch()
+        batch.sessions = sessions.map(SessionRecord.init)
+        let entries = sessions.flatMap(\.exercises)
+        batch.sessionExercises = entries.map(SessionExerciseRecord.init)
+        batch.sets = entries.flatMap(\.sets).map(SetRecord.init)
+        return batch
+    }
+
+    /// What the Watch needs to run Sessions offline: the plan plus, per Planned Exercise, its last
+    /// `Progression.stallSessionCount` Sessions (enough for Target Hit, Stall and Layoff).
+    public func watchSnapshot() -> RecordBatch {
+        var batch = exportPlan()
+        var sessions: [UUID: Session] = [:]
+        for planned in fetchAll(PlannedExercise.self) where planned.deletedAt == nil {
+            for entry in performed(plannedExerciseID: planned.id).suffix(Progression.stallSessionCount) {
+                if let session = entry.session { sessions[session.id] = session }
+            }
+        }
+        batch.merge(exportSessions(Array(sessions.values)))
+        return batch
+    }
+
+    // MARK: - Apply
+
+    /// Merges records from another device: per record, the newer `updatedAt` wins (ADR-0001).
+    public func apply(_ batch: RecordBatch) {
+        let exercises = upsert(
+            batch.exercises,
+            make: { Exercise(id: $0.id, name: $0.name, equipment: .machine, muscleGroups: []) },
+            write: { record, model in record.write(to: model) })
+
+        let workouts = upsert(
+            batch.workouts,
+            make: { Workout(id: $0.id, name: $0.name, rotationIndex: $0.rotationIndex) },
+            write: { record, model in record.write(to: model) })
+
+        upsert(
+            batch.plannedExercises,
+            make: { record in
+                // A Planned Exercise can't exist without its Exercise; skip it until the Exercise arrives.
+                record.exerciseID.flatMap { exercises[$0] }.map {
+                    PlannedExercise(id: record.id, exercise: $0, position: record.position)
+                }
+            },
+            write: { record, model in
+                record.write(to: model)
+                model.exercise = record.exerciseID.flatMap { exercises[$0] }
+                model.workout = record.workoutID.flatMap { workouts[$0] }
+            })
+
+        let sessions = upsert(
+            batch.sessions,
+            make: { Session(id: $0.id, workoutID: $0.workoutID, workoutName: $0.workoutName, startedAt: $0.startedAt) },
+            write: { record, model in record.write(to: model) })
+
+        let sessionExercises = upsert(
+            batch.sessionExercises,
+            make: { record in
+                SessionExercise(
+                    id: record.id, exerciseID: record.exerciseID, plannedExerciseID: record.plannedExerciseID,
+                    exerciseName: record.exerciseName, position: record.position, supersetID: record.supersetID,
+                    target: Target(sets: record.targetSets, reps: record.targetReps, weight: record.targetWeight),
+                    now: record.createdAt)
+            },
+            write: { record, model in
+                record.write(to: model)
+                model.session = record.sessionID.flatMap { sessions[$0] }
+            })
+
+        upsert(
+            batch.sets,
+            make: { record in
+                SetEntry(
+                    id: record.id, number: record.number, reps: record.reps, weight: record.weight,
+                    isExtra: record.isExtra, completedAt: record.completedAt)
+            },
+            write: { record, model in
+                record.write(to: model)
+                model.sessionExercise = record.sessionExerciseID.flatMap { sessionExercises[$0] }
+            })
+
+        upsert(
+            batch.suggestions,
+            make: { record in
+                ProgressionSuggestion(
+                    id: record.id, plannedExerciseID: record.plannedExerciseID,
+                    suggestion: WeightSuggestion(
+                        kind: .init(rawValue: record.kind) ?? .stepUp, reason: .init(rawValue: record.reason) ?? .targetHit,
+                        fromWeight: record.fromWeight, toWeight: record.toWeight),
+                    sourceSessionID: record.sourceSessionID, now: record.createdAt)
+            },
+            write: { record, model in record.write(to: model) })
+
+        try? context.save()
+    }
+
+    /// Inserts or overwrites the winning records and returns every model of the type by id,
+    /// so children can link to their parents.
+    @discardableResult
+    private func upsert<Model: PersistentModel & IdentifiedRecord, Record: SyncRecord>(
+        _ records: [Record], make: (Record) -> Model?, write: (Record, Model) -> Void
+    ) -> [UUID: Model] {
+        var models = Dictionary(fetchAll(Model.self).map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let winners = RecordMerger.winners(incoming: records, existing: models.mapValues(\.updatedAt))
+        for record in winners {
+            let model: Model
+            if let existing = models[record.id] {
+                model = existing
+            } else if let created = make(record) {
+                model = created
+                context.insert(model)
+                models[record.id] = model
+            } else {
+                continue
+            }
+            write(record, model)
+        }
+        return models
+    }
+
+    func fetchAll<Model: PersistentModel>(_ type: Model.Type) -> [Model] {
+        (try? context.fetch(FetchDescriptor<Model>())) ?? []
+    }
+}
+
+/// Stored models that carry the sync identity and clock.
+protocol IdentifiedRecord {
+    var id: UUID { get }
+    var updatedAt: Date { get }
+}
+
+extension Exercise: IdentifiedRecord {}
+extension Workout: IdentifiedRecord {}
+extension PlannedExercise: IdentifiedRecord {}
+extension Session: IdentifiedRecord {}
+extension SessionExercise: IdentifiedRecord {}
+extension SetEntry: IdentifiedRecord {}
+extension ProgressionSuggestion: IdentifiedRecord {}

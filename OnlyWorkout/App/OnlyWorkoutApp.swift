@@ -15,10 +15,12 @@ struct OnlyWorkoutApp: App {
             fatalError("Could not open the OnlyWorkout store: \(error)")
         }
         try? ExerciseCatalog.seed(into: container.mainContext)
-        if isUITesting {
+        // `-sampleData` seeds a starter Workout into the real store, e.g. to try the Watch in the simulator.
+        if isUITesting || ProcessInfo.processInfo.arguments.contains("-sampleData") {
             SampleData.insertStarterWorkout(into: container.mainContext)
         }
-        _appModel = State(initialValue: AppModel(log: TrainingLog(context: container.mainContext)))
+        _appModel = State(
+            initialValue: AppModel(log: TrainingLog(context: container.mainContext), usesHealth: !isUITesting))
     }
 
     var body: some Scene {

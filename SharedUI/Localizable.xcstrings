@@ -84,7 +84,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sessions are saved to Apple Health once the Apple Watch app arrives."
+            "value": "Every Session is saved to Apple Health as a strength workout. Manage access in the Health app."
           }
         }
       }
@@ -122,6 +122,17 @@
         }
       }
     },
+    "changeWeight": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change weight"
+          }
+        }
+      }
+    },
     "close": {
       "extractionState": "manual",
       "localizations": {
@@ -151,6 +162,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Your data stays on this iPhone. Syncing with Sign in with Apple comes in a later update."
+          }
+        }
+      }
+    },
+    "connectingToWatch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecting to Apple Watch…"
+          }
+        }
+      }
+    },
+    "continueLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
           }
         }
       }
@@ -592,6 +625,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "Finish Session"
+          }
+        }
+      }
+    },
+    "healthExplanationMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OnlyWorkout saves each Session to Apple Health as a strength workout and shows your heart rate while you train with Apple Watch."
+          }
+        }
+      }
+    },
+    "healthExplanationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Sessions to Apple Health"
+          }
+        }
+      }
+    },
+    "heartRateValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld beats per minute"
           }
         }
       }
@@ -1334,6 +1400,17 @@
         }
       }
     },
+    "startOnIPhoneInstead": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start on iPhone Instead"
+          }
+        }
+      }
+    },
     "startSession": {
       "extractionState": "manual",
       "localizations": {
@@ -1341,6 +1418,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Start"
+          }
+        }
+      }
+    },
+    "startingOnWatch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting on Apple Watch…"
           }
         }
       }
@@ -1627,6 +1715,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "View"
+          }
+        }
+      }
+    },
+    "watchExerciseProgress": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$lld/%3$lld"
+          }
+        }
+      }
+    },
+    "watchNextSet": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next: %1$@ · %2$lld × %3$@"
+          }
+        }
+      }
+    },
+    "watchNoWorkoutsMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Workouts on your iPhone. They appear here automatically."
           }
         }
       }

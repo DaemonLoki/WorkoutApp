@@ -25,4 +25,4 @@ jobs:
           CODE_SIGNING_ALLOWED=NO build
 
       - name: Formatting
-        run: xcrun swift-format lint --strict --recursive Packages/OnlyWorkoutKit/Sources Packages/OnlyWorkoutKit/Tests OnlyWorkout OnlyWorkoutWidgets OnlyWorkoutUITests
+        run: xcrun swift-format lint --strict --recursive Packages/OnlyWorkoutKit/Sources Packages/OnlyWorkoutKit/Tests OnlyWorkout OnlyWorkoutWidgets OnlyWorkoutWatch OnlyWorkoutWatchWidgets SharedUI OnlyWorkoutUITests

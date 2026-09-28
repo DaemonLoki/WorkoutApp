@@ -4,8 +4,9 @@ import OnlyWorkoutStore
 import SwiftUI
 
 /// The full-screen Session: one Set at a time, Rest in between, Summary at the end.
+/// Works the same whether the Session runs here or on the Watch.
 struct ActiveSessionView: View {
-    let controller: SessionController
+    let session: any SessionDriver
     @Environment(AppModel.self) private var appModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showsOverview = false
@@ -13,8 +14,17 @@ struct ActiveSessionView: View {
 
     var body: some View {
         NavigationStack {
-            if let summary = controller.summary {
+            if let summary = session.summary {
                 SessionSummaryView(summary: summary) { appModel.closeSession() }
+            } else if session.isWaitingForWatch {
+                ProgressView {
+                    Text(.connectingToWatch)
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button(.close, systemImage: "xmark") { appModel.closeSession() }
+                    }
+                }
             } else {
                 sessionContent
             }
@@ -24,60 +34,67 @@ struct ActiveSessionView: View {
 
     private var sessionContent: some View {
         Group {
-            if let rest = controller.engine.rest {
+            if let rest = session.engine.rest {
                 RestView(
-                    interval: rest.startedAt...rest.endsAt, next: controller.nextSetDescription,
-                    onExtend: controller.extendRest, onSkip: controller.finishRest)
-            } else if let prompt = controller.engine.currentSet,
-                let exercise = controller.exercise(id: prompt.exerciseID)
-            {
+                    interval: rest.startedAt...rest.endsAt, next: session.nextSetDescription,
+                    onExtend: session.extendRest, onSkip: session.finishRest)
+            } else if let prompt = session.engine.currentSet, let exercise = session.exercise(id: prompt.exerciseID) {
                 SetView(
                     prompt: prompt, exerciseName: exercise.name, isSuperset: exercise.supersetID != nil,
-                    usesAddedWeight: controller.plannedExercise(for: exercise.id)?.exercise?.equipment.usesAddedWeight
-                        ?? false,
-                    weightStep: controller.weightStep(for: exercise.id)
+                    usesAddedWeight: session.usesAddedWeight(for: exercise.id),
+                    weightStep: session.weightStep(for: exercise.id)
                 ) { reps, weight in
-                    controller.completeSet(reps: reps, weight: weight)
+                    session.completeSet(reps: reps, weight: weight)
                 }
                 .id(prompt)
             } else {
-                AllSetsDoneView(onFinish: controller.finish)
+                AllSetsDoneView(onFinish: session.finish)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(DesignTokens.Spacing.m)
         .safeAreaInset(edge: .bottom) {
-            if let offer = controller.offer {
+            if let offer = session.offer {
                 OfferCard(offer: offer) { accept in
-                    controller.answer(offer, accept: accept)
+                    session.answer(offer, accept: accept)
                 }
                 .padding(DesignTokens.Spacing.m)
                 .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .animation(reduceMotion ? DesignTokens.Motion.reducedMotion : DesignTokens.Motion.card, value: controller.offer)
-        .animation(DesignTokens.Motion.reducedMotion, value: controller.engine.rest == nil)
-        .sensoryFeedback(.impact(weight: .light), trigger: controller.loggedSetCount)
-        .sensoryFeedback(.success, trigger: controller.restEndCount)
+        .animation(reduceMotion ? DesignTokens.Motion.reducedMotion : DesignTokens.Motion.card, value: session.offer)
+        .animation(DesignTokens.Motion.reducedMotion, value: session.engine.rest == nil)
+        .sensoryFeedback(.impact(weight: .light), trigger: session.loggedSetCount)
+        .sensoryFeedback(.success, trigger: session.restEndCount)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(.endSession, systemImage: "xmark") {
-                    if controller.hasRemainingSets { confirmsEnd = true } else { controller.finish() }
+                    if session.hasRemainingSets { confirmsEnd = true } else { session.finish() }
                 }
                 .confirmationDialog(Text(.endSessionEarlyTitle), isPresented: $confirmsEnd, titleVisibility: .visible) {
-                    Button(.endSession, role: .destructive, action: controller.finish)
+                    Button(.endSession, role: .destructive, action: session.finish)
                 } message: {
                     Text(.endSessionEarlyMessage)
                 }
             }
             ToolbarItem(placement: .principal) {
                 VStack {
-                    Text(controller.session.workoutName).font(.headline)
-                    Text(controller.session.startedAt, style: .timer)
-                        .font(.caption)
-                        .monospacedDigit()
-                        .foregroundStyle(.secondary)
+                    Text(session.workoutName).font(.headline)
+                    HStack(spacing: DesignTokens.Spacing.xs) {
+                        Text(session.startedAt, style: .timer)
+                        if let heartRate = session.heartRate {
+                            Label {
+                                Text(heartRate, format: .number.precision(.fractionLength(0)))
+                            } icon: {
+                                Image(systemName: "heart.fill")
+                            }
+                            .accessibilityLabel(Text(.heartRateValue(Int(heartRate))))
+                        }
+                    }
+                    .font(.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
@@ -85,7 +102,7 @@ struct ActiveSessionView: View {
             }
         }
         .sheet(isPresented: $showsOverview) {
-            SessionOverviewSheet(controller: controller)
+            SessionOverviewSheet(session: session)
         }
     }
 }
