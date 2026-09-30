@@ -14,7 +14,7 @@ struct ExerciseProgressView: View {
     var body: some View {
         let entries = appModel.log.performed(exerciseID: route.exerciseID)
             .filter { range.contains($0.session?.startedAt ?? .distantPast, now: .now) }
-        let stats = ExerciseStats(results: entries.map(\.result))
+        let stats = ExerciseStats(results: appModel.log.results(of: entries))
 
         List {
             Section {

@@ -22,6 +22,10 @@ public enum DesignTokens {
         public static let restRingLineWidth: Double = 14
         public static let celebrationMark: Double = 120
         public static let minimumTapTarget: Double = 44
+        /// Watch counterparts of the sizes above.
+        public static let watchRestRing: Double = 110
+        public static let watchRestRingLineWidth: Double = 9
+        public static let watchCelebrationMark: Double = 64
     }
 
     public enum Motion {

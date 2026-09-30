@@ -1,0 +1,50 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "widgetDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start the Workout that's next in your Rotation."
+          }
+        }
+      }
+    },
+    "widgetDisplayName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next Up"
+          }
+        }
+      }
+    },
+    "widgetNextUp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next Up"
+          }
+        }
+      }
+    },
+    "widgetNoWorkout": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan on iPhone"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -224,4 +224,44 @@ struct SessionEngineTests {
         #expect(result == ExerciseResult(date: start, target: bench.target, sets: engine.exercises[0].sets))
         #expect(Progression.isTargetHit(result))
     }
+
+    @Test func skippingASetInASupersetMovesToThePartnerWithoutRestAndIsNotOwedAgain() {
+        let pair = UUID()
+        let a = exercise("A", sets: 2, superset: pair)
+        let b = exercise("B", sets: 2, superset: pair)
+        var engine = SessionEngine(exercises: [a, b])
+
+        engine.skipSet(of: a.id)
+
+        #expect(engine.rest == nil)
+        #expect(engine.currentSet?.exerciseID == b.id)
+        let (order, _) = performAll(&engine)
+        #expect(order == [b.id, a.id, b.id])
+        #expect(engine.exercises[0].sets.count == 1)
+        #expect(engine.exercises[0].skippedSets == 1)
+    }
+
+    @Test func afterASkippedSetTheLastRemainingSetStillFinishesThePlannedSets() {
+        let bench = exercise("Bench Press", sets: 2)
+        var engine = SessionEngine(exercises: [bench])
+
+        engine.skipSet(of: bench.id)
+        let completed = engine.completeSet(reps: 10, weight: 50, at: start)
+
+        #expect(completed?.finishedPlannedSets == true)
+        #expect(engine.isComplete)
+    }
+
+    @Test func skippingOneHalfOfASupersetLetsThePartnerContinueAloneWithRest() {
+        let pair = UUID()
+        let a = exercise("A", sets: 2, rest: 60, superset: pair)
+        let b = exercise("B", sets: 2, rest: 90, superset: pair)
+        var engine = SessionEngine(exercises: [a, b])
+
+        engine.skip(b.id)
+        let (order, rests) = performAll(&engine)
+
+        #expect(order == [a.id, a.id])
+        #expect(rests == [90, nil])
+    }
 }

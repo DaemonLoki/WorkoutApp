@@ -1,5 +1,6 @@
 import OnlyWorkoutCore
 import OnlyWorkoutDesign
+import OnlyWorkoutStore
 import SwiftUI
 
 /// The end of every Session: the celebration, the numbers, and a card per progress moment.
@@ -16,20 +17,17 @@ struct SessionSummaryView: View {
                     .padding(.top, DesignTokens.Spacing.xl)
 
                 VStack(spacing: DesignTokens.Spacing.xs) {
-                    Text(headline)
+                    Text(summary.headline)
                         .font(.largeTitle.bold())
                         .multilineTextAlignment(.center)
-                    Text(
-                        .summaryStats(
-                            String(localized: .setCount(summary.setCount)), summary.volume.kilograms, durationText)
-                    )
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+                    Text(summary.statsLine)
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
                 }
 
                 ForEach(summary.events.enumerated(), id: \.offset) { index, event in
-                    MotivationCard(event: event, sessionID: summary.sessionID, index: index)
+                    MotivationCard(event: event, variant: summary.eventVariant(at: index))
                         .opacity(revealed ? 1 : 0)
                         .offset(y: revealed || reduceMotion ? 0 : DesignTokens.Spacing.m)
                         .animation(
@@ -50,18 +48,5 @@ struct SessionSummaryView: View {
             .accessibilityIdentifier("summaryDoneButton")
         }
         .onAppear { revealed = true }
-    }
-
-    private var headline: LocalizedStringResource {
-        switch Motivation.variant(for: summary.sessionID, salt: 0, count: 3) {
-        case 0: .summaryHeadline0(summary.workoutName)
-        case 1: .summaryHeadline1(summary.workoutName)
-        default: .summaryHeadline2(summary.workoutName)
-        }
-    }
-
-    private var durationText: String {
-        let allowed: Set<Duration.UnitsFormatStyle.Unit> = summary.duration < 60 ? [.seconds] : [.hours, .minutes]
-        return Duration.seconds(summary.duration).formatted(.units(allowed: allowed, width: .abbreviated))
     }
 }

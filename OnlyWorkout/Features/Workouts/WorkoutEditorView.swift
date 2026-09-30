@@ -9,6 +9,16 @@ struct WorkoutEditorView: View {
     @Query(Queries.pendingSuggestions) private var suggestions: [ProgressionSuggestion]
     @State private var showsPicker = false
     @State private var newlyAdded: PlannedExercise?
+    /// Chosen in the picker; handled once the picker has fully closed so the next presentation can show.
+    @State private var picked: Exercise?
+    @State private var linkChoice: LinkChoice?
+    @State private var showsLinkChoice = false
+
+    /// The picked Exercise already exists in other Workouts: offer to link to one of them (ADR-0006).
+    struct LinkChoice {
+        let exercise: Exercise
+        let candidates: [PlannedExercise]
+    }
 
     var body: some View {
         let planned = workout.orderedPlannedExercises
@@ -31,6 +41,24 @@ struct WorkoutEditorView: View {
                     for index in offsets { appModel.log.delete(planned[index]) }
                 }
                 Button(.addExercise, systemImage: "plus") { showsPicker = true }
+                    .confirmationDialog(
+                        Text(.linkPromptTitle(linkChoice?.exercise.name ?? "")), isPresented: $showsLinkChoice,
+                        titleVisibility: .visible, presenting: linkChoice
+                    ) { choice in
+                        ForEach(choice.candidates) { candidate in
+                            Button(
+                                .linkSameAs(candidate.workout?.name ?? "", String(localized: candidate.target.summary))
+                            ) {
+                                _ = appModel.log.add(choice.exercise, to: workout, linkedTo: candidate)
+                            }
+                        }
+                        Button(.setUpSeparately) {
+                            newlyAdded = appModel.log.add(choice.exercise, to: workout)
+                        }
+                        Button(.cancel, role: .cancel) {}
+                    } message: { _ in
+                        Text(.linkPromptMessage)
+                    }
             } header: {
                 Text(.exercises)
             } footer: {
@@ -47,13 +75,26 @@ struct WorkoutEditorView: View {
         .navigationDestination(item: $newlyAdded) { item in
             PlannedExerciseEditorView(planned: item)
         }
-        .sheet(isPresented: $showsPicker) {
+        .sheet(isPresented: $showsPicker, onDismiss: addPickedExercise) {
             NavigationStack {
                 ExerciseLibraryView { exercise in
+                    picked = exercise
                     showsPicker = false
-                    newlyAdded = appModel.log.add(exercise, to: workout)
                 }
             }
+        }
+    }
+
+    /// Adds the picked Exercise, or asks first whether to link it to the same Exercise in another Workout.
+    private func addPickedExercise() {
+        guard let exercise = picked else { return }
+        picked = nil
+        let candidates = appModel.log.linkCandidates(for: exercise, excluding: workout)
+        if candidates.isEmpty {
+            newlyAdded = appModel.log.add(exercise, to: workout)
+        } else {
+            linkChoice = LinkChoice(exercise: exercise, candidates: candidates)
+            showsLinkChoice = true
         }
     }
 

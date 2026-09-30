@@ -1,3 +1,4 @@
+import OnlyWorkoutConnectivity
 import OnlyWorkoutDesign
 import OnlyWorkoutStore
 import SwiftUI

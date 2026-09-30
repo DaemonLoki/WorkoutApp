@@ -21,6 +21,11 @@ struct PlannedExerciseRow: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+            if planned.linkID != nil {
+                Image(systemName: "link")
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(Text(.linkedAccessibility))
+            }
             if hasPendingSuggestion {
                 Image(systemName: "arrow.up.circle.fill")
                     .foregroundStyle(.tint)

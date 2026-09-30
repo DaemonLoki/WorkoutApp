@@ -79,6 +79,7 @@ All synced records share: `id: UUID`, `createdAt`, `updatedAt` (client clock, dr
 | exerciseID | UUID | | |
 | position | Int | | order within the Workout |
 | supersetID | UUID? | nil | two adjacent Planned Exercises sharing an id form a Superset (max 2) |
+| linkID | UUID? | nil | Linked Planned Exercises (same Exercise, other Workouts) share an id and one Target — [ADR-0006](docs/adr/0006-linked-planned-exercises.md) |
 | targetSets | Int | 3 | 1…10 |
 | targetReps | Int | 10 | 1…50, **fixed number** |
 | weight | Double (kg) | 0 | current Target weight; ≥ 0 |
@@ -166,6 +167,8 @@ When a Session reaches a Planned Exercise whose last performed Session is **more
 - Step Down never goes below 0 kg (`max(0, weight − weightStep)`).
 - Thresholds (3 Sessions, 21 days) are constants in v1, not user settings.
 - Skipped Session Exercises neither count as performed (Layoff) nor as misses (Stall).
+- A Session Exercise with a skipped Set is not a Target Hit and doesn't count towards a Stall (it does count as performed for Layoff).
+- Linked Planned Exercises are one progression: their Sessions form one history for Target Hit, Stall and Layoff, an accepted Step Up/Down changes all of them, and at most one suggestion is pending per link group.
 
 ---
 
@@ -192,7 +195,8 @@ A pure `SessionEngine` (in `OnlyWorkoutCore`) turns a Workout into a queue of st
 |---|---|
 | `completeSet(reps, weight)` | Logs a Set (prefilled with Target reps/weight; adjusting is optional), starts Rest |
 | `skipRest` / `extendRest(+30 s)` | |
-| `skip(plannedExercise)` | Marks Session Exercise `skipped` |
+| `skipSet(plannedExercise)` | Passes over the current Set (e.g. machine taken): not performed, not owed again, no Rest; in a Superset the partner comes next |
+| `skip(plannedExercise)` | Marks Session Exercise `skipped`; a Superset partner continues alone with Rest after each Set |
 | `doLater(plannedExercise)` | Moves it (or its whole Superset) to the end of the queue |
 | `addExtraSet(plannedExercise)` | Appends one Set with `isExtra = true` |
 | `editSet(set, reps, weight)` | Corrects a logged Set; Target Hit is re-evaluated |
@@ -225,12 +229,14 @@ Three tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **Progress
 
 ### Workouts
 - List in Rotation order; drag to reorder, swipe to delete (soft delete), `+` to create.
-- **Workout editor**: name; Planned Exercises (reorder, delete); **Add Exercise** → picker; context menu **Superset with Next** / **Break Superset**. Planned Exercises with a pending suggestion show a small orange badge.
+- **Workout editor**: name; Planned Exercises (reorder, delete); **Add Exercise** → picker; context menu **Superset with Next** / **Break Superset**. Planned Exercises with a pending suggestion show a small orange badge; linked ones a link icon.
+- **Adding an Exercise that is already in another Workout** asks "Bench Press is already in another Workout — use the same settings?" with one button per existing setup ("Same as Push Day · 3 × 8 · 60 kg") and **Set Up Separately**. Choosing one links them (see §4).
+- **Planned Exercise editor** of a linked one shows "Linked with Push Day" and **Unlink**; every edit is applied to all linked Planned Exercises.
 - **Planned Exercise editor**: Sets (stepper), reps (stepper), weight (`TextField` bound to `Double` with `.decimalPad`, kg), Weight Step (menu: 0.5, 1, 1.25, 2, 2.5, 4, 5, 10), Rest (menu: 0:30 … 5:00).
 - **Exercises** (toolbar) → Exercise Catalog + Custom Exercises; searchable (`localizedStandardContains`), filter by Muscle Group; create/edit Custom Exercise (name, equipment, Muscle Groups).
 
 ### Active Session (full-screen cover)
-- **Set view**: Exercise name, "Set 2 of 3" (Superset: "A · Set 2 of 3"), reps and weight in huge rounded monospaced digits, tap either to adjust (steppers); full-width **Done**.
+- **Set view**: Exercise name, "Set 2 of 3" (Superset: "A · Set 2 of 3"), reps and weight in huge rounded monospaced digits, tap either to adjust (steppers); full-width **Done**; a small **Skip** menu below it with **Skip Set** and **Skip ‹Exercise›**.
 - **Rest view**: countdown ring, time remaining, **+30 s** / **Skip**; below: "Next: Lat Pulldown · 3×12 @ 55 kg". Step Up / Step Down cards slide in here.
 - Header: elapsed time, heart rate (when Watch-mirrored), per-Exercise progress dots.
 - **Overview** sheet: queue with Skip / Do later / Add Set / edit logged Sets. **End** with confirmation only if Sets remain.
@@ -261,7 +267,7 @@ Sync (Sign in with Apple / status / sign out) · Apple Health status · Strava c
 Standalone watchOS app with its own SwiftData store; works fully without the iPhone nearby.
 
 - **Home**: Next Up Workout with **Start**; other Workouts below. Read-only plans — editing Workouts is iPhone-only.
-- **Set screen**: Exercise name, "Set 2 of 3", reps and weight large; **Digital Crown adjusts reps**; weight via a secondary button; big **Done**. Heart rate small in the corner.
+- **Set screen**: Exercise name, "Set 2 of 3", reps and weight large; **Digital Crown adjusts reps**; weight via a secondary button; big **Done**. Heart rate small in the corner; a skip button in the other corner offers **Skip Set** / **Skip ‹Exercise›**.
 - **Rest screen**: countdown ring, haptic when Rest ends, "Next: Lat Pulldown 3×12 @ 55 kg" underneath; Step Up / Step Down cards appear here.
 - **Swipe left**: Session overview — Skip, Do later, Add Set, End.
 - **Summary**: celebration + key numbers.
@@ -270,7 +276,7 @@ Standalone watchOS app with its own SwiftData store; works fully without the iPh
 
 ### Phone ↔ Watch data
 - **Phone → Watch**: `updateApplicationContext` with a full plan snapshot — Exercises, Workouts, Planned Exercises, pending suggestions, and per Planned Exercise the summaries of its last 3 Sessions + last performed date (enough for the Watch to evaluate Target Hit, Stall and Layoff offline).
-- **Watch → Phone**: `transferUserInfo` (queued, guaranteed delivery) with each finished Session and any changed Planned Exercise / Progression Suggestion records.
+- **Watch → Phone**: the plan plus the Watch's Sessions of the last 14 days, sent as an immediate message when the iPhone is reachable *and* queued with `transferUserInfo`. Resent whenever the link activates, the iPhone becomes reachable, or a queued transfer fails (they can time out while the iPhone is off); merging makes repeats harmless.
 - Both directions use the **same record-level merge** as cloud sync (§10). The Watch never talks to Supabase.
 
 ---
@@ -350,9 +356,9 @@ primary key (user_id, id)
 |---|---|
 | `exercises` | `name text, equipment text, muscle_groups text[], catalog_key text, strava_exercise_type text, archived_at timestamptz` |
 | `workouts` | `name text, rotation_index int` |
-| `planned_exercises` | `workout_id uuid, exercise_id uuid, position int, superset_id uuid, target_sets int, target_reps int, weight numeric(6,2), weight_step numeric(5,2), rest_seconds int` |
+| `planned_exercises` | `workout_id uuid, exercise_id uuid, position int, superset_id uuid, link_id uuid, target_sets int, target_reps int, weight numeric(6,2), weight_step numeric(5,2), rest_seconds int` |
 | `sessions` | `workout_id uuid, workout_name text, started_at timestamptz, ended_at timestamptz, recorded_on text, strava_activity_id bigint` |
-| `session_exercises` | `session_id uuid, exercise_id uuid, planned_exercise_id uuid, exercise_name text, position int, superset_id uuid, target_sets int, target_reps int, target_weight numeric(6,2), status text` |
+| `session_exercises` | `session_id uuid, exercise_id uuid, planned_exercise_id uuid, exercise_name text, position int, superset_id uuid, target_sets int, target_reps int, target_weight numeric(6,2), status text, skipped_sets int` |
 | `sets` | `session_exercise_id uuid, number int, reps int, weight numeric(6,2), is_extra bool, completed_at timestamptz` |
 | `progression_suggestions` | `planned_exercise_id uuid, kind text, reason text, from_weight numeric(6,2), to_weight numeric(6,2), source_session_id uuid, status text, resolved_at timestamptz` |
 | `strava_connections` (M4) | `athlete_id bigint, access_token text, refresh_token text, expires_at timestamptz, auto_upload bool` — **no client read policy**; only Edge Functions (service role) touch tokens |
@@ -405,12 +411,13 @@ OnlyWorkoutWatch/               # watchOS app — com.stefanblos.OnlyWorkout.wat
   App/  Features/Home/  Features/Session/  Features/Summary/  Resources/
 OnlyWorkoutWidgets/             # iOS widget extension: Live Activity
 OnlyWorkoutWatchWidgets/        # watchOS widget extension: complication / Smart Stack
+SharedUI/                       # compiled into both apps: Localizable.xcstrings + shared wording (offers, messages, titles)
 OnlyWorkoutUITests/             # one UI test: the core Session flow
 Packages/OnlyWorkoutKit/        # local Swift package
   Sources/
     OnlyWorkoutCore/            # pure domain: value types, progression, rotation, SessionEngine, stats, RecordMerger, messages. No Apple frameworks beyond Foundation.
     OnlyWorkoutStore/           # SwiftData @Model types, mapping to Core, Exercise Catalog seeding
-    OnlyWorkoutConnectivity/    # WatchConnectivity + HealthKit workout/mirroring wrappers
+    OnlyWorkoutConnectivity/    # WorkoutRecorder (HealthKit + mirroring), PhoneWatchLink (WatchConnectivity), MirrorMessage
     OnlyWorkoutSync/            # Supabase client, auth, push/pull (iOS only — the only module importing supabase-swift)
     OnlyWorkoutDesign/          # DesignTokens, shared components (rings, number views, celebration)
     OnlyWorkoutLiveActivity/    # ActivityAttributes shared by the app and the widget extension (iOS only)
@@ -420,7 +427,7 @@ supabase/
   config.toml
   migrations/                   # schema, RLS, sync RPCs
   functions/                    # strava-connect, strava-upload, strava-disconnect, delete-account
-Config/                         # Shared.xcconfig (team, includes Secrets.xcconfig — gitignored)
+Config/                         # Shared.xcconfig (team, includes Secrets.xcconfig — gitignored), Info.plists, entitlements
 docs/adr/
 .github/workflows/ci.yml
 ```
@@ -447,7 +454,7 @@ docs/adr/
 
 | # | Question | Plan |
 |---|---|---|
-| 1 | Can the iPhone *start* a Live Activity in the background when a mirrored Watch Session begins? | Spike at the very start of M2. Fallback: start it on next foreground. |
+| 1 | ~~Can the iPhone *start* a Live Activity in the background when a mirrored Watch Session begins?~~ | **Resolved (M2):** no. ActivityKit starts Live Activities only in the foreground, except via a `LiveActivityIntent` or an ActivityKit push. The iPhone starts it the next time the app is active during a Watch Session. Push-to-start from a Supabase function is possible after M3. |
 | 2 | Exact Strava API for structured strength uploads and its exercise-type list | Verify against official docs at M4 start before writing mappings. |
 | 3 | Strava muscle map reportedly inconsistent for API uploads | Accept; muscle groups are still in the Strava payload and in our own stats. |
 
@@ -468,6 +475,8 @@ Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) fo
 - **Done when**: a full Session incl. a Superset can be run on the iPhone, a Target Hit produces a Step Up card and a Ready to Step Up row, a synthetic Stall and Layoff produce Step Downs, and the Progress chart shows the history.
 
 ### M2 — Apple Watch + Health
+**Status:** implemented on branch `m2-watch-health`. Verified in paired simulators: plan reaches the Watch, a full Session incl. Step Up runs on the Watch with the iPhone off, and the result (weights, pending Step Ups) appears on the iPhone. Not verifiable in the simulator without granting Health access: saving to Health, heart rate, mirroring to the iPhone and starting on the Watch from the iPhone — try these on devices.
+
 - Spike: open question #1.
 - watchOS app + widget extension; plan snapshot sync and Session transfer via WatchConnectivity.
 - HealthKit on both devices; Watch as primary with mirroring; iPhone as mirrored controller; Live Activity for Watch Sessions.

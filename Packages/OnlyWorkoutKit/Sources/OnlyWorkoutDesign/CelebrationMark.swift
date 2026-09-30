@@ -6,21 +6,24 @@ public struct CelebrationMark: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var ringProgress = 0.0
     @State private var showsCheck = false
+    private let size: Double
 
-    public init() {}
+    public init(size: Double = DesignTokens.Size.celebrationMark) {
+        self.size = size
+    }
 
     public var body: some View {
         ZStack {
             Circle()
                 .trim(from: 0, to: ringProgress)
-                .stroke(.tint, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                .stroke(.tint, style: StrokeStyle(lineWidth: size / 12, lineCap: .round))
                 .rotationEffect(.degrees(-90))
             Image(systemName: "checkmark")
-                .font(.system(size: DesignTokens.Size.celebrationMark * 0.4, weight: .bold, design: .rounded))
+                .font(.system(size: size * 0.4, weight: .bold, design: .rounded))
                 .foregroundStyle(.tint)
                 .symbolEffect(.drawOn, isActive: !showsCheck)
         }
-        .frame(width: DesignTokens.Size.celebrationMark, height: DesignTokens.Size.celebrationMark)
+        .frame(width: size, height: size)
         .scaleEffect(showsCheck || reduceMotion ? 1 : 0.9)
         .sensoryFeedback(.success, trigger: showsCheck)
         .accessibilityHidden(true)

@@ -18,7 +18,7 @@ public struct SessionEngine: Hashable, Codable, Sendable {
         guard let index = currentIndex else { return nil }
         let exercise = exercises[index]
         return SetPrompt(
-            exerciseID: exercise.id, setNumber: exercise.sets.count + 1, totalSets: exercise.totalSets,
+            exerciseID: exercise.id, setNumber: exercise.progress + 1, totalSets: exercise.totalSets,
             reps: exercise.target.reps, weight: exercise.sets.last?.weight ?? exercise.target.weight,
             isExtra: exercise.nextSetIsExtra)
     }
@@ -40,7 +40,7 @@ public struct SessionEngine: Hashable, Codable, Sendable {
 
         rest = restDuration(after: index).map { Rest(startedAt: date, duration: $0) }
         return CompletedSet(
-            exerciseID: exercise.id, finishedPlannedSets: !isExtra && exercise.sets.count == exercise.target.sets)
+            exerciseID: exercise.id, finishedPlannedSets: !isExtra && exercise.progress == exercise.target.sets)
     }
 
     public mutating func finishRest() {
@@ -54,6 +54,14 @@ public struct SessionEngine: Hashable, Codable, Sendable {
     /// Ends the Session; anything not performed stays pending.
     public mutating func end() {
         isEnded = true
+        rest = nil
+    }
+
+    /// Passes over the current Set of an exercise without performing it; no Rest follows.
+    public mutating func skipSet(of exerciseID: UUID) {
+        guard let index = exercises.firstIndex(where: { $0.id == exerciseID }), exercises[index].remainingSets > 0
+        else { return }
+        exercises[index].skippedSets += 1
         rest = nil
     }
 
@@ -116,7 +124,7 @@ public struct SessionEngine: Hashable, Codable, Sendable {
         guard !isEnded else { return nil }
         for block in blocks {
             let open = block.filter { exercises[$0].remainingSets > 0 }
-            if let next = open.min(by: { exercises[$0].sets.count < exercises[$1].sets.count }) {
+            if let next = open.min(by: { exercises[$0].progress < exercises[$1].progress }) {
                 return next
             }
         }
@@ -131,7 +139,7 @@ public struct SessionEngine: Hashable, Codable, Sendable {
         }
         let partnerOwesThisRound =
             next != index && block.contains(next)
-            && exercises[next].sets.count < exercises[index].sets.count
+            && exercises[next].progress < exercises[index].progress
         if partnerOwesThisRound { return nil }
         return TimeInterval(block.map { exercises[$0].restSeconds }.max() ?? exercises[index].restSeconds)
     }

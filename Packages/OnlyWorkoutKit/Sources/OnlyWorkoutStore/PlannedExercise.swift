@@ -16,6 +16,8 @@ public final class PlannedExercise {
     public var position: Int
     /// Shared by the two halves of a Superset.
     public var supersetID: UUID?
+    /// Shared by Linked Planned Exercises: same Exercise in other Workouts, one Target (ADR-0006).
+    public var linkID: UUID?
     public var targetSets: Int
     public var targetReps: Int
     /// Current Target weight in kg (Added Weight for bodyweight Exercises).
@@ -46,5 +48,18 @@ public final class PlannedExercise {
 
     public var exerciseName: String {
         exercise?.name ?? ""
+    }
+
+    /// Takes over Target, Weight Step and Rest; only touches `updatedAt` if something changed.
+    func copySettings(from source: PlannedExercise, now: Date) {
+        guard targetSets != source.targetSets || targetReps != source.targetReps || weight != source.weight
+            || weightStep != source.weightStep || restSeconds != source.restSeconds
+        else { return }
+        targetSets = source.targetSets
+        targetReps = source.targetReps
+        weight = source.weight
+        weightStep = source.weightStep
+        restSeconds = source.restSeconds
+        updatedAt = now
     }
 }

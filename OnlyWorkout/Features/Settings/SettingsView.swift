@@ -17,11 +17,7 @@ struct SettingsView: View {
                     Text(.cloudSyncFooter)
                 }
                 Section {
-                    LabeledContent {
-                        Text(.notConnected)
-                    } label: {
-                        Text(.appleHealth)
-                    }
+                    Label(.appleHealth, systemImage: "heart.text.square")
                 } footer: {
                     Text(.appleHealthFooter)
                 }

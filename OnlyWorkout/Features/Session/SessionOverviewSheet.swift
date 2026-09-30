@@ -4,7 +4,7 @@ import SwiftUI
 
 /// The whole Session at a glance: skip, do later, add a Set, or correct a logged one.
 struct SessionOverviewSheet: View {
-    let controller: SessionController
+    let session: any SessionDriver
     @Environment(\.dismiss) private var dismiss
     @State private var editing: EditedSet?
 
@@ -18,7 +18,7 @@ struct SessionOverviewSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(controller.engine.exercises) { exercise in
+                ForEach(session.engine.exercises) { exercise in
                     Section {
                         ForEach(exercise.sets.indices, id: \.self) { index in
                             let set = exercise.sets[index]
@@ -52,7 +52,7 @@ struct SessionOverviewSheet: View {
             }
             .sheet(item: $editing) { edited in
                 SetEditorSheet(set: edited.set) { reps, weight in
-                    controller.editSet(exerciseID: edited.exerciseID, at: edited.index, reps: reps, weight: weight)
+                    session.editSet(exerciseID: edited.exerciseID, at: edited.index, reps: reps, weight: weight)
                 }
             }
         }
@@ -61,10 +61,10 @@ struct SessionOverviewSheet: View {
     @ViewBuilder
     private func actions(for exercise: SessionEngine.Exercise) -> some View {
         if exercise.status == .pending {
-            Button(.doLater, systemImage: "arrow.uturn.down") { controller.doLater(exercise.id) }
-            Button(.skipExercise, systemImage: "forward") { controller.skip(exercise.id) }
+            Button(.doLater, systemImage: "arrow.uturn.down") { session.doLater(exercise.id) }
+            Button(.skipExercise, systemImage: "forward") { session.skip(exercise.id) }
         }
-        Button(.addSet, systemImage: "plus") { controller.addExtraSet(exercise.id) }
+        Button(.addSet, systemImage: "plus") { session.addExtraSet(exercise.id) }
     }
 
     private func statusText(_ status: SessionExerciseStatus) -> LocalizedStringResource {

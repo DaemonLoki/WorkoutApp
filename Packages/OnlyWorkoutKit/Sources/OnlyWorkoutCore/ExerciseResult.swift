@@ -7,12 +7,17 @@ public struct ExerciseResult: Hashable, Codable, Sendable {
     public var sets: [LoggedSet]
     /// The Planned Exercise this came from, when known; lets statistics tell apart the same Exercise in two Workouts.
     public var plannedExerciseID: UUID?
+    /// Planned Sets passed over without being performed; such a Session says nothing about a Stall.
+    public var skippedSets: Int
 
-    public init(date: Date, target: Target, sets: [LoggedSet], plannedExerciseID: UUID? = nil) {
+    public init(
+        date: Date, target: Target, sets: [LoggedSet], plannedExerciseID: UUID? = nil, skippedSets: Int = 0
+    ) {
         self.date = date
         self.target = target
         self.sets = sets
         self.plannedExerciseID = plannedExerciseID
+        self.skippedSets = skippedSets
     }
 
     /// Sets that count for progression: everything except extras.

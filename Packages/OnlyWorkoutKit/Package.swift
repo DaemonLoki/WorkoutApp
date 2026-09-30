@@ -11,12 +11,14 @@ let package = Package(
         .library(name: "OnlyWorkoutStore", targets: ["OnlyWorkoutStore"]),
         .library(name: "OnlyWorkoutDesign", targets: ["OnlyWorkoutDesign"]),
         .library(name: "OnlyWorkoutLiveActivity", targets: ["OnlyWorkoutLiveActivity"]),
+        .library(name: "OnlyWorkoutConnectivity", targets: ["OnlyWorkoutConnectivity"]),
     ],
     targets: [
         .target(name: "OnlyWorkoutCore"),
         .target(name: "OnlyWorkoutStore", dependencies: ["OnlyWorkoutCore"]),
         .target(name: "OnlyWorkoutDesign", dependencies: ["OnlyWorkoutCore"]),
         .target(name: "OnlyWorkoutLiveActivity"),
+        .target(name: "OnlyWorkoutConnectivity", dependencies: ["OnlyWorkoutCore", "OnlyWorkoutStore"]),
         .testTarget(name: "OnlyWorkoutCoreTests", dependencies: ["OnlyWorkoutCore"]),
         .testTarget(name: "OnlyWorkoutStoreTests", dependencies: ["OnlyWorkoutStore"]),
     ]

@@ -9,6 +9,7 @@ struct ProgressScreen: View {
         case exercises, sessions
     }
 
+    @Environment(AppModel.self) private var appModel
     @Query(Queries.liveSessionExercises) private var entries: [SessionExercise]
     @Query(Queries.allExercises) private var exercises: [Exercise]
     @Query(Queries.liveSessions) private var sessions: [Session]
@@ -92,7 +93,7 @@ struct ProgressScreen: View {
             let name = exercise?.name ?? entries.first?.exerciseName ?? ""
             if let muscleGroup, exercise?.muscleGroups.contains(muscleGroup) != true { return nil }
             if !searchText.isEmpty, !name.localizedStandardContains(searchText) { return nil }
-            let stats = ExerciseStats(results: entries.map(\.result))
+            let stats = ExerciseStats(results: appModel.log.results(of: entries))
             return (
                 ExerciseProgressRoute(exerciseID: exerciseID, name: name), stats,
                 stats.points.last?.date ?? .distantPast

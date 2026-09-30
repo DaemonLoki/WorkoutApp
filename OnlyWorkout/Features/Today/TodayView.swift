@@ -65,7 +65,7 @@ struct TodayView: View {
 
             if let nextUp {
                 Section {
-                    NextUpCard(workout: nextUp) { appModel.start(nextUp) }
+                    NextUpCard(workout: nextUp) { appModel.requestStart(nextUp) }
                 } header: {
                     Text(.nextUp)
                 }
@@ -76,7 +76,7 @@ struct TodayView: View {
                 Section {
                     ForEach(others) { workout in
                         Button {
-                            appModel.start(workout)
+                            appModel.requestStart(workout)
                         } label: {
                             LabeledContent {
                                 Image(systemName: "play.fill").foregroundStyle(.tint)
