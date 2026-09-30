@@ -10,6 +10,7 @@ public struct PlannedExerciseRecord: SyncRecord, Codable, Equatable, Sendable {
     public var exerciseID: UUID?
     public var position: Int
     public var supersetID: UUID?
+    public var linkID: UUID?
     public var targetSets: Int
     public var targetReps: Int
     public var weight: Double
@@ -25,6 +26,7 @@ public struct PlannedExerciseRecord: SyncRecord, Codable, Equatable, Sendable {
         exerciseID = model.exercise?.id
         position = model.position
         supersetID = model.supersetID
+        linkID = model.linkID
         targetSets = model.targetSets
         targetReps = model.targetReps
         weight = model.weight
@@ -38,6 +40,7 @@ public struct PlannedExerciseRecord: SyncRecord, Codable, Equatable, Sendable {
         model.deletedAt = deletedAt
         model.position = position
         model.supersetID = supersetID
+        model.linkID = linkID
         model.targetSets = targetSets
         model.targetReps = targetReps
         model.weight = weight

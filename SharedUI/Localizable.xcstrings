@@ -199,9 +199,7 @@
         }
       }
     },
-    "Date" : {
-
-    },
+    "Date" : {},
     "decrease" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -683,6 +681,72 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keep weight"
+          }
+        }
+      }
+    },
+    "linkedAccessibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linked with another Workout"
+          }
+        }
+      }
+    },
+    "linkedFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sets, reps, weight, Weight Step and Rest stay the same in every linked Workout, and Sessions in any of them count towards the next Step Up."
+          }
+        }
+      }
+    },
+    "linkedWith" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linked with %@"
+          }
+        }
+      }
+    },
+    "linkPromptMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use the same settings? Linked exercises stay in sync — edits and Step Ups apply to both."
+          }
+        }
+      }
+    },
+    "linkPromptTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is already in another Workout"
+          }
+        }
+      }
+    },
+    "linkSameAs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Same as %1$@ · %2$@"
           }
         }
       }
@@ -1381,6 +1445,17 @@
         }
       }
     },
+    "setUpSeparately" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set Up Separately"
+          }
+        }
+      }
+    },
     "skipExercise" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1700,6 +1775,17 @@
         }
       }
     },
+    "unlink" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlink"
+          }
+        }
+      }
+    },
     "version" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1755,9 +1841,7 @@
         }
       }
     },
-    "Weight" : {
-
-    },
+    "Weight" : {},
     "weightChange" : {
       "extractionState" : "manual",
       "localizations" : {

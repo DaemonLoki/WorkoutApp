@@ -38,13 +38,77 @@ public struct TrainingLog {
         return workout
     }
 
-    public func add(_ exercise: Exercise, to workout: Workout, now: Date = .now) -> PlannedExercise {
+    /// Adds an Exercise to a Workout, optionally linked to the same Exercise in another Workout (ADR-0006).
+    public func add(
+        _ exercise: Exercise, to workout: Workout, linkedTo source: PlannedExercise? = nil, now: Date = .now
+    ) -> PlannedExercise {
         let position = (workout.orderedPlannedExercises.last?.position ?? -1) + 1
         let planned = PlannedExercise(exercise: exercise, position: position, now: now)
         context.insert(planned)
         planned.workout = workout
         workout.updatedAt = now
+        if let source {
+            if source.linkID == nil {
+                source.linkID = UUID()
+                source.updatedAt = now
+            }
+            planned.linkID = source.linkID
+            planned.copySettings(from: source, now: now)
+        }
         return planned
+    }
+
+    /// The live Planned Exercises sharing a link with this one, itself included.
+    public func linkGroup(of planned: PlannedExercise) -> [PlannedExercise] {
+        guard let linkID = planned.linkID else { return [planned] }
+        let descriptor = FetchDescriptor<PlannedExercise>(
+            predicate: #Predicate { $0.linkID == linkID && $0.deletedAt == nil })
+        let group = (try? context.fetch(descriptor)) ?? []
+        return group.contains(planned) ? group : group + [planned]
+    }
+
+    /// The same Exercise in other live Workouts, one Planned Exercise per link group, most recently changed first.
+    public func linkCandidates(for exercise: Exercise, excluding workout: Workout) -> [PlannedExercise] {
+        let exerciseID = exercise.id
+        let matches = fetchAll(PlannedExercise.self).filter {
+            $0.deletedAt == nil && $0.exercise?.id == exerciseID && $0.workout?.id != workout.id
+                && $0.workout?.deletedAt == nil
+        }
+        var seenLinks: Set<UUID> = []
+        return matches.sorted { $0.updatedAt > $1.updatedAt }.filter { planned in
+            guard let linkID = planned.linkID else { return true }
+            return seenLinks.insert(linkID).inserted
+        }
+    }
+
+    /// Makes a Planned Exercise independent again; a group left with one member dissolves.
+    public func unlink(_ planned: PlannedExercise, now: Date = .now) {
+        guard planned.linkID != nil else { return }
+        let others = linkGroup(of: planned).filter { $0 !== planned }
+        planned.linkID = nil
+        planned.updatedAt = now
+        if others.count == 1, let last = others.first {
+            last.linkID = nil
+            last.updatedAt = now
+        }
+    }
+
+    /// Progression results for statistics; linked Planned Exercises count as one progression.
+    public func results(of entries: [SessionExercise]) -> [ExerciseResult] {
+        entries.map { entry in
+            var result = entry.result
+            if let id = entry.plannedExerciseID, let linkID = plannedExercise(id: id)?.linkID {
+                result.plannedExerciseID = linkID
+            }
+            return result
+        }
+    }
+
+    /// Writes this Planned Exercise's Target, Weight Step and Rest to every Planned Exercise linked to it.
+    public func propagateSettings(from planned: PlannedExercise, now: Date = .now) {
+        for member in linkGroup(of: planned) where member !== planned {
+            member.copySettings(from: planned, now: now)
+        }
     }
 
     /// Saves a new order for the Rotation.
@@ -64,6 +128,7 @@ public struct TrainingLog {
     }
 
     public func delete(_ planned: PlannedExercise, now: Date = .now) {
+        unlink(planned, now: now)
         planned.deletedAt = now
         planned.updatedAt = now
         if let partner = supersetPartner(of: planned) {
@@ -118,10 +183,15 @@ public struct TrainingLog {
     }
 
     /// Performed (not skipped) Session Exercises of finished, live Sessions, oldest first.
+    /// Performed Session Exercises of a Planned Exercise and everything linked to it (one shared history).
     public func performed(plannedExerciseID: UUID) -> [SessionExercise] {
-        let descriptor = FetchDescriptor<SessionExercise>(
-            predicate: #Predicate { $0.plannedExerciseID == plannedExerciseID && $0.deletedAt == nil })
-        return performed(in: (try? context.fetch(descriptor)) ?? [])
+        let ids = plannedExercise(id: plannedExerciseID).map { linkGroup(of: $0).map(\.id) } ?? [plannedExerciseID]
+        let entries = ids.flatMap { id in
+            let descriptor = FetchDescriptor<SessionExercise>(
+                predicate: #Predicate { $0.plannedExerciseID == id && $0.deletedAt == nil })
+            return (try? context.fetch(descriptor)) ?? []
+        }
+        return performed(in: entries)
     }
 
     public func performed(exerciseID: UUID) -> [SessionExercise] {
@@ -300,16 +370,20 @@ public struct TrainingLog {
     }
 
     /// A newer Session of the Planned Exercise replaces whatever was still waiting.
+    /// Linked Planned Exercises share one pending suggestion, so the whole link group is cleared.
     public func supersedePending(for plannedExerciseID: UUID, now: Date = .now) {
-        for suggestion in pendingSuggestions() where suggestion.plannedExerciseID == plannedExerciseID {
+        let ids = Set(plannedExercise(id: plannedExerciseID).map { linkGroup(of: $0).map(\.id) } ?? [plannedExerciseID])
+        for suggestion in pendingSuggestions() where ids.contains(suggestion.plannedExerciseID) {
             resolve(suggestion, as: .superseded, now: now)
         }
     }
 
     public func accept(_ suggestion: ProgressionSuggestion, now: Date = .now) {
         if let planned = plannedExercise(id: suggestion.plannedExerciseID) {
-            planned.weight = suggestion.toWeight
-            planned.updatedAt = now
+            for member in linkGroup(of: planned) {
+                member.weight = suggestion.toWeight
+                member.updatedAt = now
+            }
         }
         resolve(suggestion, as: .accepted, now: now)
         try? context.save()

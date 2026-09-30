@@ -43,6 +43,7 @@ Launch arguments: `-uiTesting` starts the iPhone app with an in-memory store, a 
 - The stored Set type is `SetEntry` because `Set` is Swift's collection; in Core the value type is `LoggedSet`.
 - `SessionRunner` wraps `SessionEngine` for a live Session: every event is saved via `TrainingLog.save` (which also stores the encoded engine so a Session resumes after termination). On iPhone the Session screen talks to a `SessionDriver`: `LocalSession` (runner + Live Activity + notification + Health) or `MirroredSession` (draws the Watch's `MirrorState`, sends `MirrorCommand`s back).
 - Every synced record carries `id`, `createdAt`, `updatedAt`, `deletedAt`; delete by setting `deletedAt`.
+- Linked Planned Exercises (ADR-0006) must stay identical: after changing a Planned Exercise's Target, Weight Step or Rest, call `TrainingLog.propagateSettings(from:)`; progression history, suggestions and `accept` already work per link group.
 - The Watch syncs only with the iPhone; only the iPhone talks to Supabase.
 
 ## Working rules

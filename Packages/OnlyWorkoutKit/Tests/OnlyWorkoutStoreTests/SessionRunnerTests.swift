@@ -91,4 +91,68 @@ struct SessionRunnerTests {
         #expect(summary.events.contains { if case .stepUp = $0 { true } else { false } })
         #expect(runner.session.endedAt != nil)
     }
+
+    // MARK: - Linked Planned Exercises
+
+    /// Adds Squat to a second Workout, linked to the Leg Day one.
+    func linkedSquat() throws -> PlannedExercise {
+        let upper = log.addWorkout(named: "Full Body")
+        let exercise = try #require(squat.exercise)
+        return log.add(exercise, to: upper, linkedTo: squat)
+    }
+
+    @Test func aLinkedPlannedExerciseStartsWithTheSameSettings() throws {
+        squat.restSeconds = 150
+
+        let linked = try linkedSquat()
+
+        #expect(linked.target == squat.target)
+        #expect(linked.weightStep == squat.weightStep)
+        #expect(linked.restSeconds == 150)
+    }
+
+    @Test func acceptingAStepUpRaisesTheWeightOfEveryLinkedPlannedExercise() throws {
+        let linked = try linkedSquat()
+        let runner = runner()
+        runner.completeSet(reps: 5, weight: 80)
+        runner.completeSet(reps: 5, weight: 80)
+
+        runner.answer(try #require(runner.offer), accept: true)
+
+        #expect(squat.weight == 82.5)
+        #expect(linked.weight == 82.5)
+    }
+
+    @Test func linkedPlannedExercisesShareOneHistorySoTheOtherWorkoutPreventsALayoff() throws {
+        let linked = try linkedSquat()
+        let legDayLongAgo = runner(startedAt: .now.addingTimeInterval(-35 * 86_400))
+        legDayLongAgo.completeSet(reps: 4, weight: 80)
+        legDayLongAgo.finish()
+        let fullBody = try #require(linked.workout)
+        let (session, engine) = log.startSession(fullBody, now: .now.addingTimeInterval(-3 * 86_400))
+        let recent = SessionRunner(session: session, engine: engine, log: log, now: { session.startedAt })
+        recent.completeSet(reps: 4, weight: 80)
+        recent.finish()
+
+        let today = runner()
+
+        #expect(today.offer == nil)
+    }
+
+    @Test func aNewSuggestionReplacesTheOneStillPendingInALinkedWorkout() throws {
+        let linked = try linkedSquat()
+        let legDay = runner()
+        legDay.completeSet(reps: 5, weight: 80)
+        legDay.completeSet(reps: 5, weight: 80)
+        legDay.answer(try #require(legDay.offer), accept: false)
+        legDay.finish()
+
+        let fullBody = try #require(linked.workout)
+        let (session, engine) = log.startSession(fullBody)
+        let runner = SessionRunner(session: session, engine: engine, log: log)
+        runner.completeSet(reps: 5, weight: 80)
+        runner.completeSet(reps: 5, weight: 80)
+
+        #expect(log.pendingSuggestions().map(\.plannedExerciseID) == [linked.id])
+    }
 }

@@ -79,6 +79,7 @@ All synced records share: `id: UUID`, `createdAt`, `updatedAt` (client clock, dr
 | exerciseID | UUID | | |
 | position | Int | | order within the Workout |
 | supersetID | UUID? | nil | two adjacent Planned Exercises sharing an id form a Superset (max 2) |
+| linkID | UUID? | nil | Linked Planned Exercises (same Exercise, other Workouts) share an id and one Target — [ADR-0006](docs/adr/0006-linked-planned-exercises.md) |
 | targetSets | Int | 3 | 1…10 |
 | targetReps | Int | 10 | 1…50, **fixed number** |
 | weight | Double (kg) | 0 | current Target weight; ≥ 0 |
@@ -166,6 +167,7 @@ When a Session reaches a Planned Exercise whose last performed Session is **more
 - Step Down never goes below 0 kg (`max(0, weight − weightStep)`).
 - Thresholds (3 Sessions, 21 days) are constants in v1, not user settings.
 - Skipped Session Exercises neither count as performed (Layoff) nor as misses (Stall).
+- Linked Planned Exercises are one progression: their Sessions form one history for Target Hit, Stall and Layoff, an accepted Step Up/Down changes all of them, and at most one suggestion is pending per link group.
 
 ---
 
@@ -225,7 +227,9 @@ Three tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **Progress
 
 ### Workouts
 - List in Rotation order; drag to reorder, swipe to delete (soft delete), `+` to create.
-- **Workout editor**: name; Planned Exercises (reorder, delete); **Add Exercise** → picker; context menu **Superset with Next** / **Break Superset**. Planned Exercises with a pending suggestion show a small orange badge.
+- **Workout editor**: name; Planned Exercises (reorder, delete); **Add Exercise** → picker; context menu **Superset with Next** / **Break Superset**. Planned Exercises with a pending suggestion show a small orange badge; linked ones a link icon.
+- **Adding an Exercise that is already in another Workout** asks "Bench Press is already in another Workout — use the same settings?" with one button per existing setup ("Same as Push Day · 3 × 8 · 60 kg") and **Set Up Separately**. Choosing one links them (see §4).
+- **Planned Exercise editor** of a linked one shows "Linked with Push Day" and **Unlink**; every edit is applied to all linked Planned Exercises.
 - **Planned Exercise editor**: Sets (stepper), reps (stepper), weight (`TextField` bound to `Double` with `.decimalPad`, kg), Weight Step (menu: 0.5, 1, 1.25, 2, 2.5, 4, 5, 10), Rest (menu: 0:30 … 5:00).
 - **Exercises** (toolbar) → Exercise Catalog + Custom Exercises; searchable (`localizedStandardContains`), filter by Muscle Group; create/edit Custom Exercise (name, equipment, Muscle Groups).
 
@@ -350,7 +354,7 @@ primary key (user_id, id)
 |---|---|
 | `exercises` | `name text, equipment text, muscle_groups text[], catalog_key text, strava_exercise_type text, archived_at timestamptz` |
 | `workouts` | `name text, rotation_index int` |
-| `planned_exercises` | `workout_id uuid, exercise_id uuid, position int, superset_id uuid, target_sets int, target_reps int, weight numeric(6,2), weight_step numeric(5,2), rest_seconds int` |
+| `planned_exercises` | `workout_id uuid, exercise_id uuid, position int, superset_id uuid, link_id uuid, target_sets int, target_reps int, weight numeric(6,2), weight_step numeric(5,2), rest_seconds int` |
 | `sessions` | `workout_id uuid, workout_name text, started_at timestamptz, ended_at timestamptz, recorded_on text, strava_activity_id bigint` |
 | `session_exercises` | `session_id uuid, exercise_id uuid, planned_exercise_id uuid, exercise_name text, position int, superset_id uuid, target_sets int, target_reps int, target_weight numeric(6,2), status text` |
 | `sets` | `session_exercise_id uuid, number int, reps int, weight numeric(6,2), is_extra bool, completed_at timestamptz` |

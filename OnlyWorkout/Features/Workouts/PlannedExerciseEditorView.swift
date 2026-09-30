@@ -6,11 +6,20 @@ import SwiftUI
 /// Target, Weight Step and Rest for one Planned Exercise.
 struct PlannedExerciseEditorView: View {
     @Bindable var planned: PlannedExercise
+    @Environment(AppModel.self) private var appModel
     @Environment(\.dismiss) private var dismiss
     @FocusState private var weightIsFocused: Bool
 
     var body: some View {
         Form {
+            if planned.linkID != nil {
+                Section {
+                    Label(.linkedWith(linkedWorkoutNames), systemImage: "link")
+                    Button(.unlink, role: .destructive) { appModel.log.unlink(planned) }
+                } footer: {
+                    Text(.linkedFooter)
+                }
+            }
             Section {
                 Stepper(value: $planned.targetSets, in: PlanDefaults.setsRange) {
                     LabeledContent {
@@ -72,9 +81,23 @@ struct PlannedExerciseEditorView: View {
                     .accessibilityIdentifier("keyboardDoneButton")
             }
         }
-        .onChange(of: planned.target) { planned.updatedAt = .now }
-        .onChange(of: planned.weightStep) { planned.updatedAt = .now }
-        .onChange(of: planned.restSeconds) { planned.updatedAt = .now }
+        .onChange(of: planned.target, settingsChanged)
+        .onChange(of: planned.weightStep, settingsChanged)
+        .onChange(of: planned.restSeconds, settingsChanged)
+    }
+
+    /// Stamps the change and keeps Linked Planned Exercises in step.
+    private func settingsChanged() {
+        planned.updatedAt = .now
+        appModel.log.propagateSettings(from: planned)
+    }
+
+    /// e.g. "Full Body and Upper Body"
+    private var linkedWorkoutNames: String {
+        appModel.log.linkGroup(of: planned)
+            .filter { $0 !== planned }
+            .compactMap { $0.workout?.name }
+            .formatted(.list(type: .and))
     }
 
     private var weightLabel: LocalizedStringResource {

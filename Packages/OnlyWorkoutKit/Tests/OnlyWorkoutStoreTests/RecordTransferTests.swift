@@ -87,4 +87,19 @@ struct RecordTransferTests {
         #expect(phone.history(plannedExerciseID: planned.id).map(\.sets) == [[LoggedSet(reps: 10, weight: 80)]])
         #expect(phone.lastStartedSession()?.recordedOn == .watch)
     }
+
+    @Test func theLinkBetweenPlannedExercisesArrivesToo() throws {
+        let legDay = phone.addWorkout(named: "Leg Day")
+        let fullBody = phone.addWorkout(named: "Full Body")
+        let squat = try squat(in: phone)
+        let original = phone.add(squat, to: legDay)
+        let linked = phone.add(squat, to: fullBody, linkedTo: original)
+
+        watch.apply(phone.exportPlan())
+
+        let received = try #require(watch.plannedExercise(id: linked.id))
+        #expect(received.linkID != nil)
+        #expect(received.linkID == original.linkID)
+        #expect(watch.linkGroup(of: received).count == 2)
+    }
 }
