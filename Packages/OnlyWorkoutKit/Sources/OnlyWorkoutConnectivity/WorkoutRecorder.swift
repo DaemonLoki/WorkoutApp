@@ -44,11 +44,17 @@ public final class WorkoutRecorder {
         [HKQuantityType(.heartRate), HKQuantityType(.activeEnergyBurned)]
     }
 
-    /// Whether the system permission sheet still has to be shown.
+    /// Whether the system permission sheet still has to be shown. An unknown status counts as "ask".
     public func needsAuthorization() async -> Bool {
         guard Self.isAvailable else { return false }
         let status = try? await store.statusForAuthorizationRequest(toShare: Self.typesToShare, read: Self.typesToRead)
-        return status == .shouldRequest
+        return status != .unnecessary
+    }
+
+    /// Health access to save workouts was granted. Without it no workout session is started:
+    /// the Session still runs, just without Health, heart rate and mirroring.
+    public var canSaveWorkouts: Bool {
+        Self.isAvailable && store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized
     }
 
     public func requestAuthorization() async {
@@ -64,8 +70,10 @@ public final class WorkoutRecorder {
     }
 
     /// Starts recording. `mirrorToCompanion` is used on the Watch so the iPhone can follow along.
-    public func start(at date: Date, mirrorToCompanion: Bool) async {
-        guard Self.isAvailable, session == nil else { return }
+    /// - Returns: Whether recording (and mirroring, if requested) started.
+    @discardableResult
+    public func start(at date: Date, mirrorToCompanion: Bool) async -> Bool {
+        guard canSaveWorkouts, session == nil else { return false }
         do {
             let session = try HKWorkoutSession(healthStore: store, configuration: configuration)
             let builder = session.associatedWorkoutBuilder()
@@ -79,13 +87,23 @@ public final class WorkoutRecorder {
             isRunning = true
             #if os(watchOS)
             if mirrorToCompanion {
-                try? await session.startMirroringToCompanionDevice()
+                try await session.startMirroringToCompanionDevice()
             }
             #endif
+            return true
         } catch {
-            session = nil
-            builder = nil
+            await discard()
+            return false
         }
+    }
+
+    /// Ends recording without saving anything to Health.
+    public func discard() async {
+        session?.end()
+        builder?.discardWorkout()
+        session = nil
+        builder = nil
+        isRunning = false
     }
 
     /// Resumes a workout session the system kept alive while the app was terminated (Watch).

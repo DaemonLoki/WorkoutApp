@@ -10,10 +10,19 @@ import WatchConnectivity
 @Observable
 @MainActor
 public final class PhoneWatchLink {
+    /// How long the iPhone waits for the Watch to take over a Session before running it itself.
+    /// The Watch ignores requests older than this, so a Session never runs on both.
+    public nonisolated static let watchStartTimeout: Duration = .seconds(8)
+
     /// A request from the iPhone to start this Workout on the Watch.
     public struct StartRequest: Codable, Sendable {
         public var workoutID: UUID
         public var requestedAt: Date
+
+        /// Still within the iPhone's wait, with a second of margin for the hand-over.
+        public func isFresh(now: Date = .now) -> Bool {
+            now.timeIntervalSince(requestedAt) < Double(PhoneWatchLink.watchStartTimeout.components.seconds) - 1
+        }
     }
 
     public private(set) var isReachable = false

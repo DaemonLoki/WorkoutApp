@@ -23,7 +23,8 @@ struct RecordTransferTests {
 
     func squat(in log: TrainingLog) throws -> Exercise {
         let key = "back-squat"
-        return try #require(try log.context.fetch(FetchDescriptor<Exercise>(predicate: #Predicate { $0.catalogKey == key })).first)
+        return try #require(
+            try log.context.fetch(FetchDescriptor<Exercise>(predicate: #Predicate { $0.catalogKey == key })).first)
     }
 
     @Test func aWorkoutAndItsPlannedExercisesArriveUnchanged() throws {

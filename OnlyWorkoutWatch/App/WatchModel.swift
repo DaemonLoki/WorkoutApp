@@ -9,8 +9,6 @@ import WidgetKit
 @Observable
 final class WatchModel {
     static let startNextUpURL = URL(string: "onlyworkout://start")
-    /// Start requests older than this are ignored (the iPhone has fallen back to running it itself).
-    static let startRequestLifetime: TimeInterval = 30
     /// Watch Sessions this recent are resent to the iPhone until it certainly has them; merging makes repeats harmless.
     static let resendWindow: TimeInterval = 14 * 86_400
 
@@ -52,6 +50,7 @@ final class WatchModel {
 
     // MARK: - Sessions
 
+    /// Starts a Session from the wrist. It runs even without Health access (then without heart rate or mirroring).
     func start(_ workout: Workout) {
         guard runner == nil else { return }
         let (session, engine) = log.startSession(workout, recordedOn: .watch)
@@ -69,13 +68,25 @@ final class WatchModel {
     }
 
     /// The iPhone launched this app to run a Session; its start request travels in the application context.
+    /// The Watch only takes over if it can mirror the Session back in time; otherwise the iPhone runs it,
+    /// so a Session never runs on both devices. (Health access is granted by starting once on the Watch.)
     func handleStartFromPhone() {
         link.receiveLatestContext()
-        guard let request = pendingStart, Date.now.timeIntervalSince(request.requestedAt) < Self.startRequestLifetime,
+        guard runner == nil, recorder.canSaveWorkouts, let request = pendingStart, request.isFresh(),
             let workout = workouts.first(where: { $0.id == request.workoutID })
         else { return }
         pendingStart = nil
-        start(workout)
+        Task {
+            let startedAt = Date.now
+            guard await recorder.start(at: startedAt, mirrorToCompanion: true) else { return }
+            guard request.isFresh(), runner == nil else {
+                await recorder.discard()
+                return
+            }
+            let (session, engine) = log.startSession(workout, recordedOn: .watch, now: startedAt)
+            run(SessionRunner(session: session, engine: engine, log: log))
+            broadcast()
+        }
     }
 
     func recoverSession() {

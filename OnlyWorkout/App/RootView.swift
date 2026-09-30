@@ -24,7 +24,7 @@ struct RootView: View {
         .sheet(item: $appModel.startingOnWatch) { workout in
             StartingOnWatchView { appModel.startOnPhone(workout) }
         }
-        .sheet(item: $appModel.healthExplanationFor) { _ in
+        .sheet(item: $appModel.healthExplanationFor, onDismiss: appModel.healthExplanationDismissed) { _ in
             HealthExplanationView { appModel.continueAfterHealthExplanation() }
         }
         .onChange(of: scenePhase) { _, phase in

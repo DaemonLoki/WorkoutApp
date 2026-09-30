@@ -3,14 +3,13 @@ import Observation
 import OnlyWorkoutConnectivity
 import OnlyWorkoutCore
 import OnlyWorkoutStore
+import UIKit
 
 /// App-wide state: which Session is running and where, plus the link to the Watch.
 @Observable
 final class AppModel {
     /// A Session untouched for this long is treated as forgotten and ended (README §6).
     static let abandonedSessionInterval: TimeInterval = 6 * 3600
-    /// How long to wait for the Watch to pick up a Session before running it on the iPhone.
-    static let watchStartTimeout: Duration = .seconds(8)
 
     let log: TrainingLog
     var activeSession: ActiveSession?
@@ -22,6 +21,8 @@ final class AppModel {
     @ObservationIgnored private let link = PhoneWatchLink()
     @ObservationIgnored private let recorder: WorkoutRecorder?
     @ObservationIgnored private var watchStartTimeout: Task<Void, Never>?
+    /// Set when the user continues past the Health explanation; the start waits until that sheet is gone.
+    @ObservationIgnored private var startAfterHealthExplanation: Workout?
 
     /// - Parameter usesHealth: `false` for UI tests, which run without Apple Health and without a Watch.
     init(log: TrainingLog, usesHealth: Bool = true) {
@@ -57,11 +58,21 @@ final class AppModel {
         }
     }
 
+    /// The user tapped Continue: close the explanation first. HealthKit presents its permission sheet
+    /// on top of whatever is showing, and fails silently if that is a sheet still being dismissed.
     func continueAfterHealthExplanation() {
-        guard let workout = healthExplanationFor else { return }
+        startAfterHealthExplanation = healthExplanationFor
         healthExplanationFor = nil
+    }
+
+    /// Called once the explanation sheet has fully disappeared.
+    func healthExplanationDismissed() {
+        guard let workout = startAfterHealthExplanation else { return }
+        startAfterHealthExplanation = nil
         Task {
             await recorder?.requestAuthorization()
+            // HealthKit's own sheet may still be animating away; presenting the Session now would fail too.
+            await UIApplication.shared.waitUntilNothingIsPresented()
             await start(workout)
         }
     }
@@ -81,7 +92,7 @@ final class AppModel {
             return
         }
         watchStartTimeout = Task { [weak self] in
-            try? await Task.sleep(for: Self.watchStartTimeout)
+            try? await Task.sleep(for: PhoneWatchLink.watchStartTimeout)
             guard !Task.isCancelled, let self, self.startingOnWatch?.id == workout.id else { return }
             self.startOnPhone(workout)
         }
