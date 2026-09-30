@@ -25,6 +25,7 @@ protocol SessionDriver: AnyObject, Observable {
     func completeSet(reps: Int, weight: Double)
     func finishRest()
     func extendRest()
+    func skipSet(of exerciseID: UUID)
     func skip(_ exerciseID: UUID)
     func doLater(_ exerciseID: UUID)
     func addExtraSet(_ exerciseID: UUID)

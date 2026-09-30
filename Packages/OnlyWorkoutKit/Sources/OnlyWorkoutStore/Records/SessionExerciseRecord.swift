@@ -16,6 +16,8 @@ public struct SessionExerciseRecord: SyncRecord, Codable, Equatable, Sendable {
     public var targetReps: Int
     public var targetWeight: Double
     public var status: String
+    /// Optional so records from an older app version still decode.
+    public var skippedSets: Int?
 
     init(_ model: SessionExercise) {
         id = model.id
@@ -32,6 +34,7 @@ public struct SessionExerciseRecord: SyncRecord, Codable, Equatable, Sendable {
         targetReps = model.targetReps
         targetWeight = model.targetWeight
         status = model.statusRaw
+        skippedSets = model.skippedSets
     }
 
     func write(to model: SessionExercise) {
@@ -47,5 +50,6 @@ public struct SessionExerciseRecord: SyncRecord, Codable, Equatable, Sendable {
         model.targetReps = targetReps
         model.targetWeight = targetWeight
         model.statusRaw = status
+        model.skippedSets = skippedSets ?? 0
     }
 }

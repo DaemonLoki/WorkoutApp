@@ -167,6 +167,7 @@ When a Session reaches a Planned Exercise whose last performed Session is **more
 - Step Down never goes below 0 kg (`max(0, weight − weightStep)`).
 - Thresholds (3 Sessions, 21 days) are constants in v1, not user settings.
 - Skipped Session Exercises neither count as performed (Layoff) nor as misses (Stall).
+- A Session Exercise with a skipped Set is not a Target Hit and doesn't count towards a Stall (it does count as performed for Layoff).
 - Linked Planned Exercises are one progression: their Sessions form one history for Target Hit, Stall and Layoff, an accepted Step Up/Down changes all of them, and at most one suggestion is pending per link group.
 
 ---
@@ -194,7 +195,8 @@ A pure `SessionEngine` (in `OnlyWorkoutCore`) turns a Workout into a queue of st
 |---|---|
 | `completeSet(reps, weight)` | Logs a Set (prefilled with Target reps/weight; adjusting is optional), starts Rest |
 | `skipRest` / `extendRest(+30 s)` | |
-| `skip(plannedExercise)` | Marks Session Exercise `skipped` |
+| `skipSet(plannedExercise)` | Passes over the current Set (e.g. machine taken): not performed, not owed again, no Rest; in a Superset the partner comes next |
+| `skip(plannedExercise)` | Marks Session Exercise `skipped`; a Superset partner continues alone with Rest after each Set |
 | `doLater(plannedExercise)` | Moves it (or its whole Superset) to the end of the queue |
 | `addExtraSet(plannedExercise)` | Appends one Set with `isExtra = true` |
 | `editSet(set, reps, weight)` | Corrects a logged Set; Target Hit is re-evaluated |
@@ -234,7 +236,7 @@ Three tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **Progress
 - **Exercises** (toolbar) → Exercise Catalog + Custom Exercises; searchable (`localizedStandardContains`), filter by Muscle Group; create/edit Custom Exercise (name, equipment, Muscle Groups).
 
 ### Active Session (full-screen cover)
-- **Set view**: Exercise name, "Set 2 of 3" (Superset: "A · Set 2 of 3"), reps and weight in huge rounded monospaced digits, tap either to adjust (steppers); full-width **Done**.
+- **Set view**: Exercise name, "Set 2 of 3" (Superset: "A · Set 2 of 3"), reps and weight in huge rounded monospaced digits, tap either to adjust (steppers); full-width **Done**; a small **Skip** menu below it with **Skip Set** and **Skip ‹Exercise›**.
 - **Rest view**: countdown ring, time remaining, **+30 s** / **Skip**; below: "Next: Lat Pulldown · 3×12 @ 55 kg". Step Up / Step Down cards slide in here.
 - Header: elapsed time, heart rate (when Watch-mirrored), per-Exercise progress dots.
 - **Overview** sheet: queue with Skip / Do later / Add Set / edit logged Sets. **End** with confirmation only if Sets remain.
@@ -265,7 +267,7 @@ Sync (Sign in with Apple / status / sign out) · Apple Health status · Strava c
 Standalone watchOS app with its own SwiftData store; works fully without the iPhone nearby.
 
 - **Home**: Next Up Workout with **Start**; other Workouts below. Read-only plans — editing Workouts is iPhone-only.
-- **Set screen**: Exercise name, "Set 2 of 3", reps and weight large; **Digital Crown adjusts reps**; weight via a secondary button; big **Done**. Heart rate small in the corner.
+- **Set screen**: Exercise name, "Set 2 of 3", reps and weight large; **Digital Crown adjusts reps**; weight via a secondary button; big **Done**. Heart rate small in the corner; a skip button in the other corner offers **Skip Set** / **Skip ‹Exercise›**.
 - **Rest screen**: countdown ring, haptic when Rest ends, "Next: Lat Pulldown 3×12 @ 55 kg" underneath; Step Up / Step Down cards appear here.
 - **Swipe left**: Session overview — Skip, Do later, Add Set, End.
 - **Summary**: celebration + key numbers.
@@ -356,7 +358,7 @@ primary key (user_id, id)
 | `workouts` | `name text, rotation_index int` |
 | `planned_exercises` | `workout_id uuid, exercise_id uuid, position int, superset_id uuid, link_id uuid, target_sets int, target_reps int, weight numeric(6,2), weight_step numeric(5,2), rest_seconds int` |
 | `sessions` | `workout_id uuid, workout_name text, started_at timestamptz, ended_at timestamptz, recorded_on text, strava_activity_id bigint` |
-| `session_exercises` | `session_id uuid, exercise_id uuid, planned_exercise_id uuid, exercise_name text, position int, superset_id uuid, target_sets int, target_reps int, target_weight numeric(6,2), status text` |
+| `session_exercises` | `session_id uuid, exercise_id uuid, planned_exercise_id uuid, exercise_name text, position int, superset_id uuid, target_sets int, target_reps int, target_weight numeric(6,2), status text, skipped_sets int` |
 | `sets` | `session_exercise_id uuid, number int, reps int, weight numeric(6,2), is_extra bool, completed_at timestamptz` |
 | `progression_suggestions` | `planned_exercise_id uuid, kind text, reason text, from_weight numeric(6,2), to_weight numeric(6,2), source_session_id uuid, status text, resolved_at timestamptz` |
 | `strava_connections` (M4) | `athlete_id bigint, access_token text, refresh_token text, expires_at timestamptz, auto_upload bool` — **no client read policy**; only Edge Functions (service role) touch tokens |

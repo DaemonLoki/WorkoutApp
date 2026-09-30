@@ -20,6 +20,8 @@ public final class SessionExercise {
     public var targetReps: Int
     public var targetWeight: Double
     public var statusRaw: String
+    /// Planned Sets passed over without being performed.
+    public var skippedSets: Int = 0
 
     @Relationship(deleteRule: .cascade, inverse: \SetEntry.sessionExercise)
     public var sets: [SetEntry] = []
@@ -59,6 +61,6 @@ public final class SessionExercise {
     public var result: ExerciseResult {
         ExerciseResult(
             date: session?.startedAt ?? createdAt, target: target, sets: orderedSets.map(\.loggedSet),
-            plannedExerciseID: plannedExerciseID)
+            plannedExerciseID: plannedExerciseID, skippedSets: skippedSets)
     }
 }

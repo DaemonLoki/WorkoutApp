@@ -17,8 +17,9 @@ public enum Progression {
     /// Whether the most recent Sessions form a Stall at `currentWeight`: all missed the Target at that weight
     /// and none beat the first one's total reps.
     /// - Parameter history: Results of the Planned Exercise, oldest first.
+    /// Sessions with a skipped Set (e.g. the machine was taken) don't count, like skipped exercises.
     public static func isStall(history: [ExerciseResult], currentWeight: Double) -> Bool {
-        let window = history.suffix(stallSessionCount)
+        let window = history.filter { $0.skippedSets == 0 }.suffix(stallSessionCount)
         guard let first = window.first, window.count == stallSessionCount,
             window.allSatisfy({ $0.target.weight == currentWeight && !isTargetHit($0) })
         else { return false }

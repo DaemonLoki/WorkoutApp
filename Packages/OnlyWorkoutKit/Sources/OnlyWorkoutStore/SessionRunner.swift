@@ -87,6 +87,16 @@ public final class SessionRunner: Identifiable {
         afterChange()
     }
 
+    /// Passes over the current Set of an exercise; if that was its last planned Set, progression is evaluated.
+    public func skipSet(of exerciseID: UUID) {
+        engine.skipSet(of: exerciseID)
+        persist()
+        if let exercise = exercise(id: exerciseID), exercise.remainingSets == 0, !exercise.sets.isEmpty {
+            evaluateProgression(for: exerciseID)
+        }
+        afterChange()
+    }
+
     public func skip(_ exerciseID: UUID) {
         engine.skip(exerciseID)
         persist()
@@ -160,7 +170,8 @@ public final class SessionRunner: Identifiable {
         guard let exercise = exercise(id: exerciseID), let planned = plannedExercise(for: exerciseID) else { return }
         evaluated.insert(exerciseID)
         let current = ExerciseResult(
-            date: session.startedAt, target: exercise.target, sets: exercise.sets, plannedExerciseID: planned.id)
+            date: session.startedAt, target: exercise.target, sets: exercise.sets, plannedExerciseID: planned.id,
+            skippedSets: exercise.skippedSets)
         let history = log.history(plannedExerciseID: planned.id) + [current]
         guard
             let suggestion = Progression.suggestion(

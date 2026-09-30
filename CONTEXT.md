@@ -57,7 +57,7 @@ The Workout the Rotation proposes for the next Session.
 _Avoid_: Today's workout, scheduled workout
 
 **Set**:
-One working round of one Exercise within a Session, recorded as reps × weight; warm-up rounds are never Sets.
+One working round of one Exercise within a Session, recorded as reps × weight; warm-up rounds are never Sets. A planned Set can be skipped (e.g. the machine is taken): it isn't performed and isn't owed again.
 _Avoid_: Round, rep (a rep is a single repetition inside a Set)
 
 **Rest**:

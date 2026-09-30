@@ -44,6 +44,7 @@ final class LocalSession: SessionDriver {
     func completeSet(reps: Int, weight: Double) { runner.completeSet(reps: reps, weight: weight) }
     func finishRest() { runner.finishRest() }
     func extendRest() { runner.extendRest() }
+    func skipSet(of exerciseID: UUID) { runner.skipSet(of: exerciseID) }
     func skip(_ exerciseID: UUID) { runner.skip(exerciseID) }
     func doLater(_ exerciseID: UUID) { runner.doLater(exerciseID) }
     func addExtraSet(_ exerciseID: UUID) { runner.addExtraSet(exerciseID) }

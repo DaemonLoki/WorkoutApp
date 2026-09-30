@@ -42,7 +42,9 @@ struct ActiveSessionView: View {
                 SetView(
                     prompt: prompt, exerciseName: exercise.name, isSuperset: exercise.supersetID != nil,
                     usesAddedWeight: session.usesAddedWeight(for: exercise.id),
-                    weightStep: session.weightStep(for: exercise.id)
+                    weightStep: session.weightStep(for: exercise.id),
+                    onSkipSet: { session.skipSet(of: exercise.id) },
+                    onSkipExercise: { session.skip(exercise.id) }
                 ) { reps, weight in
                     session.completeSet(reps: reps, weight: weight)
                 }

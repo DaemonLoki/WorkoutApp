@@ -1456,6 +1456,17 @@
         }
       }
     },
+    "skip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
+          }
+        }
+      }
+    },
     "skipExercise" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1467,6 +1478,17 @@
         }
       }
     },
+    "skipExerciseNamed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip %@"
+          }
+        }
+      }
+    },
     "skipRest" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1474,6 +1496,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Skip Rest"
+          }
+        }
+      }
+    },
+    "skipSet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip Set"
           }
         }
       }

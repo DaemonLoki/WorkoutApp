@@ -9,14 +9,18 @@ struct WatchSetView: View {
     let isSuperset: Bool
     let weightStep: Double
     let heartRate: Double?
+    let onSkipSet: () -> Void
+    let onSkipExercise: () -> Void
     let onDone: (_ reps: Int, _ weight: Double) -> Void
 
     @State private var crownReps: Double
     @State private var weight: Double
     @State private var editsWeight = false
+    @State private var choosesSkip = false
 
     init(
         prompt: SessionEngine.SetPrompt, exerciseName: String, isSuperset: Bool, weightStep: Double, heartRate: Double?,
+        onSkipSet: @escaping () -> Void, onSkipExercise: @escaping () -> Void,
         onDone: @escaping (_ reps: Int, _ weight: Double) -> Void
     ) {
         self.prompt = prompt
@@ -24,6 +28,8 @@ struct WatchSetView: View {
         self.isSuperset = isSuperset
         self.weightStep = weightStep
         self.heartRate = heartRate
+        self.onSkipSet = onSkipSet
+        self.onSkipExercise = onSkipExercise
         self.onDone = onDone
         _crownReps = State(initialValue: Double(prompt.reps))
         _weight = State(initialValue: prompt.weight)
@@ -62,6 +68,13 @@ struct WatchSetView: View {
                 .buttonStyle(.borderedProminent)
         }
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(.skip, systemImage: "forward") { choosesSkip = true }
+                    .confirmationDialog(Text(.skip), isPresented: $choosesSkip) {
+                        Button(.skipSet, action: onSkipSet)
+                        Button(.skipExerciseNamed(exerciseName), action: onSkipExercise)
+                    }
+            }
             if let heartRate {
                 ToolbarItem(placement: .topBarTrailing) {
                     Label {

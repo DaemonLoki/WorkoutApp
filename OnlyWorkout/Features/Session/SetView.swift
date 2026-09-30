@@ -9,6 +9,8 @@ struct SetView: View {
     let isSuperset: Bool
     let usesAddedWeight: Bool
     let weightStep: Double
+    let onSkipSet: () -> Void
+    let onSkipExercise: () -> Void
     let onDone: (_ reps: Int, _ weight: Double) -> Void
 
     @State private var reps: Int
@@ -16,13 +18,16 @@ struct SetView: View {
 
     init(
         prompt: SessionEngine.SetPrompt, exerciseName: String, isSuperset: Bool, usesAddedWeight: Bool,
-        weightStep: Double, onDone: @escaping (_ reps: Int, _ weight: Double) -> Void
+        weightStep: Double, onSkipSet: @escaping () -> Void, onSkipExercise: @escaping () -> Void,
+        onDone: @escaping (_ reps: Int, _ weight: Double) -> Void
     ) {
         self.prompt = prompt
         self.exerciseName = exerciseName
         self.isSuperset = isSuperset
         self.usesAddedWeight = usesAddedWeight
         self.weightStep = weightStep
+        self.onSkipSet = onSkipSet
+        self.onSkipExercise = onSkipExercise
         self.onDone = onDone
         _reps = State(initialValue: prompt.reps)
         _weight = State(initialValue: prompt.weight)
@@ -67,6 +72,15 @@ struct SetView: View {
             .buttonStyle(.glassProminent)
             .controlSize(.extraLarge)
             .accessibilityIdentifier("doneButton")
+
+            Menu {
+                Button(.skipSet, systemImage: "forward", action: onSkipSet)
+                Button(.skipExerciseNamed(exerciseName), systemImage: "forward.end", action: onSkipExercise)
+            } label: {
+                Text(.skip)
+                    .frame(minWidth: DesignTokens.Size.minimumTapTarget, minHeight: DesignTokens.Size.minimumTapTarget)
+            }
+            .accessibilityIdentifier("skipMenu")
         }
     }
 }

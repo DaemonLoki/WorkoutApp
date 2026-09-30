@@ -59,6 +59,7 @@ public enum MirrorCommand: Codable, Sendable {
     case completeSet(reps: Int, weight: Double)
     case finishRest
     case extendRest
+    case skipSet(UUID)
     case skip(UUID)
     case doLater(UUID)
     case addExtraSet(UUID)
@@ -73,6 +74,7 @@ extension SessionRunner {
         case .completeSet(let reps, let weight): completeSet(reps: reps, weight: weight)
         case .finishRest: finishRest()
         case .extendRest: extendRest()
+        case .skipSet(let id): skipSet(of: id)
         case .skip(let id): skip(id)
         case .doLater(let id): doLater(id)
         case .addExtraSet(let id): addExtraSet(id)

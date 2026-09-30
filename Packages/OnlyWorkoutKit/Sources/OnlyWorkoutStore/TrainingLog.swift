@@ -279,6 +279,7 @@ public struct TrainingLog {
             update(\.position, position)
             update(\.targetWeight, exercise.target.weight)
             update(\.statusRaw, exercise.status.rawValue)
+            update(\.skippedSets, exercise.skippedSets)
 
             let stored = entry.orderedSets
             for (index, set) in exercise.sets.enumerated() {

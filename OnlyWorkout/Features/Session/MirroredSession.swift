@@ -36,6 +36,7 @@ final class MirroredSession: SessionDriver {
     func completeSet(reps: Int, weight: Double) { send(.completeSet(reps: reps, weight: weight)) }
     func finishRest() { send(.finishRest) }
     func extendRest() { send(.extendRest) }
+    func skipSet(of exerciseID: UUID) { send(.skipSet(exerciseID)) }
     func skip(_ exerciseID: UUID) { send(.skip(exerciseID)) }
     func doLater(_ exerciseID: UUID) { send(.doLater(exerciseID)) }
     func addExtraSet(_ exerciseID: UUID) { send(.addExtraSet(exerciseID)) }

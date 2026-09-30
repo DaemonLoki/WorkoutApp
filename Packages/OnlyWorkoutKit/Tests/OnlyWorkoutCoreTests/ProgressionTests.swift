@@ -140,4 +140,13 @@ struct ProgressionTests {
         #expect(afterThreeWeeks == nil)
         #expect(neverPerformed == nil)
     }
+
+    @Test func aSessionWithASkippedSetIsNeitherATargetHitNorCountedTowardsAStall() {
+        var skippedOne = session([12, 12])
+        skippedOne.skippedSets = 1
+        let history = [session([10, 10, 10]), skippedOne, session([10, 10, 9])]
+
+        #expect(!Progression.isTargetHit(skippedOne))
+        #expect(Progression.suggestion(history: history, currentWeight: 40, weightStep: 2.5) == nil)
+    }
 }

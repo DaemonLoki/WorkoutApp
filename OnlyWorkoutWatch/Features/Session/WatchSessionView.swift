@@ -19,7 +19,8 @@ struct WatchSessionView: View {
             WatchSummaryView(summary: summary) { model.closeSession() }
         } else {
             TabView(selection: $page) {
-                current.tag(Page.current)
+                // The navigation container lets the Set screen show its toolbar (skip, heart rate).
+                NavigationStack { current }.tag(Page.current)
                 WatchOverviewView(runner: runner) {
                     model.finish()
                 }
@@ -44,7 +45,9 @@ struct WatchSessionView: View {
         } else if let prompt = runner.engine.currentSet, let exercise = runner.exercise(id: prompt.exerciseID) {
             WatchSetView(
                 prompt: prompt, exerciseName: exercise.name, isSuperset: exercise.supersetID != nil,
-                weightStep: runner.weightStep(for: exercise.id), heartRate: model.recorder.heartRate
+                weightStep: runner.weightStep(for: exercise.id), heartRate: model.recorder.heartRate,
+                onSkipSet: { runner.skipSet(of: exercise.id) },
+                onSkipExercise: { runner.skip(exercise.id) }
             ) { reps, weight in
                 runner.completeSet(reps: reps, weight: weight)
             }
