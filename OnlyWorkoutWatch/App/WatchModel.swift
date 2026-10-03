@@ -114,7 +114,9 @@ final class WatchModel {
     /// Queues the plan (answered suggestions, changed weights) and recent Watch Sessions for the iPhone.
     private func sendToPhone() {
         var batch = log.exportPlan()
-        batch.merge(log.exportSessions(log.finishedSessions(recordedOn: .watch, since: .now.addingTimeInterval(-Self.resendWindow))))
+        batch.merge(
+            log.exportSessions(
+                log.finishedSessions(recordedOn: .watch, since: .now.addingTimeInterval(-Self.resendWindow))))
         link.send(batch)
     }
 
@@ -133,7 +135,8 @@ final class WatchModel {
 
     /// Sends the current state to the iPhone, which mirrors it.
     private func broadcast() {
-        guard let runner, let data = MirrorMessage.state(MirrorState(runner: runner, heartRate: recorder.heartRate)).encoded()
+        guard let runner,
+            let data = MirrorMessage.state(MirrorState(runner: runner, heartRate: recorder.heartRate)).encoded()
         else { return }
         Task { await recorder.send(data) }
     }

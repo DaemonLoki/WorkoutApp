@@ -49,7 +49,11 @@ public struct MirrorState: Codable, Equatable, Sendable {
         loggedSetCount = runner.loggedSetCount
         exercises = Dictionary(
             uniqueKeysWithValues: runner.engine.exercises.map {
-                ($0.id, ExerciseInfo(weightStep: runner.weightStep(for: $0.id), usesAddedWeight: runner.usesAddedWeight(for: $0.id)))
+                (
+                    $0.id,
+                    ExerciseInfo(
+                        weightStep: runner.weightStep(for: $0.id), usesAddedWeight: runner.usesAddedWeight(for: $0.id))
+                )
             })
     }
 }
@@ -78,7 +82,8 @@ extension SessionRunner {
         case .skip(let id): skip(id)
         case .doLater(let id): doLater(id)
         case .addExtraSet(let id): addExtraSet(id)
-        case .editSet(let id, let index, let reps, let weight): editSet(exerciseID: id, at: index, reps: reps, weight: weight)
+        case .editSet(let id, let index, let reps, let weight):
+            editSet(exerciseID: id, at: index, reps: reps, weight: weight)
         case .answer(let offer, let accept): answer(offer, accept: accept)
         case .finish: finish()
         }

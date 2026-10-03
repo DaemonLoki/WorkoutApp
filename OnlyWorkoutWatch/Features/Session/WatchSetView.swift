@@ -51,7 +51,8 @@ struct WatchSetView: View {
                 .focusable()
                 .digitalCrownRotation(
                     $crownReps, from: 0, through: 100, by: 1, sensitivity: .low, isContinuous: false,
-                    isHapticFeedbackEnabled: true)
+                    isHapticFeedbackEnabled: true
+                )
                 .accessibilityLabel(Text(.reps))
                 .accessibilityValue(Text(reps, format: .number))
 

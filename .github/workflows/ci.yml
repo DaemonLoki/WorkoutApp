@@ -7,8 +7,8 @@ on:
 
 jobs:
   test:
-    # Needs a runner image that ships Xcode 27; bump both lines when GitHub's images change.
-    runs-on: macos-26
+    # `xcode-27` is GitHub's macOS 27 image with Xcode 27 (in preview); bump both lines when GitHub's images change.
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
 

@@ -465,7 +465,7 @@ docs/adr/
 Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) for everything in `OnlyWorkoutCore`.
 
 ### M1 — iPhone app, local only
-**Status:** implemented on branch `m1-iphone-app`; the "Done when" flow is covered by `SessionFlowUITests`. CI is written but not yet run on GitHub.
+**Status:** merged into `main` (DaemonLoki/WorkoutApp#1); the "Done when" flow is covered by `SessionFlowUITests`.
 
 - Project bootstrap: Xcode project with iOS app, widget extension and UI-test targets (Watch targets can be added in M2); local package; `Localizable.xcstrings`; `AccentColor`; `Config/Secrets.example.xcconfig`; `.swift-format`; CI workflow (`swift test` on the package, build both apps, `swift-format lint`).
 - Core: domain types, progression rules (§4), Rotation (§5), SessionEngine (§6), stats, messages, RecordMerger — all with tests.
@@ -475,7 +475,7 @@ Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) fo
 - **Done when**: a full Session incl. a Superset can be run on the iPhone, a Target Hit produces a Step Up card and a Ready to Step Up row, a synthetic Stall and Layoff produce Step Downs, and the Progress chart shows the history.
 
 ### M2 — Apple Watch + Health
-**Status:** implemented on branch `m2-watch-health`. Verified in paired simulators: plan reaches the Watch, a full Session incl. Step Up runs on the Watch with the iPhone off, and the result (weights, pending Step Ups) appears on the iPhone. Not verifiable in the simulator without granting Health access: saving to Health, heart rate, mirroring to the iPhone and starting on the Watch from the iPhone — try these on devices.
+**Status:** merged into `main` (DaemonLoki/WorkoutApp#2). Verified in paired simulators: plan reaches the Watch, a full Session incl. Step Up runs on the Watch with the iPhone off, and the result (weights, pending Step Ups) appears on the iPhone. Not verifiable in the simulator without granting Health access: saving to Health, heart rate, mirroring to the iPhone and starting on the Watch from the iPhone — try these on devices.
 
 - Spike: open question #1.
 - watchOS app + widget extension; plan snapshot sync and Session transfer via WatchConnectivity.
