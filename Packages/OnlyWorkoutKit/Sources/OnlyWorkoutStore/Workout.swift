@@ -8,6 +8,8 @@ public final class Workout {
     public var createdAt: Date
     public var updatedAt: Date
     public var deletedAt: Date?
+    /// The `updatedAt` the cloud is known to have; local only, never synced.
+    public var syncedUpdatedAt: Date?
 
     public var name: String
     /// Position in the Rotation.

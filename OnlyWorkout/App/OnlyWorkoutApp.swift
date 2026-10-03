@@ -1,4 +1,5 @@
 import OnlyWorkoutStore
+import OnlyWorkoutSync
 import SwiftData
 import SwiftUI
 
@@ -19,8 +20,9 @@ struct OnlyWorkoutApp: App {
         if isUITesting || ProcessInfo.processInfo.arguments.contains("-sampleData") {
             SampleData.insertStarterWorkout(into: container.mainContext)
         }
-        _appModel = State(
-            initialValue: AppModel(log: TrainingLog(context: container.mainContext), usesHealth: !isUITesting))
+        let log = TrainingLog(context: container.mainContext)
+        let cloud = isUITesting ? nil : CloudSync.configured(log: log)
+        _appModel = State(initialValue: AppModel(log: log, cloud: cloud, usesHealth: !isUITesting))
     }
 
     var body: some Scene {

@@ -39,22 +39,78 @@ extension TrainingLog {
         return batch
     }
 
+    // MARK: - Cloud
+
+    /// Every record whose current version the cloud doesn't have yet, tombstones included.
+    public func pendingPush() -> RecordBatch {
+        var batch = RecordBatch()
+        batch.exercises = pending(Exercise.self).map(ExerciseRecord.init)
+        batch.workouts = pending(Workout.self).map(WorkoutRecord.init)
+        batch.plannedExercises = pending(PlannedExercise.self).map(PlannedExerciseRecord.init)
+        batch.sessions = pending(Session.self).map(SessionRecord.init)
+        batch.sessionExercises = pending(SessionExercise.self).map(SessionExerciseRecord.init)
+        batch.sets = pending(SetEntry.self).map(SetRecord.init)
+        batch.suggestions = pending(ProgressionSuggestion.self).map(SuggestionRecord.init)
+        return batch
+    }
+
+    /// Records that `sync_push` accepted; a record edited since it was exported stays pending.
+    public func markPushed(_ batch: RecordBatch) {
+        markSynced(batch.exercises, Exercise.self)
+        markSynced(batch.workouts, Workout.self)
+        markSynced(batch.plannedExercises, PlannedExercise.self)
+        markSynced(batch.sessions, Session.self)
+        markSynced(batch.sessionExercises, SessionExercise.self)
+        markSynced(batch.sets, SetEntry.self)
+        markSynced(batch.suggestions, ProgressionSuggestion.self)
+        try? context.save()
+    }
+
+    /// After signing out: the next account starts with nothing, so every record is owed again.
+    public func forgetSyncedVersions() {
+        forget(Exercise.self)
+        forget(Workout.self)
+        forget(PlannedExercise.self)
+        forget(Session.self)
+        forget(SessionExercise.self)
+        forget(SetEntry.self)
+        forget(ProgressionSuggestion.self)
+        try? context.save()
+    }
+
+    private func forget<Model: PersistentModel & IdentifiedRecord>(_ type: Model.Type) {
+        for model in fetchAll(Model.self) { model.syncedUpdatedAt = nil }
+    }
+
+    private func pending<Model: PersistentModel & IdentifiedRecord>(_ type: Model.Type) -> [Model] {
+        fetchAll(Model.self).filter { $0.syncedUpdatedAt != $0.updatedAt }
+    }
+
+    private func markSynced<Model: PersistentModel & IdentifiedRecord, Record: SyncRecord>(
+        _ records: [Record], _ type: Model.Type
+    ) {
+        let versions = Dictionary(records.map { ($0.id, $0.updatedAt) }, uniquingKeysWith: max)
+        for model in fetchAll(Model.self) {
+            if let version = versions[model.id] { model.syncedUpdatedAt = version }
+        }
+    }
+
     // MARK: - Apply
 
-    /// Merges records from another device: per record, the newer `updatedAt` wins (ADR-0001).
-    public func apply(_ batch: RecordBatch) {
+    /// Merges records from another device or the cloud: per record, the newer `updatedAt` wins (ADR-0001).
+    public func apply(_ batch: RecordBatch, fromCloud: Bool = false) {
         let exercises = upsert(
-            batch.exercises,
+            batch.exercises, fromCloud: fromCloud,
             make: { Exercise(id: $0.id, name: $0.name, equipment: .machine, muscleGroups: []) },
             write: { record, model in record.write(to: model) })
 
         let workouts = upsert(
-            batch.workouts,
+            batch.workouts, fromCloud: fromCloud,
             make: { Workout(id: $0.id, name: $0.name, rotationIndex: $0.rotationIndex) },
             write: { record, model in record.write(to: model) })
 
         upsert(
-            batch.plannedExercises,
+            batch.plannedExercises, fromCloud: fromCloud,
             make: { record in
                 // A Planned Exercise can't exist without its Exercise; skip it until the Exercise arrives.
                 record.exerciseID.flatMap { exercises[$0] }.map {
@@ -68,12 +124,12 @@ extension TrainingLog {
             })
 
         let sessions = upsert(
-            batch.sessions,
+            batch.sessions, fromCloud: fromCloud,
             make: { Session(id: $0.id, workoutID: $0.workoutID, workoutName: $0.workoutName, startedAt: $0.startedAt) },
             write: { record, model in record.write(to: model) })
 
         let sessionExercises = upsert(
-            batch.sessionExercises,
+            batch.sessionExercises, fromCloud: fromCloud,
             make: { record in
                 SessionExercise(
                     id: record.id, exerciseID: record.exerciseID, plannedExerciseID: record.plannedExerciseID,
@@ -87,7 +143,7 @@ extension TrainingLog {
             })
 
         upsert(
-            batch.sets,
+            batch.sets, fromCloud: fromCloud,
             make: { record in
                 SetEntry(
                     id: record.id, number: record.number, reps: record.reps, weight: record.weight,
@@ -99,12 +155,13 @@ extension TrainingLog {
             })
 
         upsert(
-            batch.suggestions,
+            batch.suggestions, fromCloud: fromCloud,
             make: { record in
                 ProgressionSuggestion(
                     id: record.id, plannedExerciseID: record.plannedExerciseID,
                     suggestion: WeightSuggestion(
-                        kind: .init(rawValue: record.kind) ?? .stepUp, reason: .init(rawValue: record.reason) ?? .targetHit,
+                        kind: .init(rawValue: record.kind) ?? .stepUp,
+                        reason: .init(rawValue: record.reason) ?? .targetHit,
                         fromWeight: record.fromWeight, toWeight: record.toWeight),
                     sourceSessionID: record.sourceSessionID, now: record.createdAt)
             },
@@ -114,10 +171,10 @@ extension TrainingLog {
     }
 
     /// Inserts or overwrites the winning records and returns every model of the type by id,
-    /// so children can link to their parents.
+    /// so children can link to their parents. Winners from the cloud are already synced.
     @discardableResult
     private func upsert<Model: PersistentModel & IdentifiedRecord, Record: SyncRecord>(
-        _ records: [Record], make: (Record) -> Model?, write: (Record, Model) -> Void
+        _ records: [Record], fromCloud: Bool, make: (Record) -> Model?, write: (Record, Model) -> Void
     ) -> [UUID: Model] {
         var models = Dictionary(fetchAll(Model.self).map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         let winners = RecordMerger.winners(incoming: records, existing: models.mapValues(\.updatedAt))
@@ -133,6 +190,7 @@ extension TrainingLog {
                 continue
             }
             write(record, model)
+            if fromCloud { model.syncedUpdatedAt = record.updatedAt }
         }
         return models
     }
@@ -143,9 +201,10 @@ extension TrainingLog {
 }
 
 /// Stored models that carry the sync identity and clock.
-protocol IdentifiedRecord {
+protocol IdentifiedRecord: AnyObject {
     var id: UUID { get }
     var updatedAt: Date { get }
+    var syncedUpdatedAt: Date? { get set }
 }
 
 extension Exercise: IdentifiedRecord {}

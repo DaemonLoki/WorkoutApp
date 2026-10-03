@@ -161,7 +161,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your data stays on this iPhone. Syncing with Sign in with Apple comes in a later update."
+            "value" : "Sign in with Apple to back up your Workouts and Sessions and bring them back on a new iPhone. Heart rate and other Apple Health data never leave your devices."
+          }
+        }
+      }
+    },
+    "cloudSyncUnavailableFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud Sync isn't set up in this build. Everything stays on this iPhone."
           }
         }
       }
@@ -218,6 +229,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete"
+          }
+        }
+      }
+    },
+    "deleteAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Account"
+          }
+        }
+      }
+    },
+    "deleteAccountFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account couldn't be deleted. Check your connection and try again."
+          }
+        }
+      }
+    },
+    "deleteAccountMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This deletes your account and everything synced to the cloud. Your Workouts and Sessions on this iPhone stay. Confirm with Apple to continue."
+          }
+        }
+      }
+    },
+    "deleteAccountTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Account"
           }
         }
       }
@@ -1456,6 +1511,28 @@
         }
       }
     },
+    "signInFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signing in didn't work. Check your connection and try again."
+          }
+        }
+      }
+    },
+    "signOut" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign Out"
+          }
+        }
+      }
+    },
     "skip" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1694,6 +1771,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Superset with Next"
+          }
+        }
+      }
+    },
+    "syncFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't sync; will retry"
+          }
+        }
+      }
+    },
+    "syncSignedIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signed in"
+          }
+        }
+      }
+    },
+    "syncSyncedAgo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synced %@"
+          }
+        }
+      }
+    },
+    "syncSyncing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Syncing…"
           }
         }
       }
