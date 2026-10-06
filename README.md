@@ -372,8 +372,8 @@ primary key (user_id, id)
 
 ### Configuration & secrets
 - Supabase URL + publishable key: `Config/Secrets.xcconfig` (gitignored; template `Config/Secrets.example.xcconfig` committed) → Info.plist → read at startup.
-- Edge Function secrets (Strava client secret, Apple Sign in private key): `supabase secrets set …`. Never in the repo, never in the app. `delete-account` needs `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` (the `.p8` contents) and `APPLE_CLIENT_ID` (`com.stefanblos.OnlyWorkout`).
-- Supabase Auth → Apple provider: enabled, client ID `com.stefanblos.OnlyWorkout` (native sign-in only, no secret needed). Locally the same is in `supabase/config.toml`.
+- Edge Function secrets (Strava client secret, Apple Sign in private key): `supabase secrets set …`. Never in the repo, never in the app. `delete-account` needs `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` (the `.p8` contents) and `APPLE_CLIENT_ID` (`com.stefanblos.OnlyWorkouts`).
+- Supabase Auth → Apple provider: enabled, client ID `com.stefanblos.OnlyWorkouts` (native sign-in only, no secret needed). Locally the same is in `supabase/config.toml`.
 - A build without `Secrets.xcconfig` runs local-only; Settings says Cloud Sync isn't set up.
 
 ---
@@ -406,12 +406,12 @@ Apple Health does **not** forward third-party strength workouts to Strava, so On
 
 ```
 OnlyWorkout.xcodeproj           # Xcode project using synchronized folders
-OnlyWorkout/                    # iOS app — com.stefanblos.OnlyWorkout
+OnlyWorkout/                    # iOS app — com.stefanblos.OnlyWorkouts
   App/                          # @main, root TabView, dependency setup
   Features/
     Today/  Workouts/  Exercises/  Session/  Summary/  Progress/  Settings/
   Resources/                    # Assets (AccentColor), Localizable.xcstrings, PrivacyInfo.xcprivacy
-OnlyWorkoutWatch/               # watchOS app — com.stefanblos.OnlyWorkout.watchkitapp
+OnlyWorkoutWatch/               # watchOS app — com.stefanblos.OnlyWorkouts.watchkitapp
   App/  Features/Home/  Features/Session/  Features/Summary/  Resources/
 OnlyWorkoutWidgets/             # iOS widget extension: Live Activity
 OnlyWorkoutWatchWidgets/        # watchOS widget extension: complication / Smart Stack
@@ -440,7 +440,7 @@ docs/adr/
 - Package platforms: iOS 27, watchOS 27, macOS 27 (macOS only so `swift test` runs on the host without a simulator).
 - App targets: default actor isolation `MainActor`, strict concurrency complete. `OnlyWorkoutCore` types are `Sendable` value types.
 - One type per file; folders by feature.
-- **Capabilities**: HealthKit (iOS + watchOS), Sign in with Apple (iOS), App Groups `group.com.stefanblos.OnlyWorkout` (app ↔ widgets), Background Modes → Workout processing (watchOS and iOS). Associated URL scheme `onlyworkout://` for Strava OAuth return and widget deep links.
+- **Capabilities**: HealthKit (iOS + watchOS), Sign in with Apple (iOS), App Groups `group.com.stefanblos.OnlyWorkouts` (app ↔ widgets), Background Modes → Workout processing (watchOS and iOS). Associated URL scheme `onlyworkout://` for Strava OAuth return and widget deep links.
 
 ---
 
@@ -488,7 +488,7 @@ Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) fo
 - **Done when**: with the iPhone switched off, a full Session runs on the Watch incl. Step Up prompt; it appears on the iPhone and in Health once the phone is back.
 
 ### M3 — Supabase sync
-**Status:** in progress on branch `m3-supabase-sync`. Done and tested: schema, RLS and sync RPCs (pgTAP, `supabase test db`), push/pull bookkeeping in the store, `CloudSync` against a fake backend, the Cloud JSON format, `delete-account` (auth paths checked on the local stack), Settings UI. Still to do: a hosted project with the Apple provider and secrets, then the "Done when" check on a device.
+**Status:** merged into `main`. Tested: schema, RLS and sync RPCs (pgTAP, `supabase test db`), push/pull bookkeeping in the store, `CloudSync` against a fake backend, the cloud JSON format, and `delete-account` on the local stack. The owner tried sign-in and sync with the hosted project on a device.
 
 - `supabase/` project, migrations (schema, RLS, `sync_push`, `sync_pull`), `delete-account` function.
 - Sign in with Apple, push/pull, account deletion incl. token revocation.

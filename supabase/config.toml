@@ -321,7 +321,7 @@ max_frequency = "5s"
 [auth.external.apple]
 # Native Sign in with Apple only: Supabase verifies the app's ID token, whose audience is the bundle ID.
 enabled = true
-client_id = "com.stefanblos.OnlyWorkout"
+client_id = "com.stefanblos.OnlyWorkouts"
 # Only needed for the web OAuth flow, which the app doesn't use.
 secret = ""
 redirect_uri = ""

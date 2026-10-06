@@ -32,7 +32,7 @@ supabase test db                      # pgTAP tests in supabase/tests/database (
 supabase functions serve              # serves delete-account locally
 ```
 
-The Xcode project uses **synchronized folders**: create files on disk inside a target folder and they join the target — only edit `project.pbxproj` for targets, capabilities and build settings. `SharedUI/` is compiled into both the iPhone and the Watch app. `Config/` holds `Shared.xcconfig` (team, secrets include), the Info.plists and entitlements (HealthKit; App Group `group.com.stefanblos.OnlyWorkout` for the Watch complication).
+The Xcode project uses **synchronized folders**: create files on disk inside a target folder and they join the target — only edit `project.pbxproj` for targets, capabilities and build settings. `SharedUI/` is compiled into both the iPhone and the Watch app. `Config/` holds `Shared.xcconfig` (team, secrets include), the Info.plists and entitlements (HealthKit; App Group `group.com.stefanblos.OnlyWorkouts` for the Watch complication).
 
 Launch arguments: `-uiTesting` starts the iPhone app with an in-memory store, a sample "Push Day" Workout and no Apple Health; `-sampleData` adds that Workout to the real store (handy for trying the Watch). Previews use `SampleData.previewContainer()`.
 
