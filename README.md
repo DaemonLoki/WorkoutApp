@@ -488,7 +488,7 @@ Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) fo
 - **Done when**: with the iPhone switched off, a full Session runs on the Watch incl. Step Up prompt; it appears on the iPhone and in Health once the phone is back.
 
 ### M3 — Supabase sync
-**Status:** merged into `main`. Tested: schema, RLS and sync RPCs (pgTAP, `supabase test db`), push/pull bookkeeping in the store, `CloudSync` against a fake backend, the cloud JSON format, and `delete-account` on the local stack. The owner tried sign-in and sync with the hosted project on a device.
+**Status:** merged into `main` (DaemonLoki/WorkoutApp#3). Tested: schema, RLS and sync RPCs (pgTAP, `supabase test db`), push/pull bookkeeping in the store, `CloudSync` against a fake backend, the cloud JSON format, and `delete-account` on the local stack. The owner tried sign-in and sync with the hosted project on a device.
 
 - `supabase/` project, migrations (schema, RLS, `sync_push`, `sync_pull`), `delete-account` function.
 - Sign in with Apple, push/pull, account deletion incl. token revocation.
