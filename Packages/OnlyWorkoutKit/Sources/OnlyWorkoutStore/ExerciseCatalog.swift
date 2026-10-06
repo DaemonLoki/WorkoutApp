@@ -19,6 +19,9 @@ public enum ExerciseCatalog {
         UUID.version5(namespace: namespace, name: key)
     }
 
+    /// Seeded Exercises carry this clock, so any edit that comes back from the cloud after a reinstall wins.
+    static let seedDate = Date(timeIntervalSince1970: 0)
+
     /// Inserts every catalog Exercise that isn't in the store yet.
     @MainActor
     public static func seed(into context: ModelContext) throws {
@@ -27,7 +30,7 @@ public enum ExerciseCatalog {
             context.insert(
                 Exercise(
                     id: id(forKey: entry.key), name: entry.name, equipment: entry.equipment,
-                    muscleGroups: entry.muscleGroups, catalogKey: entry.key))
+                    muscleGroups: entry.muscleGroups, catalogKey: entry.key, now: seedDate))
         }
         try context.save()
     }

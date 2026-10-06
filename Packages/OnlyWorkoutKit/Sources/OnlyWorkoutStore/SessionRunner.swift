@@ -201,7 +201,8 @@ public final class SessionRunner: Identifiable {
         else { return }
         layoffDetected.insert(exercise.id)
         let record = log.offer(suggestion, for: planned.id, from: session.id, now: now())
-        offer = SessionOffer(id: record.id, exerciseID: exercise.id, exerciseName: exercise.name, suggestion: suggestion)
+        offer = SessionOffer(
+            id: record.id, exerciseID: exercise.id, exerciseName: exercise.name, suggestion: suggestion)
     }
 
     // MARK: - Plumbing

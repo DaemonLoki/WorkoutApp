@@ -16,6 +16,7 @@
 		738DB39DBB25DAE13972D4A4 /* OnlyWorkoutLiveActivity in Frameworks */ = {isa = PBXBuildFile; productRef = BB45211D22C90D8EC18D2BF6 /* OnlyWorkoutLiveActivity */; };
 		7B67876BE17CCFC5B95DF626 /* OnlyWorkoutLiveActivity in Frameworks */ = {isa = PBXBuildFile; productRef = 992F4F6E1EFA15D50354950C /* OnlyWorkoutLiveActivity */; };
 		80D23CC5698159CB1767ED51 /* OnlyWorkoutWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = CC0878621C2B6331D2262E9F /* OnlyWorkoutWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		8943B02D4D36B1A94C06EB8C /* OnlyWorkoutSync in Frameworks */ = {isa = PBXBuildFile; productRef = E5FB046FE7E13D63E332DDA7 /* OnlyWorkoutSync */; };
 		9C7D2C4771F1824FB5E3C9CE /* OnlyWorkoutConnectivity in Frameworks */ = {isa = PBXBuildFile; productRef = 5F6CAF485CBC52AC3E2ABB7F /* OnlyWorkoutConnectivity */; };
 		CB9D8F3EEDBA6E6A00B66066 /* OnlyWorkoutDesign in Frameworks */ = {isa = PBXBuildFile; productRef = 2EEC1393FAD6CC61CA311D66 /* OnlyWorkoutDesign */; };
 		D80827BD1F9859D27F750910 /* OnlyWorkoutStore in Frameworks */ = {isa = PBXBuildFile; productRef = 8D0FE65976DF20D1EDEC047D /* OnlyWorkoutStore */; };
@@ -173,6 +174,7 @@
 				CB9D8F3EEDBA6E6A00B66066 /* OnlyWorkoutDesign in Frameworks */,
 				738DB39DBB25DAE13972D4A4 /* OnlyWorkoutLiveActivity in Frameworks */,
 				70C42F818AA6129EBA6AB2D7 /* OnlyWorkoutConnectivity in Frameworks */,
+				8943B02D4D36B1A94C06EB8C /* OnlyWorkoutSync in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -327,6 +329,7 @@
 				2EEC1393FAD6CC61CA311D66 /* OnlyWorkoutDesign */,
 				BB45211D22C90D8EC18D2BF6 /* OnlyWorkoutLiveActivity */,
 				A82E51FECF11058F5FB7D804 /* OnlyWorkoutConnectivity */,
+				E5FB046FE7E13D63E332DDA7 /* OnlyWorkoutSync */,
 			);
 			productName = OnlyWorkout;
 			productReference = C2C84D772346390C275EF56B /* OnlyWorkout.app */;
@@ -553,7 +556,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkout.watchkitapp.Widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkouts.watchkitapp.Widgets;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "watchos watchsimulator";
@@ -573,7 +576,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkout.Widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkouts.Widgets;
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
@@ -597,7 +600,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkout;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkouts;
 			};
 			name = Release;
 		};
@@ -612,13 +615,13 @@
 				INFOPLIST_KEY_CFBundleDisplayName = OnlyWorkout;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "OnlyWorkout shows your heart rate while you train.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "OnlyWorkout saves each Session to Apple Health as a strength workout.";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.stefanblos.OnlyWorkout;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.stefanblos.OnlyWorkouts;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkout.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkouts.watchkitapp;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "watchos watchsimulator";
@@ -675,7 +678,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkout.Widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkouts.Widgets;
 				SKIP_INSTALL = YES;
 			};
 			name = Release;
@@ -725,13 +728,13 @@
 				INFOPLIST_KEY_CFBundleDisplayName = OnlyWorkout;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "OnlyWorkout shows your heart rate while you train.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "OnlyWorkout saves each Session to Apple Health as a strength workout.";
-				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.stefanblos.OnlyWorkout;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.stefanblos.OnlyWorkouts;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkout.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkouts.watchkitapp;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "watchos watchsimulator";
@@ -752,7 +755,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkout.watchkitapp.Widgets;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkouts.watchkitapp.Widgets;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "watchos watchsimulator";
@@ -780,7 +783,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkout;
+				PRODUCT_BUNDLE_IDENTIFIER = com.stefanblos.OnlyWorkouts;
 			};
 			name = Debug;
 		};
@@ -898,6 +901,10 @@
 		DCB8A2B59E81A7F082FC94ED /* OnlyWorkoutDesign */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = OnlyWorkoutDesign;
+		};
+		E5FB046FE7E13D63E332DDA7 /* OnlyWorkoutSync */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OnlyWorkoutSync;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

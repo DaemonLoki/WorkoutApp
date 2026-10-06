@@ -7,8 +7,8 @@ on:
 
 jobs:
   test:
-    # Needs a runner image that ships Xcode 27; bump both lines when GitHub's images change.
-    runs-on: macos-26
+    # `xcode-27` is GitHub's macOS 27 image with Xcode 27 (in preview); bump both lines when GitHub's images change.
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
 
@@ -26,3 +26,19 @@ jobs:
 
       - name: Formatting
         run: xcrun swift-format lint --strict --recursive Packages/OnlyWorkoutKit/Sources Packages/OnlyWorkoutKit/Tests OnlyWorkout OnlyWorkoutWidgets OnlyWorkoutWatch OnlyWorkoutWatchWidgets SharedUI OnlyWorkoutUITests
+
+  database:
+    # pgTAP tests for the schema, RLS and sync RPCs; Linux because the local stack needs Docker.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start database
+        run: supabase db start
+
+      - name: pgTAP tests
+        run: supabase test db

@@ -3,19 +3,12 @@ import SwiftUI
 /// Sync, Apple Health and app information.
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppModel.self) private var appModel
 
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    LabeledContent {
-                        Text(.off)
-                    } label: {
-                        Text(.cloudSync)
-                    }
-                } footer: {
-                    Text(.cloudSyncFooter)
-                }
+                CloudSyncSection(cloud: appModel.cloud)
                 Section {
                     Label(.appleHealth, systemImage: "heart.text.square")
                 } footer: {

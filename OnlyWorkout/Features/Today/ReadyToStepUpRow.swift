@@ -18,7 +18,7 @@ struct ReadyToStepUpRow: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             Button {
-                appModel.log.accept(suggestion)
+                appModel.accept(suggestion)
                 acceptedCount += 1
             } label: {
                 Text(
@@ -29,7 +29,7 @@ struct ReadyToStepUpRow: View {
         }
         .sensoryFeedback(.success, trigger: acceptedCount)
         .swipeActions {
-            Button(.dismiss, systemImage: "xmark") { appModel.log.dismiss(suggestion) }
+            Button(.dismiss, systemImage: "xmark") { appModel.dismiss(suggestion) }
         }
     }
 

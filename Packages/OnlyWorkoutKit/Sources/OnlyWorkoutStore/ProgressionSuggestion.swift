@@ -13,6 +13,8 @@ public final class ProgressionSuggestion {
     public var createdAt: Date
     public var updatedAt: Date
     public var deletedAt: Date?
+    /// The `updatedAt` the cloud is known to have; local only, never synced.
+    public var syncedUpdatedAt: Date?
 
     public var plannedExerciseID: UUID
     public var kindRaw: String

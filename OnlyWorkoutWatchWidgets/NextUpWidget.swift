@@ -22,7 +22,7 @@ struct NextUpEntry: TimelineEntry {
 
 struct NextUpProvider: TimelineProvider {
     /// Written by the Watch app whenever the plan or Rotation changes.
-    private static let suiteName = "group.com.stefanblos.OnlyWorkout"
+    private static let suiteName = "group.com.stefanblos.OnlyWorkouts"
     private static let key = "nextUpWorkoutName"
 
     func placeholder(in context: Context) -> NextUpEntry {

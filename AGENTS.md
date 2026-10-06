@@ -26,11 +26,13 @@ xcodebuild -project OnlyWorkout.xcodeproj -scheme OnlyWorkoutWatch -destination 
 xcrun swift-format lint --strict --recursive Packages/OnlyWorkoutKit/Sources Packages/OnlyWorkoutKit/Tests OnlyWorkout OnlyWorkoutWidgets OnlyWorkoutWatch OnlyWorkoutWatchWidgets SharedUI OnlyWorkoutUITests
 xcrun swift-format format --in-place --recursive <paths>
 
-# Supabase (M3+; `brew install supabase/tap/supabase`)
+# Supabase (M3+; `brew install supabase/tap/supabase`, needs Docker)
 supabase start && supabase db reset   # local stack + migrations
+supabase test db                      # pgTAP tests in supabase/tests/database (RLS, sync_push, sync_pull)
+supabase functions serve              # serves delete-account locally
 ```
 
-The Xcode project uses **synchronized folders**: create files on disk inside a target folder and they join the target — only edit `project.pbxproj` for targets, capabilities and build settings. `SharedUI/` is compiled into both the iPhone and the Watch app. `Config/` holds `Shared.xcconfig` (team, secrets include), the Info.plists and entitlements (HealthKit; App Group `group.com.stefanblos.OnlyWorkout` for the Watch complication).
+The Xcode project uses **synchronized folders**: create files on disk inside a target folder and they join the target — only edit `project.pbxproj` for targets, capabilities and build settings. `SharedUI/` is compiled into both the iPhone and the Watch app. `Config/` holds `Shared.xcconfig` (team, secrets include), the Info.plists and entitlements (HealthKit; App Group `group.com.stefanblos.OnlyWorkouts` for the Watch complication).
 
 Launch arguments: `-uiTesting` starts the iPhone app with an in-memory store, a sample "Push Day" Workout and no Apple Health; `-sampleData` adds that Workout to the real store (handy for trying the Watch). Previews use `SampleData.previewContainer()`.
 
@@ -39,10 +41,10 @@ Launch arguments: `-uiTesting` starts the iPhone app with an in-memory store, a 
 ## Architecture in one breath
 
 - `Packages/OnlyWorkoutKit/OnlyWorkoutCore` holds **all** domain logic as pure, `Sendable` value types (progression, Rotation, `SessionEngine`, stats, `RecordMerger`, messages). Views and SwiftData models stay thin and call into it.
-- `OnlyWorkoutStore` = SwiftData models + `TrainingLog` (all reads/writes views need; feeds Core with plain values) + Exercise Catalog seed + `SessionRunner` (runs a Session on whichever device is primary) + `RecordBatch` (Codable records moved between devices; `exportPlan`/`watchSnapshot`/`apply`). `OnlyWorkoutDesign` = `DesignTokens` + shared components. `OnlyWorkoutLiveActivity` = the `ActivityAttributes` shared by app and widget extension. `OnlyWorkoutConnectivity` = `WorkoutRecorder` (HealthKit workout + mirroring channel), `PhoneWatchLink` (WatchConnectivity), `MirrorMessage` (state/commands during a mirrored Session). Later: `OnlyWorkoutSync` = Supabase, iOS only, the sole importer of `supabase-swift` (M3).
+- `OnlyWorkoutStore` = SwiftData models + `TrainingLog` (all reads/writes views need; feeds Core with plain values) + Exercise Catalog seed + `SessionRunner` (runs a Session on whichever device is primary) + `RecordBatch` (Codable records moved between devices; `exportPlan`/`watchSnapshot`/`apply`). `OnlyWorkoutDesign` = `DesignTokens` + shared components. `OnlyWorkoutLiveActivity` = the `ActivityAttributes` shared by app and widget extension. `OnlyWorkoutConnectivity` = `WorkoutRecorder` (HealthKit workout + mirroring channel), `PhoneWatchLink` (WatchConnectivity), `MirrorMessage` (state/commands during a mirrored Session). `OnlyWorkoutSync` = `CloudSync` (push then pull, account lifecycle) behind the `CloudBackend` protocol, `SupabaseBackend`, `CloudCoding` (the RPC JSON); iOS only, the sole importer of `supabase-swift`.
 - The stored Set type is `SetEntry` because `Set` is Swift's collection; in Core the value type is `LoggedSet`.
 - `SessionRunner` wraps `SessionEngine` for a live Session: every event is saved via `TrainingLog.save` (which also stores the encoded engine so a Session resumes after termination). On iPhone the Session screen talks to a `SessionDriver`: `LocalSession` (runner + Live Activity + notification + Health) or `MirroredSession` (draws the Watch's `MirrorState`, sends `MirrorCommand`s back).
-- Every synced record carries `id`, `createdAt`, `updatedAt`, `deletedAt`; delete by setting `deletedAt`.
+- Every synced record carries `id`, `createdAt`, `updatedAt`, `deletedAt`; delete by setting `deletedAt`. Stored models also keep a local-only `syncedUpdatedAt`; bumping `updatedAt` is all it takes to get a change pushed. A new column goes into the migration, the `*Record` type and its `write(to:)`; the RPCs read the columns from the table.
 - Linked Planned Exercises (ADR-0006) must stay identical: after changing a Planned Exercise's Target, Weight Step or Rest, call `TrainingLog.propagateSettings(from:)`; progression history, suggestions and `accept` already work per link group.
 - The Watch syncs only with the iPhone; only the iPhone talks to Supabase.
 

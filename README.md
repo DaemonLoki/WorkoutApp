@@ -332,12 +332,14 @@ Each device's SwiftData store is the source of truth for that device. Every feat
 Per record, **last write wins on `updatedAt`**; ties keep the existing record. Deletions are tombstones (`deletedAt`), so they merge like any other write. Implemented once in `OnlyWorkoutCore` (`RecordMerger`) and unit-tested.
 
 ### Cloud sync (M3)
-- Opt-in: **Settings → Sync → Sign in with Apple** → `supabase.auth.signInWithIdToken(provider: .apple, …)`.
-- Triggers: app launch, app foregrounded, Session finished, suggestion answered. No "sync now" button.
-- **Push**: all records with `updatedAt > lastPushAt` go in one call to the RPC `sync_push(payload jsonb)`, which upserts in dependency order inside one transaction using `ON CONFLICT (user_id, id) DO UPDATE … WHERE table.updated_at < excluded.updated_at`.
-- **Pull**: RPC `sync_pull(since timestamptz)` returns every row whose `server_updated_at > since`, across all tables. The client re-pulls with a 60 s overlap; merging is idempotent.
+- Opt-in: **Settings → Cloud Sync → Sign in with Apple** → `supabase.auth.signInWithIdToken(provider: .apple, …)` (with a SHA-256 nonce).
+- Triggers: app launch, app foregrounded, Session finished, suggestion answered, records received from the Watch. No "sync now" button. `CloudSync` runs one sync at a time; a trigger during a sync makes it run once more afterwards.
+- **Push first, then pull.** Each stored model keeps a local-only `syncedUpdatedAt`: the `updatedAt` the cloud is known to have. Every record where it differs from `updatedAt` goes in one call to the RPC `sync_push(payload jsonb)`, which upserts inside one transaction using `ON CONFLICT (user_id, id) DO UPDATE … WHERE t.updated_at < excluded.updated_at`. A per-record marker (not a `lastPushAt` cursor) is needed because Watch Sessions can reach the phone after a push with an older `updatedAt`.
+- **Pull**: RPC `sync_pull(since timestamptz)` returns every row whose `server_updated_at > since`, across all tables, plus the newest `server_updated_at` as `cursor`. The client re-pulls from `cursor − 60 s`; merging is idempotent. Pulled winners are marked as synced, so they are never pushed back.
+- Payloads are keyed by table name with snake_case columns (`CloudCoding`); dates go up as UTC with milliseconds. `healthWorkoutID` is stripped before a push.
+- Signing out or deleting the account keeps local data and forgets the cursor and every `syncedUpdatedAt`, so the next sign-in pushes everything.
 - `server_updated_at` is set by trigger (`clock_timestamp()`) and is used only as the pull cursor; `updated_at` (client) is used only for conflict resolution.
-- Exercise Catalog records use **deterministic UUIDs** (UUIDv5 of `catalogKey`), so a reinstall + sign-in merges instead of duplicating.
+- Exercise Catalog records use **deterministic UUIDs** (UUIDv5 of `catalogKey`), so a reinstall + sign-in merges instead of duplicating. They are seeded with `updatedAt` = 1970-01-01, so an edited catalog Exercise in the cloud wins over a fresh seed.
 
 ### Supabase schema sketch (`supabase/migrations/`)
 Postgres naming is `snake_case`, tables are plural, and every table has:
@@ -370,7 +372,9 @@ primary key (user_id, id)
 
 ### Configuration & secrets
 - Supabase URL + publishable key: `Config/Secrets.xcconfig` (gitignored; template `Config/Secrets.example.xcconfig` committed) → Info.plist → read at startup.
-- Edge Function secrets (Strava client secret, Apple Sign in private key): `supabase secrets set …`. Never in the repo, never in the app.
+- Edge Function secrets (Strava client secret, Apple Sign in private key): `supabase secrets set …`. Never in the repo, never in the app. `delete-account` needs `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` (the `.p8` contents) and `APPLE_CLIENT_ID` (`com.stefanblos.OnlyWorkouts`).
+- Supabase Auth → Apple provider: enabled, client ID `com.stefanblos.OnlyWorkouts` (native sign-in only, no secret needed). Locally the same is in `supabase/config.toml`.
+- A build without `Secrets.xcconfig` runs local-only; Settings says Cloud Sync isn't set up.
 
 ---
 
@@ -402,12 +406,12 @@ Apple Health does **not** forward third-party strength workouts to Strava, so On
 
 ```
 OnlyWorkout.xcodeproj           # Xcode project using synchronized folders
-OnlyWorkout/                    # iOS app — com.stefanblos.OnlyWorkout
+OnlyWorkout/                    # iOS app — com.stefanblos.OnlyWorkouts
   App/                          # @main, root TabView, dependency setup
   Features/
     Today/  Workouts/  Exercises/  Session/  Summary/  Progress/  Settings/
   Resources/                    # Assets (AccentColor), Localizable.xcstrings, PrivacyInfo.xcprivacy
-OnlyWorkoutWatch/               # watchOS app — com.stefanblos.OnlyWorkout.watchkitapp
+OnlyWorkoutWatch/               # watchOS app — com.stefanblos.OnlyWorkouts.watchkitapp
   App/  Features/Home/  Features/Session/  Features/Summary/  Resources/
 OnlyWorkoutWidgets/             # iOS widget extension: Live Activity
 OnlyWorkoutWatchWidgets/        # watchOS widget extension: complication / Smart Stack
@@ -426,6 +430,7 @@ Packages/OnlyWorkoutKit/        # local Swift package
 supabase/
   config.toml
   migrations/                   # schema, RLS, sync RPCs
+  tests/database/               # pgTAP tests (`supabase test db`)
   functions/                    # strava-connect, strava-upload, strava-disconnect, delete-account
 Config/                         # Shared.xcconfig (team, includes Secrets.xcconfig — gitignored), Info.plists, entitlements
 docs/adr/
@@ -435,13 +440,13 @@ docs/adr/
 - Package platforms: iOS 27, watchOS 27, macOS 27 (macOS only so `swift test` runs on the host without a simulator).
 - App targets: default actor isolation `MainActor`, strict concurrency complete. `OnlyWorkoutCore` types are `Sendable` value types.
 - One type per file; folders by feature.
-- **Capabilities**: HealthKit (iOS + watchOS), Sign in with Apple (iOS), App Groups `group.com.stefanblos.OnlyWorkout` (app ↔ widgets), Background Modes → Workout processing (watchOS and iOS). Associated URL scheme `onlyworkout://` for Strava OAuth return and widget deep links.
+- **Capabilities**: HealthKit (iOS + watchOS), Sign in with Apple (iOS), App Groups `group.com.stefanblos.OnlyWorkouts` (app ↔ widgets), Background Modes → Workout processing (watchOS and iOS). Associated URL scheme `onlyworkout://` for Strava OAuth return and widget deep links.
 
 ---
 
 ## 14. App Store readiness (built in from day one)
 
-- **Account deletion** in Settings: Edge Function `delete-account` deletes all rows (cascade from `auth.users`) and **revokes the Sign in with Apple token** (App Review guideline 5.1.1(v)).
+- **Account deletion** in Settings: the user confirms with Sign in with Apple once more; Edge Function `delete-account` swaps that fresh authorization code for a token, **revokes the Sign in with Apple token** (App Review guideline 5.1.1(v)), then deletes the auth user, which deletes all rows by cascade. No Apple tokens are stored. Local data stays on the device.
 - Health: purpose strings (`NSHealthShareUsageDescription`, `NSHealthUpdateUsageDescription`), Health data used only for the user's own tracking, never synced to the cloud or used for ads.
 - `PrivacyInfo.xcprivacy` for each target; privacy policy page (needed for HealthKit + accounts) before public release.
 - No secrets in the binary except the Supabase publishable key (which is public by design and protected by RLS).
@@ -465,7 +470,7 @@ docs/adr/
 Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) for everything in `OnlyWorkoutCore`.
 
 ### M1 — iPhone app, local only
-**Status:** implemented on branch `m1-iphone-app`; the "Done when" flow is covered by `SessionFlowUITests`. CI is written but not yet run on GitHub.
+**Status:** merged into `main` (DaemonLoki/WorkoutApp#1); the "Done when" flow is covered by `SessionFlowUITests`.
 
 - Project bootstrap: Xcode project with iOS app, widget extension and UI-test targets (Watch targets can be added in M2); local package; `Localizable.xcstrings`; `AccentColor`; `Config/Secrets.example.xcconfig`; `.swift-format`; CI workflow (`swift test` on the package, build both apps, `swift-format lint`).
 - Core: domain types, progression rules (§4), Rotation (§5), SessionEngine (§6), stats, messages, RecordMerger — all with tests.
@@ -475,7 +480,7 @@ Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) fo
 - **Done when**: a full Session incl. a Superset can be run on the iPhone, a Target Hit produces a Step Up card and a Ready to Step Up row, a synthetic Stall and Layoff produce Step Downs, and the Progress chart shows the history.
 
 ### M2 — Apple Watch + Health
-**Status:** implemented on branch `m2-watch-health`. Verified in paired simulators: plan reaches the Watch, a full Session incl. Step Up runs on the Watch with the iPhone off, and the result (weights, pending Step Ups) appears on the iPhone. Not verifiable in the simulator without granting Health access: saving to Health, heart rate, mirroring to the iPhone and starting on the Watch from the iPhone — try these on devices.
+**Status:** merged into `main` (DaemonLoki/WorkoutApp#2). Verified in paired simulators: plan reaches the Watch, a full Session incl. Step Up runs on the Watch with the iPhone off, and the result (weights, pending Step Ups) appears on the iPhone. Not verifiable in the simulator without granting Health access: saving to Health, heart rate, mirroring to the iPhone and starting on the Watch from the iPhone — try these on devices.
 
 - Spike: open question #1.
 - watchOS app + widget extension; plan snapshot sync and Session transfer via WatchConnectivity.
@@ -483,6 +488,8 @@ Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) fo
 - **Done when**: with the iPhone switched off, a full Session runs on the Watch incl. Step Up prompt; it appears on the iPhone and in Health once the phone is back.
 
 ### M3 — Supabase sync
+**Status:** merged into `main` (DaemonLoki/WorkoutApp#3). Tested: schema, RLS and sync RPCs (pgTAP, `supabase test db`), push/pull bookkeeping in the store, `CloudSync` against a fake backend, the cloud JSON format, and `delete-account` on the local stack. The owner tried sign-in and sync with the hosted project on a device.
+
 - `supabase/` project, migrations (schema, RLS, `sync_push`, `sync_pull`), `delete-account` function.
 - Sign in with Apple, push/pull, account deletion incl. token revocation.
 - **Done when**: delete the app, reinstall, sign in → all data returns without duplicates; rows are visible in the Supabase dashboard and nobody else's are.

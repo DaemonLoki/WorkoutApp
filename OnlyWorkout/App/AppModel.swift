@@ -3,6 +3,7 @@ import Observation
 import OnlyWorkoutConnectivity
 import OnlyWorkoutCore
 import OnlyWorkoutStore
+import OnlyWorkoutSync
 import UIKit
 
 /// App-wide state: which Session is running and where, plus the link to the Watch.
@@ -12,6 +13,8 @@ final class AppModel {
     static let abandonedSessionInterval: TimeInterval = 6 * 3600
 
     let log: TrainingLog
+    /// `nil` when this build has no Supabase configuration, and in UI tests.
+    let cloud: CloudSync?
     var activeSession: ActiveSession?
     /// The Watch has been asked to start this Workout; waiting for it to mirror back.
     var startingOnWatch: Workout?
@@ -25,19 +28,22 @@ final class AppModel {
     @ObservationIgnored private var startAfterHealthExplanation: Workout?
 
     /// - Parameter usesHealth: `false` for UI tests, which run without Apple Health and without a Watch.
-    init(log: TrainingLog, usesHealth: Bool = true) {
+    init(log: TrainingLog, cloud: CloudSync? = nil, usesHealth: Bool = true) {
         self.log = log
+        self.cloud = cloud
         recorder = usesHealth && WorkoutRecorder.isAvailable ? WorkoutRecorder() : nil
 
         link.onReceiveRecords = { [weak self] batch in
             self?.log.apply(batch)
             self?.publishToWatch()
+            self?.syncWithCloud()
         }
         link.onActivate = { [weak self] in self?.publishToWatch() }
         link.activate()
         recorder?.observeMirroredSessions { [weak self] in self?.followWatchSession() }
 
         resumeUnfinishedSession()
+        syncWithCloud()
     }
 
     // MARK: - Starting
@@ -121,15 +127,40 @@ final class AppModel {
     func closeSession() {
         activeSession = nil
         publishToWatch()
+        syncWithCloud()
     }
 
     func appDidBecomeActive() {
         activeSession?.driver.appDidBecomeActive()
         publishToWatch()
+        syncWithCloud()
     }
 
     func appDidEnterBackground() {
         publishToWatch()
+    }
+
+    // MARK: - Suggestions
+
+    func accept(_ suggestion: ProgressionSuggestion) {
+        log.accept(suggestion)
+        syncWithCloud()
+    }
+
+    func dismiss(_ suggestion: ProgressionSuggestion) {
+        log.dismiss(suggestion)
+        syncWithCloud()
+    }
+
+    // MARK: - Sync
+
+    /// Pushes and pulls when signed in (README §10), then hands whatever arrived on to the Watch.
+    func syncWithCloud() {
+        guard let cloud else { return }
+        Task {
+            await cloud.sync()
+            publishToWatch()
+        }
     }
 
     /// Sends the plan and recent history, so the Watch can run Sessions without the iPhone.
