@@ -276,7 +276,7 @@ Standalone watchOS app with its own SwiftData store; works fully without the iPh
 - Runs an `HKWorkoutSession` (`.traditionalStrengthTraining`, indoor) with `HKLiveWorkoutBuilder`: keeps the app frontmost, records heart rate & active energy, saves the workout to Health, closes Activity rings.
 
 ### Phone ↔ Watch data
-- **Phone → Watch**: `updateApplicationContext` with a full plan snapshot — Exercises, Workouts, Planned Exercises, pending suggestions, and per Planned Exercise the summaries of its last 3 Sessions + last performed date (enough for the Watch to evaluate Target Hit, Stall and Layoff offline).
+- **Phone → Watch**: `updateApplicationContext` with a full plan snapshot — Exercises, Workouts, Planned Exercises, pending suggestions, and per Planned Exercise the summaries of its last 3 Sessions + last performed date (enough for the Watch to evaluate Target Hit, Stall and Layoff offline). It also carries the tombstones of Watch-recorded Sessions deleted in the last 30 days, so the Watch can delete their Health workouts (§11).
 - **Watch → Phone**: the plan plus the Watch's Sessions of the last 14 days, sent as an immediate message when the iPhone is reachable *and* queued with `transferUserInfo`. Resent whenever the link activates, the iPhone becomes reachable, or a queued transfer fails (they can time out while the iPhone is off); merging makes repeats harmless.
 - Both directions use the **same record-level merge** as cloud sync (§10). The Watch never talks to Supabase.
 
@@ -384,7 +384,7 @@ primary key (user_id, id)
 
 - **Write only.** Each Session is saved as an `HKWorkout` (`.traditionalStrengthTraining`, indoor), including heart rate and active energy when recorded on the Watch. No workouts are read from Health.
 - Permission is requested at the **first Session start**, with a one-line explanation screen before the system sheet.
-- Deleting a Session in the app also deletes the Health workout it created.
+- Deleting a Session in the app also deletes the Health workout it created — on any device, also when the deletion arrives via sync. HealthKit lets an app delete only what it saved, so each device deletes the workouts of the Sessions it recorded: the iPhone right away (or after the next pull), the Watch when the tombstone reaches it in the plan snapshot (§8). The local `healthWorkoutID` is cleared once the workout is gone; until then a failed attempt (e.g. no Health access) is retried.
 - Health-derived values (heart rate, calories) are shown in the app but **never leave the device** (not synced to Supabase) — keeps App Review simple (§14).
 
 ---

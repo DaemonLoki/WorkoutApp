@@ -1,4 +1,3 @@
-import OnlyWorkoutConnectivity
 import OnlyWorkoutDesign
 import OnlyWorkoutStore
 import SwiftUI
@@ -42,7 +41,7 @@ struct SessionDetailView: View {
                 .confirmationDialog(Text(.deleteSessionTitle), isPresented: $confirmsDelete, titleVisibility: .visible)
             {
                 Button(.deleteSession, role: .destructive) {
-                    appModel.log.delete(session)
+                    appModel.delete(session)
                     dismiss()
                 }
             } message: {

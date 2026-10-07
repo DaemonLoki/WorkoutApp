@@ -50,6 +50,7 @@ final class AppModel {
         strava?.didUpload = { [weak self] in self?.syncWithCloud(uploadsToStrava: false) }
 
         resumeUnfinishedSession()
+        deleteHealthWorkouts()
         syncWithCloud()
     }
 
@@ -165,6 +166,23 @@ final class AppModel {
         }
     }
 
+    // MARK: - Sessions
+
+    /// Deletes a past Session everywhere: soft delete, its Health workout, the Watch's copy and the cloud.
+    func delete(_ session: Session) {
+        log.delete(session)
+        deleteHealthWorkouts()
+        publishToWatch()
+        syncWithCloud()
+    }
+
+    /// Deletes the Health workouts of deleted Sessions recorded here, wherever they were deleted.
+    /// Those recorded on the Watch are deleted by the Watch, from the tombstones in its snapshot.
+    private func deleteHealthWorkouts() {
+        guard recorder != nil else { return }
+        Task { await WorkoutRecorder.deleteWorkouts(ofDeletedSessionsIn: log, recordedOn: .phone) }
+    }
+
     // MARK: - Suggestions
 
     func accept(_ suggestion: ProgressionSuggestion) {
@@ -185,6 +203,7 @@ final class AppModel {
         guard let cloud else { return }
         Task {
             await cloud.sync()
+            deleteHealthWorkouts()
             publishToWatch()
             guard uploadsToStrava, let strava else { return }
             await strava.refresh()
