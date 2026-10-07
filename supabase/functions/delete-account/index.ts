@@ -1,5 +1,6 @@
 // Deletes the signed-in user and, by cascade, every row they own; first revokes their
-// Sign in with Apple token (App Review guideline 5.1.1(v); README §14).
+// Sign in with Apple token (App Review guideline 5.1.1(v); README §14) and, when connected, the
+// app's access to their Strava account (README §12).
 //
 // The app sends a fresh `authorization_code` from Sign in with Apple, so no Apple token is ever
 // stored. Secrets (`supabase secrets set …`): APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY (the .p8
@@ -8,6 +9,8 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
 import { withSupabase } from "@supabase/server";
 import { importPKCS8, SignJWT } from "jose";
+import { loadConnection } from "../_shared/connections.ts";
+import { revoke, stravaFromEnvironment } from "../_shared/strava.ts";
 
 const apple = "https://appleid.apple.com";
 
@@ -25,6 +28,14 @@ export default {
     if (!revocation.ok) {
       console.error("Apple token revocation failed", revocation.detail);
       return Response.json({ error: "apple_revocation_failed" }, { status: 502 });
+    }
+
+    // Best effort: the account goes either way, and its tokens with it.
+    const strava = stravaFromEnvironment();
+    const stravaConnection = await loadConnection(ctx.supabaseAdmin, userID).catch(() => undefined);
+    if (strava && stravaConnection) {
+      await revoke(strava, stravaConnection.refreshToken)
+        .catch((error) => console.error("Strava revocation failed", error));
     }
 
     const { error } = await ctx.supabaseAdmin.auth.admin.deleteUser(userID);

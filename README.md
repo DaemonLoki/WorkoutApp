@@ -19,7 +19,7 @@ Straight from the original brief:
 5. **Apple Watch controls everything**, even without the iPhone → standalone Watch app that runs full Sessions.
 6. **Progressive overload baked in** → Step Up after a Target Hit; Step Down after a Stall or Layoff.
 7. **Clear statistics** per Exercise with progression over time and filtering.
-8. **Integrations** → Sessions saved to Apple Health; Sessions (with every Set and muscle groups) uploaded to Strava.
+8. **Integrations** → Sessions saved to Apple Health; Sessions (with every Set) uploaded to Strava, which derives the muscle groups from each Set's exercise.
 9. **Technical**: native, offline-first, Watch works standalone, database reachable by other tech (future web dashboard).
 10. **Design**: minimal but functional, beautiful, enjoyable, motivating — celebrate progress with animation and specific, number-backed messages.
 
@@ -59,7 +59,7 @@ All synced records share: `id: UUID`, `createdAt`, `updatedAt` (client clock, dr
 | equipment | enum | `barbell, dumbbell, machine, cable, bodyweight, kettlebell` |
 | muscleGroups | [MuscleGroup] | primary muscle groups, 1–3 |
 | catalogKey | String? | set for Exercise Catalog entries (e.g. `barbell-back-squat`); nil for Custom Exercises |
-| stravaExerciseType | String? | mapping to Strava's exercise type (filled in M4) |
+| stravaExerciseType | String? | Strava exercise type picked for a Custom Exercise; catalog Exercises fall back to their built-in one (§12) |
 | archivedAt | Date? | "Deleting" an Exercise that has history archives it |
 
 `isBodyweight` is derived: `equipment == .bodyweight`. Weight is then **Added Weight**.
@@ -94,7 +94,8 @@ All synced records share: `id: UUID`, `createdAt`, `updatedAt` (client clock, dr
 | startedAt / endedAt | Date / Date? | `endedAt == nil` ⇒ in progress (resumable after crash) |
 | recordedOn | enum | `watch, phone` — the device that ran it |
 | healthWorkoutID | UUID? | local only, never synced (see §14) |
-| stravaActivityID | Int64? | M4 |
+| stravaUploadedAt | Date? | when the Session reached Strava; synced, so it is never uploaded twice |
+| stravaActivityID | Int64? | Strava's activity, for "View on Strava"; local only on the uploading iPhone, dropped after 7 days (§12) |
 
 ### Session Exercise (snapshot of a Planned Exercise inside a Session)
 
@@ -253,7 +254,7 @@ Celebration (§9), then: duration, Sets, volume, heart rate & calories (if recor
 - **Sessions**: history list (date, Workout, duration, Sets); detail shows every Set; edit Sets or delete the Session (also deletes its Health workout).
 
 ### Settings
-Sync (Sign in with Apple / status / sign out) · Apple Health status · Strava connect (M4) · Delete account & cloud data · About / privacy.
+Sync (Sign in with Apple / status / sign out) · Apple Health status · Strava (connect, auto-upload, disconnect) · Delete account & cloud data · About / privacy.
 
 ### Live Activity & rest notifications
 - A Live Activity runs for every Session: Lock Screen shows Workout name, current step ("Bench Press · Set 2 of 3 · 10 @ 60 kg" or Rest countdown via `Text(timerInterval:)`) and what's next; Dynamic Island compact shows the Rest countdown / Set indicator.
@@ -359,11 +360,11 @@ primary key (user_id, id)
 | `exercises` | `name text, equipment text, muscle_groups text[], catalog_key text, strava_exercise_type text, archived_at timestamptz` |
 | `workouts` | `name text, rotation_index int` |
 | `planned_exercises` | `workout_id uuid, exercise_id uuid, position int, superset_id uuid, link_id uuid, target_sets int, target_reps int, weight numeric(6,2), weight_step numeric(5,2), rest_seconds int` |
-| `sessions` | `workout_id uuid, workout_name text, started_at timestamptz, ended_at timestamptz, recorded_on text, strava_activity_id bigint` |
+| `sessions` | `workout_id uuid, workout_name text, started_at timestamptz, ended_at timestamptz, recorded_on text, strava_uploaded_at timestamptz` |
 | `session_exercises` | `session_id uuid, exercise_id uuid, planned_exercise_id uuid, exercise_name text, position int, superset_id uuid, target_sets int, target_reps int, target_weight numeric(6,2), status text, skipped_sets int` |
 | `sets` | `session_exercise_id uuid, number int, reps int, weight numeric(6,2), is_extra bool, completed_at timestamptz` |
 | `progression_suggestions` | `planned_exercise_id uuid, kind text, reason text, from_weight numeric(6,2), to_weight numeric(6,2), source_session_id uuid, status text, resolved_at timestamptz` |
-| `strava_connections` (M4) | `athlete_id bigint, access_token text, refresh_token text, expires_at timestamptz, auto_upload bool` — **no client read policy**; only Edge Functions (service role) touch tokens |
+| `strava_connections` (M4) | `user_id uuid` (primary key), `athlete_id bigint unique, access_token text, refresh_token text, expires_at timestamptz, scope text, auto_upload bool, created_at, updated_at` — not synced and **no client access at all**; only Edge Functions (service role) touch it. The app reads `strava_connection()` (connected since, auto-upload) and calls `set_strava_auto_upload(bool)` |
 
 - **Row Level Security** on every table: `using (user_id = auth.uid()) with check (user_id = auth.uid())`.
 - Cross-table references are plain columns (no FK constraints between synced tables) so partial or out-of-order pushes can never fail; the app guarantees integrity.
@@ -372,7 +373,8 @@ primary key (user_id, id)
 
 ### Configuration & secrets
 - Supabase URL + publishable key: `Config/Secrets.xcconfig` (gitignored; template `Config/Secrets.example.xcconfig` committed) → Info.plist → read at startup.
-- Edge Function secrets (Strava client secret, Apple Sign in private key): `supabase secrets set …`. Never in the repo, never in the app. `delete-account` needs `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` (the `.p8` contents) and `APPLE_CLIENT_ID` (`com.stefanblos.OnlyWorkouts`).
+- Edge Function secrets (Strava client secret, Apple Sign in private key): `supabase secrets set …`. Never in the repo, never in the app. `delete-account` needs `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` (the `.p8` contents) and `APPLE_CLIENT_ID` (`com.stefanblos.OnlyWorkouts`). The `strava-*` functions need `STRAVA_CLIENT_ID` and `STRAVA_CLIENT_SECRET`; `strava-webhook` also `STRAVA_WEBHOOK_VERIFY_TOKEN` and `STRAVA_WEBHOOK_SUBSCRIPTION_ID`.
+- Strava client ID (not secret): `STRAVA_CLIENT_ID` in `Config/Secrets.xcconfig` → Info.plist `StravaClientID`, for the consent page URL.
 - Supabase Auth → Apple provider: enabled, client ID `com.stefanblos.OnlyWorkouts` (native sign-in only, no secret needed). Locally the same is in `supabase/config.toml`.
 - A build without `Secrets.xcconfig` runs local-only; Settings says Cloud Sync isn't set up.
 
@@ -387,18 +389,23 @@ primary key (user_id, id)
 
 ---
 
-## 12. Strava (M4 — sketch)
+## 12. Strava (M4)
 
-Apple Health does **not** forward third-party strength workouts to Strava, so OnlyWorkout uploads directly. See [ADR-0004](docs/adr/0004-strava-direct-upload-via-edge-functions.md).
+Apple Health does **not** forward third-party strength workouts to Strava, so OnlyWorkout uploads directly. See [ADR-0004](docs/adr/0004-strava-direct-upload-via-edge-functions.md) and the verified API details in [docs/research/strava-api.md](docs/research/strava-api.md).
 
-1. **Connect** (Settings → Strava): `ASWebAuthenticationSession` to Strava's OAuth (`scope=activity:write`), redirect back to the app with `code`.
-2. App calls Edge Function **`strava-connect`** with the code (authenticated with the user's Supabase session). The function exchanges it for tokens with the Strava client secret and stores them in `strava_connections`.
-3. After a finished Session has synced, the app calls **`strava-upload`** with `session_id`. The function loads the Session and its Sets from Postgres, refreshes the token if needed, and creates a `WeightTraining` activity with structured Sets (exercise type, reps, weight) via Strava's upload API. It polls upload status and writes `strava_activity_id` back to `sessions`.
-4. Strava builds its muscle map from the exercise types → every catalog Exercise gets a `strava_exercise_type` mapping; Custom Exercises get one picked by the user (or none).
-5. Settings toggle: auto-upload every Session, or manual "Upload to Strava" on Session detail. Sessions finished while unsynced are queued.
-6. Disconnect: Edge Function **`strava-disconnect`** deauthorises at Strava and deletes the row.
+1. **Connect** (Settings → Strava, needs Cloud Sync): `ASWebAuthenticationSession` opens `https://www.strava.com/oauth/mobile/authorize` with `scope=activity:write` only and a random `state`; Strava redirects to `onlyworkouts://onlyworkout.stefanblos.com/strava` (callback domain `onlyworkout.stefanblos.com` in the Strava API app). `StravaLink` checks `state` and that `activity:write` was granted, then hands the code to Edge Function **`strava-connect`**, which swaps it for tokens with the client secret and stores them in `strava_connections`.
+2. **Build the upload** in the app: `StravaUpload` (Core) turns a finished Session into Strava's "Strength Training (Limited)" JSON — `version`, `start_time`, `utc_offset`, `elapsed_time`, `creator` and one entry per Set (`exercise_type`, `repetitions`, `weight` in kg, omitted at 0). Strava lists Sets in the order sent, so each exercise's Sets go together (in performed order), exercises in the order they were started; a Superset doesn't show interleaved. Sets of Exercises without a Strava type, or with one Strava doesn't know, are left out; a Session with no Set left isn't uploaded. Heart rate, calories and other Health data are never sent.
+3. **Upload**: Edge Function **`strava-upload`** refreshes the token when it expires within the hour (always storing the newest refresh token), posts the file to `POST /uploads` with `data_type=json`, `sport_type=WeightTraining`, `name` = Workout name and `external_id` = Session ID, then polls `GET /uploads/{id}` once a second for up to 10 s. A "duplicate of activity N" answer counts as uploaded.
+4. **Exercise types**: every catalog Exercise has a built-in Strava type (`ExerciseCatalog+Strava.swift`); a Custom Exercise gets one picked by the user from Strava's 656 types, or none. Strava derives its muscle map from these types.
+5. **When**: with auto-upload on (the default), every Session finished after connecting is uploaded after each cloud sync — after it ends, when a Watch Session arrives, on launch and foreground; failures stay queued. Earlier Sessions, or all with auto-upload off, have "Upload to Strava" on Session detail.
+6. **What is kept**: Strava's activity ID is Strava Data, which may be cached for 7 days at most (Strava API Policy §6.2). It stays on the iPhone that uploaded, never in Supabase, and is dropped after 7 days, so "View on Strava" shows for a week. The cloud keeps our own `strava_uploaded_at`, so no device uploads a Session twice.
+7. **Disconnect**: Edge Function **`strava-disconnect`** revokes access with `POST /oauth/revoke` and deletes the row; `delete-account` does the same first. Edge Function **`strava-webhook`** answers Strava's subscription check and deletes an athlete's row when they revoke access on Strava's side (required by Strava's API terms).
 
-**To verify at M4 start** (from a July 2026 developer-forum report, not official docs): exact endpoint and payload for structured strength uploads; Strava's list of exercise types; muscle maps reportedly appear inconsistently for API uploads. Release needs Strava's app review (new API apps are limited to a single athlete) and adherence to Strava brand guidelines ("Connect with Strava" button, "Compatible with Strava" attribution).
+**Owner setup:**
+1. Create the API app at <https://www.strava.com/settings/api> (needs a Strava subscription): callback domain `onlyworkout.stefanblos.com`.
+2. `STRAVA_CLIENT_ID = …` in `Config/Secrets.xcconfig`.
+3. `supabase secrets set STRAVA_CLIENT_ID=… STRAVA_CLIENT_SECRET=… STRAVA_WEBHOOK_VERIFY_TOKEN=<random string>`, then `supabase db push` and `supabase functions deploy`.
+4. Subscribe the webhook once: `curl -X POST https://www.strava.com/api/v3/push_subscriptions -F client_id=… -F client_secret=… -F callback_url=https://<project>.supabase.co/functions/v1/strava-webhook -F verify_token=<same string>`, then `supabase secrets set STRAVA_WEBHOOK_SUBSCRIPTION_ID=<returned id>`.
 
 ---
 
@@ -431,7 +438,8 @@ supabase/
   config.toml
   migrations/                   # schema, RLS, sync RPCs
   tests/database/               # pgTAP tests (`supabase test db`)
-  functions/                    # strava-connect, strava-upload, strava-disconnect, delete-account
+  functions/                    # delete-account, strava-connect, strava-upload, strava-disconnect, strava-webhook;
+                                # _shared/ (Strava rules + Deno tests: `deno test --allow-env supabase/functions`)
 Config/                         # Shared.xcconfig (team, includes Secrets.xcconfig — gitignored), Info.plists, entitlements
 docs/adr/
 .github/workflows/ci.yml
@@ -440,7 +448,7 @@ docs/adr/
 - Package platforms: iOS 27, watchOS 27, macOS 27 (macOS only so `swift test` runs on the host without a simulator).
 - App targets: default actor isolation `MainActor`, strict concurrency complete. `OnlyWorkoutCore` types are `Sendable` value types.
 - One type per file; folders by feature.
-- **Capabilities**: HealthKit (iOS + watchOS), Sign in with Apple (iOS), App Groups `group.com.stefanblos.OnlyWorkouts` (app ↔ widgets), Background Modes → Workout processing (watchOS and iOS). Associated URL scheme `onlyworkout://` for Strava OAuth return and widget deep links.
+- **Capabilities**: HealthKit (iOS + watchOS), Sign in with Apple (iOS), App Groups `group.com.stefanblos.OnlyWorkouts` (app ↔ widgets), Background Modes → Workout processing (watchOS and iOS). Strava's consent page redirects to `onlyworkouts://onlyworkout.stefanblos.com/strava`, caught by `ASWebAuthenticationSession` (no URL type registration needed).
 
 ---
 
@@ -450,7 +458,7 @@ docs/adr/
 - Health: purpose strings (`NSHealthShareUsageDescription`, `NSHealthUpdateUsageDescription`), Health data used only for the user's own tracking, never synced to the cloud or used for ads.
 - `PrivacyInfo.xcprivacy` for each target; privacy policy page (needed for HealthKit + accounts) before public release.
 - No secrets in the binary except the Supabase publishable key (which is public by design and protected by RLS).
-- Strava: app review for athlete capacity + brand guidelines before release.
+- Strava: a new API app connects only its owner (capacity 1); a self-service upgrade raises that to 10, review is needed beyond. Brand guidelines: official "Connect with Strava" button, "View on Strava" links, "Compatible with Strava" attribution, no "Strava" in the app's name or icon. The privacy policy must name what goes to Strava.
 - Accessibility: Dynamic Type, VoiceOver labels on every icon-only control, Reduce Motion, 44 pt targets.
 
 ---
@@ -460,8 +468,9 @@ docs/adr/
 | # | Question | Plan |
 |---|---|---|
 | 1 | ~~Can the iPhone *start* a Live Activity in the background when a mirrored Watch Session begins?~~ | **Resolved (M2):** no. ActivityKit starts Live Activities only in the foreground, except via a `LiveActivityIntent` or an ActivityKit push. The iPhone starts it the next time the app is active during a Watch Session. Push-to-start from a Supabase function is possible after M3. |
-| 2 | Exact Strava API for structured strength uploads and its exercise-type list | Verify against official docs at M4 start before writing mappings. |
-| 3 | Strava muscle map reportedly inconsistent for API uploads | Accept; muscle groups are still in the Strava payload and in our own stats. |
+| 2 | ~~Exact Strava API for structured strength uploads and its exercise-type list~~ | **Resolved (M4):** `POST /uploads` with `data_type=json` (Strava's "Strength Training (Limited)" file) and 656 exercise types; see [docs/research/strava-api.md](docs/research/strava-api.md). |
+| 3 | Strava muscle map reportedly inconsistent for API uploads | Accept. Strava derives muscles from each Set's exercise type (the upload has no muscle-group field); a Strava staff member acknowledged the July 2026 report without a fix. On the owner's account the map showed correctly for the first test upload (M4). Our own stats keep the Muscle Groups. |
+| 4 | ~~Undocumented upload details~~ | **Resolved (M4, tried on the owner's account):** Strava shows `weight` exactly as sent and its own logging doesn't say whether dumbbell weight is per hand, so we keep sending it per dumbbell as stored. A bodyweight Set without weight shows as plain bodyweight, Added Weight as that weight. Strava lists Sets in the order sent, so we group them per exercise. Exercises without a Strava type don't appear. Muscle map, title, elapsed time, volume, Set and rep totals all came through. Watch Sessions upload too; with auto-upload off nothing is uploaded. Duplicate detection is untested (no way to re-upload from the app). |
 
 ---
 
@@ -495,6 +504,8 @@ Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) fo
 - **Done when**: delete the app, reinstall, sign in → all data returns without duplicates; rows are visible in the Supabase dashboard and nobody else's are.
 
 ### M4 — Strava
+**Status:** in progress on branch `m4-strava`. Done and tested: the upload file and exercise-type list (Core), the catalog mapping, upload queue and 7-day activity-ID expiry (Store), `StravaLink` against a fake backend, the `strava_connections` table and RPCs (pgTAP), and the Strava rules in the Edge Functions (Deno tests with a stubbed fetch). On a device the owner connected Strava, uploaded test Sessions from the iPhone and the Watch, and checked that nothing is uploaded with auto-upload off (see §15 #4).
+
 - Resolve open questions #2–3; `strava-connect`, `strava-upload`, `strava-disconnect`; Exercise → Strava type mapping; Settings UI; auto-upload.
 - **Done when**: finishing a Session creates a Strava WeightTraining activity with every Set.
 

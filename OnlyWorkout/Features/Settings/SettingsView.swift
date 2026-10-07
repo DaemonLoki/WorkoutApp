@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Sync, Apple Health and app information.
+/// Sync, Strava, Apple Health and app information.
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppModel.self) private var appModel
@@ -9,6 +9,7 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 CloudSyncSection(cloud: appModel.cloud)
+                StravaSection(strava: appModel.strava, cloud: appModel.cloud)
                 Section {
                     Label(.appleHealth, systemImage: "heart.text.square")
                 } footer: {

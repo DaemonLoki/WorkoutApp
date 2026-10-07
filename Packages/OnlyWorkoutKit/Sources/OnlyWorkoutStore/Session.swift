@@ -24,7 +24,12 @@ public final class Session {
     public var recordedOnRaw: String
     /// Local only; never synced (README §11).
     public var healthWorkoutID: UUID?
+    /// When the Session reached Strava; synced, so a reinstall never uploads it again.
+    public var stravaUploadedAt: Date?
+    /// Strava's activity, for "View on Strava". Strava Data: local only and kept no longer than
+    /// `stravaActivityIDLifetime` (Strava API Policy §6.2).
     public var stravaActivityID: Int64?
+    public static let stravaActivityIDLifetime: TimeInterval = 7 * 86_400
     /// Encoded `SessionEngine` while in progress, so the Session can resume after termination.
     public var engineState: Data?
 

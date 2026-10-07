@@ -420,3 +420,29 @@ entrypoint = "./functions/delete-account/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/delete-account/*.html" ]
+
+# Strava (README §12). The platform JWT check is off because `withSupabase` validates the user itself;
+# strava-webhook is called by Strava without credentials.
+[functions.strava-connect]
+enabled = true
+verify_jwt = false
+import_map = "./functions/strava-connect/deno.json"
+entrypoint = "./functions/strava-connect/index.ts"
+
+[functions.strava-upload]
+enabled = true
+verify_jwt = false
+import_map = "./functions/strava-upload/deno.json"
+entrypoint = "./functions/strava-upload/index.ts"
+
+[functions.strava-disconnect]
+enabled = true
+verify_jwt = false
+import_map = "./functions/strava-disconnect/deno.json"
+entrypoint = "./functions/strava-disconnect/index.ts"
+
+[functions.strava-webhook]
+enabled = true
+verify_jwt = false
+import_map = "./functions/strava-webhook/deno.json"
+entrypoint = "./functions/strava-webhook/index.ts"

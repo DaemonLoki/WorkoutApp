@@ -17,7 +17,7 @@ public final class Exercise {
     public var muscleGroupsRaw: [String]
     /// Set for Exercise Catalog entries; `nil` for Custom Exercises.
     public var catalogKey: String?
-    /// Strava exercise type for uploads (M4).
+    /// The Strava exercise type chosen by the user; catalog Exercises fall back to their built-in one.
     public var stravaExerciseType: String?
     /// Archived instead of deleted once it has history.
     public var archivedAt: Date?
@@ -47,5 +47,10 @@ public final class Exercise {
 
     public var isCustom: Bool {
         catalogKey == nil
+    }
+
+    /// What the Exercise's Sets are uploaded to Strava as; `nil` leaves them out.
+    public var uploadedStravaType: String? {
+        stravaExerciseType ?? ExerciseCatalog.entries.first { $0.key == catalogKey }?.stravaExerciseType
     }
 }

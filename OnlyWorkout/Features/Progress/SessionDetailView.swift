@@ -3,7 +3,7 @@ import OnlyWorkoutDesign
 import OnlyWorkoutStore
 import SwiftUI
 
-/// Every Set of a past Session; Sets can be corrected and the Session deleted.
+/// Every Set of a past Session; Sets can be corrected, the Session uploaded to Strava or deleted.
 struct SessionDetailView: View {
     let session: Session
     @Environment(AppModel.self) private var appModel
@@ -33,6 +33,7 @@ struct SessionDetailView: View {
                     Text(.targetWas(String(localized: entry.target.summary)))
                 }
             }
+            StravaUploadSection(session: session, strava: appModel.strava)
         }
         .navigationTitle(session.workoutName)
         .navigationSubtitle(Text(session.startedAt, format: .dateTime.weekday().day().month().year()))

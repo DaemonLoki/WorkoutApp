@@ -6,6 +6,8 @@
 	<string>$(SUPABASE_PUBLISHABLE_KEY)</string>
 	<key>SupabaseURL</key>
 	<string>$(SUPABASE_URL)</string>
+	<key>StravaClientID</key>
+	<string>$(STRAVA_CLIENT_ID)</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>workout-processing</string>
