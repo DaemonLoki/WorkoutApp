@@ -209,8 +209,8 @@ Not in v1: swapping an Exercise, adding an Exercise that isn't in the Workout.
 ### Primary device
 The device running the Session (**Watch** when available, otherwise iPhone) owns the engine and persists the Session. The other device only *displays* live state and sends *commands* (e.g. tapping Done on the phone) through the mirrored workout session. Only the primary device writes the Session record, so there are never duplicates.
 
-- Starting on iPhone with a reachable Watch → `HKHealthStore.startWatchApp(toHandle:)` launches the Session on the Watch; the Watch mirrors it back to the iPhone (`startMirroringToCompanionDevice`).
-- Starting on iPhone without a reachable Watch → iPhone is primary (iOS `HKWorkoutSession`, no heart rate).
+- Starting on iPhone with a reachable Watch and **Start Sessions on Apple Watch** on (Settings, device-local, on by default) → `HKHealthStore.startWatchApp(toHandle:)` launches the Session on the Watch; the Watch mirrors it back to the iPhone (`startMirroringToCompanionDevice`).
+- Starting on iPhone without a reachable Watch, or with that setting off → iPhone is primary (iOS `HKWorkoutSession`, no heart rate).
 - Starting on the Watch → Watch is primary; iPhone gets the mirrored session in the background.
 
 ### Persistence & recovery
@@ -254,7 +254,7 @@ Celebration (§9), then: duration, Sets, volume, heart rate & calories (if recor
 - **Sessions**: history list (date, Workout, duration, Sets); detail shows every Set; edit Sets or delete the Session (also deletes its Health workout).
 
 ### Settings
-Sync (Sign in with Apple / status / sign out) · Apple Health status · Strava (connect, auto-upload, disconnect) · Delete account & cloud data · About / privacy.
+Sync (Sign in with Apple / status / sign out) · Apple Health status · Apple Watch (**Start Sessions on Apple Watch**, on by default; off runs Sessions started on iPhone on the iPhone, without heart rate) · Strava (connect, auto-upload, disconnect) · Delete account & cloud data · About / privacy.
 
 ### Live Activity & rest notifications
 - A Live Activity runs for every Session: Lock Screen shows Workout name, current step ("Bench Press · Set 2 of 3 · 10 @ 60 kg" or Rest countdown via `Text(timerInterval:)`) and what's next; Dynamic Island compact shows the Rest countdown / Set indicator.

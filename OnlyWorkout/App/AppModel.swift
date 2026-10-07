@@ -11,6 +11,8 @@ import UIKit
 final class AppModel {
     /// A Session untouched for this long is treated as forgotten and ended (README §6).
     static let abandonedSessionInterval: TimeInterval = 6 * 3600
+    /// `UserDefaults` key of Settings → Apple Watch → Start Sessions on Apple Watch; device-local, on by default.
+    static let startsSessionsOnWatchKey = "startsSessionsOnWatch"
 
     let log: TrainingLog
     /// `nil` when this build has no Supabase configuration, and in UI tests.
@@ -89,9 +91,10 @@ final class AppModel {
         }
     }
 
-    /// Runs the Session on the Watch when one is available (it measures heart rate), otherwise here.
+    /// Runs the Session on the Watch when one is available and the setting allows it (it measures
+    /// heart rate), otherwise here.
     private func start(_ workout: Workout) async {
-        guard let recorder, link.canUseWatch else {
+        guard let recorder, link.canUseWatch, startsSessionsOnWatch else {
             startOnPhone(workout)
             return
         }
@@ -108,6 +111,10 @@ final class AppModel {
             guard !Task.isCancelled, let self, self.startingOnWatch?.id == workout.id else { return }
             self.startOnPhone(workout)
         }
+    }
+
+    private var startsSessionsOnWatch: Bool {
+        UserDefaults.standard.object(forKey: Self.startsSessionsOnWatchKey) as? Bool ?? true
     }
 
     /// Also offered to the user while waiting for the Watch.

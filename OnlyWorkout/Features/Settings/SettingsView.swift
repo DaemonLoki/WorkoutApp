@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// Sync, Strava, Apple Health and app information.
+/// Sync, Strava, Apple Health, Apple Watch and app information.
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppModel.self) private var appModel
+    @AppStorage(AppModel.startsSessionsOnWatchKey) private var startsSessionsOnWatch = true
 
     var body: some View {
         NavigationStack {
@@ -14,6 +15,15 @@ struct SettingsView: View {
                     Label(.appleHealth, systemImage: "heart.text.square")
                 } footer: {
                     Text(.appleHealthFooter)
+                }
+                Section {
+                    Toggle(isOn: $startsSessionsOnWatch) {
+                        Text(.startsSessionsOnWatch)
+                    }
+                } header: {
+                    Text(.appleWatch)
+                } footer: {
+                    Text(.startsSessionsOnWatchFooter)
                 }
                 Section {
                     LabeledContent {

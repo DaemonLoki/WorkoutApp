@@ -100,6 +100,17 @@
         }
       }
     },
+    "appleWatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Watch"
+          }
+        }
+      }
+    },
     "bestSet" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1672,6 +1683,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Start"
+          }
+        }
+      }
+    },
+    "startsSessionsOnWatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Sessions on Apple Watch"
+          }
+        }
+      }
+    },
+    "startsSessionsOnWatchFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions you start on iPhone open on your Apple Watch, which shows your heart rate. When off, they run on iPhone without heart rate. Starting on the Watch isn't affected."
           }
         }
       }
