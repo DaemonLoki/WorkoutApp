@@ -247,7 +247,7 @@ Four tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **History**
 Celebration (§9), then: duration, Sets, volume, heart rate & calories (if recorded), and a card per progress event (Step Ups accepted, new bests, Target Hits). **Done** returns to Today.
 
 ### History
-- Every finished Session, newest first, in month sections (date, Workout, duration, Sets); Muscle Group filter; search by Workout or Exercise name.
+- Every finished Session, newest first, in month sections (date, Workout, duration, Sets); Muscle Group filter; search by Workout or Exercise name. Swipe a Session to delete it (with confirmation; same as deleting it in the detail).
 - **Session detail** shows every Set; edit Sets, upload to Strava (§12) or delete the Session (also deletes its Health workout, §11).
 
 ### Progress

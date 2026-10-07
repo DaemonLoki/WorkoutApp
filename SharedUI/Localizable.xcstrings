@@ -327,7 +327,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Its Sets are removed from your history and statistics."
+            "value" : "Its Sets are removed from your history and statistics, and its workout from Apple Health. This can't be undone."
           }
         }
       }

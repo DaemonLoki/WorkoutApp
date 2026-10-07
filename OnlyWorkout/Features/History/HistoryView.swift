@@ -16,9 +16,7 @@ struct HistoryView: View {
                 ForEach(months, id: \.start) { month in
                     Section {
                         ForEach(month.sessions) { session in
-                            NavigationLink(value: session) {
-                                SessionRow(session: session)
-                            }
+                            HistoryRow(session: session)
                         }
                     } header: {
                         Text(month.start, format: .dateTime.month(.wide).year())
