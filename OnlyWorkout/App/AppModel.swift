@@ -56,6 +56,7 @@ final class AppModel {
     /// Starts a Session, explaining Apple Health first if the permission hasn't been asked yet.
     func requestStart(_ workout: Workout) {
         guard activeSession == nil, startingOnWatch == nil else { return }
+        nameUnnamedWorkouts()
         guard let recorder else {
             startOnPhone(workout)
             return
@@ -143,6 +144,18 @@ final class AppModel {
 
     func appDidEnterBackground() {
         publishToWatch()
+    }
+
+    // MARK: - Workouts
+
+    /// A new Workout starts with an empty name (the editor shows the default as a placeholder);
+    /// one left unnamed gets the default once its editor closes or it's started.
+    func nameUnnamedWorkouts() {
+        let now = Date.now
+        for workout in log.workouts() where workout.name.trimmingCharacters(in: .whitespaces).isEmpty {
+            workout.name = String(localized: .newWorkoutName)
+            workout.updatedAt = now
+        }
     }
 
     // MARK: - Suggestions

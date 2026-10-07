@@ -230,7 +230,7 @@ Three tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **Progress
 
 ### Workouts
 - List in Rotation order; drag to reorder, swipe to delete (soft delete), `+` to create.
-- **Workout editor**: name; Planned Exercises (reorder, delete); **Add Exercise** → picker; context menu **Superset with Next** / **Break Superset**. Planned Exercises with a pending suggestion show a small orange badge; linked ones a link icon.
+- **Workout editor**: name (a new Workout opens with an empty, focused name field and "New Workout" as placeholder; left empty, it's named "New Workout" once the editor closes); Planned Exercises (reorder, delete); **Add Exercise** → picker; context menu **Superset with Next** / **Break Superset**. Planned Exercises with a pending suggestion show a small orange badge; linked ones a link icon.
 - **Adding an Exercise that is already in another Workout** asks "Bench Press is already in another Workout — use the same settings?" with one button per existing setup ("Same as Push Day · 3 × 8 · 60 kg") and **Set Up Separately**. Choosing one links them (see §4).
 - **Planned Exercise editor** of a linked one shows "Linked with Push Day" and **Unlink**; every edit is applied to all linked Planned Exercises.
 - **Planned Exercise editor**: Sets (stepper), reps (stepper), weight (`TextField` bound to `Double` with `.decimalPad`, kg), Weight Step (menu: 0.5, 1, 1.25, 2, 2.5, 4, 5, 10), Rest (menu: 0:30 … 5:00).

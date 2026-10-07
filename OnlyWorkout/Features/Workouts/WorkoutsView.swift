@@ -36,6 +36,7 @@ struct WorkoutsView: View {
                 }
             }
             .navigationTitle(Text(.tabWorkouts))
+            .onAppear(perform: appModel.nameUnnamedWorkouts)
             .navigationDestination(for: Workout.self) { workout in
                 WorkoutEditorView(workout: workout)
             }
@@ -51,7 +52,7 @@ struct WorkoutsView: View {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     EditButton()
                     Button(.createWorkout, systemImage: "plus") {
-                        path.append(appModel.log.addWorkout(named: String(localized: .newWorkoutName)))
+                        path.append(appModel.log.addWorkout(named: ""))
                     }
                 }
             }

@@ -23,7 +23,7 @@ struct TodayView: View {
                         Text(.noWorkoutsMessage)
                     } actions: {
                         Button(.createWorkout) {
-                            newWorkout = appModel.log.addWorkout(named: String(localized: .newWorkoutName))
+                            newWorkout = appModel.log.addWorkout(named: "")
                         }
                         .buttonStyle(.glassProminent)
                     }
@@ -32,6 +32,7 @@ struct TodayView: View {
                 }
             }
             .navigationTitle(Text(.tabToday))
+            .onAppear(perform: appModel.nameUnnamedWorkouts)
             .navigationDestination(item: $newWorkout) { workout in
                 WorkoutEditorView(workout: workout)
             }
