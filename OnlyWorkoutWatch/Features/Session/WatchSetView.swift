@@ -7,6 +7,8 @@ struct WatchSetView: View {
     let prompt: SessionEngine.SetPrompt
     let exerciseName: String
     let isSuperset: Bool
+    /// What follows the Rest after this Set, shown during the last Set of a Superset pair.
+    let afterRest: String?
     let weightStep: Double
     let heartRate: Double?
     let onSkipSet: () -> Void
@@ -19,13 +21,14 @@ struct WatchSetView: View {
     @State private var choosesSkip = false
 
     init(
-        prompt: SessionEngine.SetPrompt, exerciseName: String, isSuperset: Bool, weightStep: Double, heartRate: Double?,
-        onSkipSet: @escaping () -> Void, onSkipExercise: @escaping () -> Void,
+        prompt: SessionEngine.SetPrompt, exerciseName: String, isSuperset: Bool, afterRest: String?,
+        weightStep: Double, heartRate: Double?, onSkipSet: @escaping () -> Void, onSkipExercise: @escaping () -> Void,
         onDone: @escaping (_ reps: Int, _ weight: Double) -> Void
     ) {
         self.prompt = prompt
         self.exerciseName = exerciseName
         self.isSuperset = isSuperset
+        self.afterRest = afterRest
         self.weightStep = weightStep
         self.heartRate = heartRate
         self.onSkipSet = onSkipSet
@@ -67,6 +70,14 @@ struct WatchSetView: View {
 
             Button(.done) { onDone(reps, weight) }
                 .buttonStyle(.borderedProminent)
+
+            if let afterRest {
+                Text(afterRest)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
         }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {

@@ -237,7 +237,7 @@ Three tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **Progress
 - **Exercises** (toolbar) → Exercise Catalog + Custom Exercises; searchable (`localizedStandardContains`), filter by Muscle Group; create/edit Custom Exercise (name, equipment, Muscle Groups).
 
 ### Active Session (full-screen cover)
-- **Set view**: Exercise name, "Set 2 of 3" (Superset: "A · Set 2 of 3"), reps and weight in huge rounded monospaced digits, tap either to adjust (steppers); full-width **Done**; a small **Skip** menu below it with **Skip Set** and **Skip ‹Exercise›**.
+- **Set view**: Exercise name, "Set 2 of 3" (Superset: "A · Set 2 of 3"), reps and weight in huge rounded monospaced digits, tap either to adjust (steppers); full-width **Done**; a small **Skip** menu below it with **Skip Set** and **Skip ‹Exercise›**. During the last Set of a Superset pair it also shows what follows the Rest ("After Rest: Curl · Set 2 of 3 · 10 × 14 kg"), so the next Exercise can be prepared.
 - **Rest view**: countdown ring, time remaining, **+30 s** / **Skip**; below: "Next: Lat Pulldown · 3×12 @ 55 kg". Step Up / Step Down cards slide in here.
 - Header: elapsed time, heart rate (when Watch-mirrored), per-Exercise progress dots.
 - **Overview** sheet: queue with Skip / Do later / Add Set / edit logged Sets. **End** with confirmation only if Sets remain.
@@ -268,7 +268,7 @@ Sync (Sign in with Apple / status / sign out) · Apple Health status · Strava (
 Standalone watchOS app with its own SwiftData store; works fully without the iPhone nearby.
 
 - **Home**: Next Up Workout with **Start**; other Workouts below. Read-only plans — editing Workouts is iPhone-only.
-- **Set screen**: Exercise name, "Set 2 of 3", reps and weight large; **Digital Crown adjusts reps**; weight via a secondary button; big **Done**. Heart rate small in the corner; a skip button in the other corner offers **Skip Set** / **Skip ‹Exercise›**.
+- **Set screen**: Exercise name, "Set 2 of 3", reps and weight large; **Digital Crown adjusts reps**; weight via a secondary button; big **Done**. Heart rate small in the corner; a skip button in the other corner offers **Skip Set** / **Skip ‹Exercise›**. During the last Set of a Superset pair, a small line under **Done** shows what follows the Rest.
 - **Rest screen**: countdown ring, haptic when Rest ends, "Next: Lat Pulldown 3×12 @ 55 kg" underneath; Step Up / Step Down cards appear here.
 - **Swipe left**: Session overview — Skip, Do later, Add Set, End.
 - **Summary**: celebration + key numbers.

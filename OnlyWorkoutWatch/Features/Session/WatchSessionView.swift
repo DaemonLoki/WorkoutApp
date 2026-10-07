@@ -45,7 +45,8 @@ struct WatchSessionView: View {
         } else if let prompt = runner.engine.currentSet, let exercise = runner.exercise(id: prompt.exerciseID) {
             WatchSetView(
                 prompt: prompt, exerciseName: exercise.name, isSuperset: exercise.supersetID != nil,
-                weightStep: runner.weightStep(for: exercise.id), heartRate: model.recorder.heartRate,
+                afterRest: afterRestDescription, weightStep: runner.weightStep(for: exercise.id),
+                heartRate: model.recorder.heartRate,
                 onSkipSet: { runner.skipSet(of: exercise.id) },
                 onSkipExercise: { runner.skip(exercise.id) }
             ) { reps, weight in
@@ -66,5 +67,13 @@ struct WatchSessionView: View {
             return nil
         }
         return String(localized: .watchNextSet(exercise.name, prompt.reps, prompt.weight.kilograms))
+    }
+
+    /// During the last Set of a Superset pair: what follows the Rest it starts.
+    private var afterRestDescription: String? {
+        guard let prompt = runner.engine.setAfterRest, let exercise = runner.exercise(id: prompt.exerciseID) else {
+            return nil
+        }
+        return String(localized: .watchAfterRest(exercise.name, prompt.reps, prompt.weight.kilograms))
     }
 }

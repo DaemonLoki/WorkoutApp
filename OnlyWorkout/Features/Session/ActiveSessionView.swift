@@ -41,6 +41,7 @@ struct ActiveSessionView: View {
             } else if let prompt = session.engine.currentSet, let exercise = session.exercise(id: prompt.exerciseID) {
                 SetView(
                     prompt: prompt, exerciseName: exercise.name, isSuperset: exercise.supersetID != nil,
+                    afterRest: session.setAfterRestDescription,
                     usesAddedWeight: session.usesAddedWeight(for: exercise.id),
                     weightStep: session.weightStep(for: exercise.id),
                     onSkipSet: { session.skipSet(of: exercise.id) },

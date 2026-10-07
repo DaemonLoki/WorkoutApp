@@ -34,6 +34,17 @@
         }
       }
     },
+    "afterRest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After Rest: %@"
+          }
+        }
+      }
+    },
     "allMuscleGroups" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2222,6 +2233,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "View on Strava"
+          }
+        }
+      }
+    },
+    "watchAfterRest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After Rest: %1$@ · %2$lld × %3$@"
           }
         }
       }
