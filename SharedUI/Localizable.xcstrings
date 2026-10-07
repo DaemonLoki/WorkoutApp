@@ -1488,17 +1488,6 @@
         }
       }
     },
-    "sessions" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sessions"
-          }
-        }
-      }
-    },
     "setCount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2094,6 +2083,17 @@
         }
       }
     },
+    "tabHistory" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History"
+          }
+        }
+      }
+    },
     "tabProgress" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2244,17 +2244,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Version"
-          }
-        }
-      }
-    },
-    "view" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View"
           }
         }
       }

@@ -14,6 +14,9 @@ struct RootView: View {
             Tab(.tabWorkouts, systemImage: "list.bullet.rectangle") {
                 WorkoutsView()
             }
+            Tab(.tabHistory, systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90") {
+                HistoryView()
+            }
             Tab(.tabProgress, systemImage: "chart.line.uptrend.xyaxis") {
                 ProgressScreen()
             }

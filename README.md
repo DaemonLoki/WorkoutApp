@@ -220,7 +220,7 @@ The in-progress Session is saved after every event. After a crash/termination, t
 
 ## 7. iPhone app
 
-Three tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **Progress**. Settings is a sheet from Today's toolbar.
+Four tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **History**, **Progress**. Settings is a sheet from Today's toolbar.
 
 ### Today
 1. **Ready to Step Up** (only when non-empty) — one row per pending Progression Suggestion: *"Bench Press · Push Day — 3×10 hit at 60 kg"* with **Step Up to 62.5 kg** button and swipe-to-dismiss. Step Downs appear here too, worded neutrally ("Squat · Leg Day — stalled at 80 kg. Step Down to 77.5 kg?").
@@ -246,12 +246,14 @@ Three tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **Progress
 ### Session Summary (end of every Session)
 Celebration (§9), then: duration, Sets, volume, heart rate & calories (if recorded), and a card per progress event (Step Ups accepted, new bests, Target Hits). **Done** returns to Today.
 
+### History
+- Every finished Session, newest first, in month sections (date, Workout, duration, Sets); Muscle Group filter; search by Workout or Exercise name.
+- **Session detail** shows every Set; edit Sets, upload to Strava (§12) or delete the Session (also deletes its Health workout, §11).
+
 ### Progress
-- Segmented: **Exercises** | **Sessions**.
-- Filters (shared): time range `4W · 3M · 6M · 1Y · All`; Muscle Group chips; search.
+- Filters: time range `4W · 3M · 6M · 1Y · All`; Muscle Group; search.
 - **Exercises**: every Exercise performed at least once — sparkline, current weight, change within range ("+7.5 kg").
 - **Exercise detail** (Swift Charts): line of working weight per Session (max weight of its Sets), Step Up markers (annotated points), selection scrubbing (`chartXSelection`); best Set (heaviest weight, then most reps); total volume (Σ reps × weight; bodyweight Exercises with 0 kg show total reps instead); list of past Sets grouped by Session.
-- **Sessions**: history list (date, Workout, duration, Sets); detail shows every Set; edit Sets or delete the Session (also deletes its Health workout).
 
 ### Settings
 Sync (Sign in with Apple / status / sign out) · Apple Health status · Apple Watch (**Start Sessions on Apple Watch**, on by default; off runs Sessions started on iPhone on the iPhone, without heart rate) · Strava (connect, auto-upload, disconnect) · Delete account & cloud data · About / privacy.
@@ -416,7 +418,7 @@ OnlyWorkout.xcodeproj           # Xcode project using synchronized folders
 OnlyWorkout/                    # iOS app — com.stefanblos.OnlyWorkouts
   App/                          # @main, root TabView, dependency setup
   Features/
-    Today/  Workouts/  Exercises/  Session/  Summary/  Progress/  Settings/
+    Today/  Workouts/  Exercises/  Session/  Summary/  History/  Progress/  Settings/
   Resources/                    # Assets (AccentColor), Localizable.xcstrings, PrivacyInfo.xcprivacy
 OnlyWorkoutWatch/               # watchOS app — com.stefanblos.OnlyWorkouts.watchkitapp
   App/  Features/Home/  Features/Session/  Features/Summary/  Resources/
