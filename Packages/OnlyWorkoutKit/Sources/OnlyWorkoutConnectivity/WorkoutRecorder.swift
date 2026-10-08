@@ -2,6 +2,7 @@
     import Foundation
     import HealthKit
     import Observation
+    import OnlyWorkoutStore
 
     /// Records a Session as an Apple Health strength workout (README §11) and carries the mirroring channel
     /// between Watch and iPhone. On the Watch it measures heart rate and energy; on the iPhone it either runs
@@ -141,11 +142,21 @@
             try? await session?.sendToRemoteWorkoutSession(data: data)
         }
 
-        /// Deletes a workout this app saved, e.g. when its Session is deleted.
-        public static func deleteWorkout(id: UUID) async {
+        /// Deletes the Health workouts of deleted Sessions this device recorded (README §11): HealthKit lets
+        /// an app delete only what it saved. A workout that couldn't be deleted (e.g. no Health access yet)
+        /// is tried again next time; one already gone counts as deleted.
+        public static func deleteWorkouts(ofDeletedSessionsIn log: TrainingLog, recordedOn device: Session.Device)
+            async
+        {
+            guard isAvailable else { return }
             let store = HKHealthStore()
-            let predicate = HKQuery.predicateForObject(with: id)
-            _ = try? await store.deleteObjects(of: HKObjectType.workoutType(), predicate: predicate)
+            for session in log.healthWorkoutsToDelete(recordedOn: device) {
+                guard let id = session.healthWorkoutID else { continue }
+                let predicate = HKQuery.predicateForObject(with: id)
+                guard (try? await store.deleteObjects(of: HKObjectType.workoutType(), predicate: predicate)) != nil
+                else { continue }
+                log.forgetHealthWorkout(of: session)
+            }
         }
 
         private func attach(_ session: HKWorkoutSession) {

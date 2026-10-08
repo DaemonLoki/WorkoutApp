@@ -25,15 +25,24 @@ extension TrainingLog {
         return batch
     }
 
+    /// How long a deleted Watch-recorded Session keeps riding along in the Watch snapshot,
+    /// so the Watch gets to delete its Health workout even if it's away for a while.
+    public static let watchTombstoneLifetime: TimeInterval = 30 * 86_400
+
     /// What the Watch needs to run Sessions offline: the plan plus, per Planned Exercise, its last
-    /// `Progression.stallSessionCount` Sessions (enough for Target Hit, Stall and Layoff).
-    public func watchSnapshot() -> RecordBatch {
+    /// `Progression.stallSessionCount` Sessions (enough for Target Hit, Stall and Layoff). Also the
+    /// recently deleted Sessions the Watch recorded: only the Watch can delete their Health workouts.
+    public func watchSnapshot(now: Date = .now) -> RecordBatch {
         var batch = exportPlan()
         var sessions: [UUID: Session] = [:]
         for planned in fetchAll(PlannedExercise.self) where planned.deletedAt == nil {
             for entry in performed(plannedExerciseID: planned.id).suffix(Progression.stallSessionCount) {
                 if let session = entry.session { sessions[session.id] = session }
             }
+        }
+        let cutoff = now.addingTimeInterval(-Self.watchTombstoneLifetime)
+        for session in healthWorkoutsToDelete(recordedOn: .watch) where session.deletedAt ?? .distantPast > cutoff {
+            sessions[session.id] = session
         }
         batch.merge(exportSessions(Array(sessions.values)))
         return batch

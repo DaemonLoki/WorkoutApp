@@ -209,8 +209,8 @@ Not in v1: swapping an Exercise, adding an Exercise that isn't in the Workout.
 ### Primary device
 The device running the Session (**Watch** when available, otherwise iPhone) owns the engine and persists the Session. The other device only *displays* live state and sends *commands* (e.g. tapping Done on the phone) through the mirrored workout session. Only the primary device writes the Session record, so there are never duplicates.
 
-- Starting on iPhone with a reachable Watch → `HKHealthStore.startWatchApp(toHandle:)` launches the Session on the Watch; the Watch mirrors it back to the iPhone (`startMirroringToCompanionDevice`).
-- Starting on iPhone without a reachable Watch → iPhone is primary (iOS `HKWorkoutSession`, no heart rate).
+- Starting on iPhone with a reachable Watch and **Start Sessions on Apple Watch** on (Settings, device-local, on by default) → `HKHealthStore.startWatchApp(toHandle:)` launches the Session on the Watch; the Watch mirrors it back to the iPhone (`startMirroringToCompanionDevice`).
+- Starting on iPhone without a reachable Watch, or with that setting off → iPhone is primary (iOS `HKWorkoutSession`, no heart rate).
 - Starting on the Watch → Watch is primary; iPhone gets the mirrored session in the background.
 
 ### Persistence & recovery
@@ -220,7 +220,7 @@ The in-progress Session is saved after every event. After a crash/termination, t
 
 ## 7. iPhone app
 
-Three tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **Progress**. Settings is a sheet from Today's toolbar.
+Four tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **History**, **Progress**. Settings is a sheet from Today's toolbar.
 
 ### Today
 1. **Ready to Step Up** (only when non-empty) — one row per pending Progression Suggestion: *"Bench Press · Push Day — 3×10 hit at 60 kg"* with **Step Up to 62.5 kg** button and swipe-to-dismiss. Step Downs appear here too, worded neutrally ("Squat · Leg Day — stalled at 80 kg. Step Down to 77.5 kg?").
@@ -230,14 +230,14 @@ Three tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **Progress
 
 ### Workouts
 - List in Rotation order; drag to reorder, swipe to delete (soft delete), `+` to create.
-- **Workout editor**: name; Planned Exercises (reorder, delete); **Add Exercise** → picker; context menu **Superset with Next** / **Break Superset**. Planned Exercises with a pending suggestion show a small orange badge; linked ones a link icon.
+- **Workout editor**: name (a new Workout opens with an empty, focused name field and "New Workout" as placeholder; left empty, it's named "New Workout" once the editor closes); Planned Exercises (reorder, delete); **Add Exercise** → picker; context menu **Superset with Next** / **Break Superset**. Planned Exercises with a pending suggestion show a small orange badge; linked ones a link icon. A large orange **Start** at the bottom starts a Session of this Workout the same way as Today (disabled without Planned Exercises); it doesn't change the Rotation rules.
 - **Adding an Exercise that is already in another Workout** asks "Bench Press is already in another Workout — use the same settings?" with one button per existing setup ("Same as Push Day · 3 × 8 · 60 kg") and **Set Up Separately**. Choosing one links them (see §4).
 - **Planned Exercise editor** of a linked one shows "Linked with Push Day" and **Unlink**; every edit is applied to all linked Planned Exercises.
 - **Planned Exercise editor**: Sets (stepper), reps (stepper), weight (`TextField` bound to `Double` with `.decimalPad`, kg), Weight Step (menu: 0.5, 1, 1.25, 2, 2.5, 4, 5, 10), Rest (menu: 0:30 … 5:00).
 - **Exercises** (toolbar) → Exercise Catalog + Custom Exercises; searchable (`localizedStandardContains`), filter by Muscle Group; create/edit Custom Exercise (name, equipment, Muscle Groups).
 
 ### Active Session (full-screen cover)
-- **Set view**: Exercise name, "Set 2 of 3" (Superset: "A · Set 2 of 3"), reps and weight in huge rounded monospaced digits, tap either to adjust (steppers); full-width **Done**; a small **Skip** menu below it with **Skip Set** and **Skip ‹Exercise›**.
+- **Set view**: Exercise name, "Set 2 of 3" (Superset: "A · Set 2 of 3"), reps and weight in huge rounded monospaced digits, tap either to adjust (steppers); full-width **Done**; a small **Skip** menu below it with **Skip Set** and **Skip ‹Exercise›**. During the last Set of a Superset pair it also shows what follows the Rest ("After Rest: Curl · Set 2 of 3 · 10 × 14 kg"), so the next Exercise can be prepared.
 - **Rest view**: countdown ring, time remaining, **+30 s** / **Skip**; below: "Next: Lat Pulldown · 3×12 @ 55 kg". Step Up / Step Down cards slide in here.
 - Header: elapsed time, heart rate (when Watch-mirrored), per-Exercise progress dots.
 - **Overview** sheet: queue with Skip / Do later / Add Set / edit logged Sets. **End** with confirmation only if Sets remain.
@@ -246,15 +246,17 @@ Three tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **Progress
 ### Session Summary (end of every Session)
 Celebration (§9), then: duration, Sets, volume, heart rate & calories (if recorded), and a card per progress event (Step Ups accepted, new bests, Target Hits). **Done** returns to Today.
 
+### History
+- Every finished Session, newest first, in month sections (date, Workout, duration, Sets); Muscle Group filter; search by Workout or Exercise name. Swipe a Session to delete it (with confirmation; same as deleting it in the detail).
+- **Session detail** shows every Set; edit Sets, upload to Strava (§12) or delete the Session (also deletes its Health workout, §11).
+
 ### Progress
-- Segmented: **Exercises** | **Sessions**.
-- Filters (shared): time range `4W · 3M · 6M · 1Y · All`; Muscle Group chips; search.
+- Filters: time range `4W · 3M · 6M · 1Y · All`; Muscle Group; search.
 - **Exercises**: every Exercise performed at least once — sparkline, current weight, change within range ("+7.5 kg").
 - **Exercise detail** (Swift Charts): line of working weight per Session (max weight of its Sets), Step Up markers (annotated points), selection scrubbing (`chartXSelection`); best Set (heaviest weight, then most reps); total volume (Σ reps × weight; bodyweight Exercises with 0 kg show total reps instead); list of past Sets grouped by Session.
-- **Sessions**: history list (date, Workout, duration, Sets); detail shows every Set; edit Sets or delete the Session (also deletes its Health workout).
 
 ### Settings
-Sync (Sign in with Apple / status / sign out) · Apple Health status · Strava (connect, auto-upload, disconnect) · Delete account & cloud data · About / privacy.
+Sync (Sign in with Apple / status / sign out) · Apple Health status · Apple Watch (**Start Sessions on Apple Watch**, on by default; off runs Sessions started on iPhone on the iPhone, without heart rate) · Strava (connect, auto-upload, disconnect) · Delete account & cloud data · About / privacy.
 
 ### Live Activity & rest notifications
 - A Live Activity runs for every Session: Lock Screen shows Workout name, current step ("Bench Press · Set 2 of 3 · 10 @ 60 kg" or Rest countdown via `Text(timerInterval:)`) and what's next; Dynamic Island compact shows the Rest countdown / Set indicator.
@@ -268,7 +270,7 @@ Sync (Sign in with Apple / status / sign out) · Apple Health status · Strava (
 Standalone watchOS app with its own SwiftData store; works fully without the iPhone nearby.
 
 - **Home**: Next Up Workout with **Start**; other Workouts below. Read-only plans — editing Workouts is iPhone-only.
-- **Set screen**: Exercise name, "Set 2 of 3", reps and weight large; **Digital Crown adjusts reps**; weight via a secondary button; big **Done**. Heart rate small in the corner; a skip button in the other corner offers **Skip Set** / **Skip ‹Exercise›**.
+- **Set screen**: Exercise name, "Set 2 of 3", reps and weight large; **Digital Crown adjusts reps**; weight via a secondary button; big **Done**. Heart rate small in the corner; a skip button in the other corner offers **Skip Set** / **Skip ‹Exercise›**. During the last Set of a Superset pair, a small line under **Done** shows what follows the Rest.
 - **Rest screen**: countdown ring, haptic when Rest ends, "Next: Lat Pulldown 3×12 @ 55 kg" underneath; Step Up / Step Down cards appear here.
 - **Swipe left**: Session overview — Skip, Do later, Add Set, End.
 - **Summary**: celebration + key numbers.
@@ -276,7 +278,7 @@ Standalone watchOS app with its own SwiftData store; works fully without the iPh
 - Runs an `HKWorkoutSession` (`.traditionalStrengthTraining`, indoor) with `HKLiveWorkoutBuilder`: keeps the app frontmost, records heart rate & active energy, saves the workout to Health, closes Activity rings.
 
 ### Phone ↔ Watch data
-- **Phone → Watch**: `updateApplicationContext` with a full plan snapshot — Exercises, Workouts, Planned Exercises, pending suggestions, and per Planned Exercise the summaries of its last 3 Sessions + last performed date (enough for the Watch to evaluate Target Hit, Stall and Layoff offline).
+- **Phone → Watch**: `updateApplicationContext` with a full plan snapshot — Exercises, Workouts, Planned Exercises, pending suggestions, and per Planned Exercise the summaries of its last 3 Sessions + last performed date (enough for the Watch to evaluate Target Hit, Stall and Layoff offline). It also carries the tombstones of Watch-recorded Sessions deleted in the last 30 days, so the Watch can delete their Health workouts (§11).
 - **Watch → Phone**: the plan plus the Watch's Sessions of the last 14 days, sent as an immediate message when the iPhone is reachable *and* queued with `transferUserInfo`. Resent whenever the link activates, the iPhone becomes reachable, or a queued transfer fails (they can time out while the iPhone is off); merging makes repeats harmless.
 - Both directions use the **same record-level merge** as cloud sync (§10). The Watch never talks to Supabase.
 
@@ -384,7 +386,7 @@ primary key (user_id, id)
 
 - **Write only.** Each Session is saved as an `HKWorkout` (`.traditionalStrengthTraining`, indoor), including heart rate and active energy when recorded on the Watch. No workouts are read from Health.
 - Permission is requested at the **first Session start**, with a one-line explanation screen before the system sheet.
-- Deleting a Session in the app also deletes the Health workout it created.
+- Deleting a Session in the app also deletes the Health workout it created — on any device, also when the deletion arrives via sync. HealthKit lets an app delete only what it saved, so each device deletes the workouts of the Sessions it recorded: the iPhone right away (or after the next pull), the Watch when the tombstone reaches it in the plan snapshot (§8). The local `healthWorkoutID` is cleared once the workout is gone; until then a failed attempt (e.g. no Health access) is retried.
 - Health-derived values (heart rate, calories) are shown in the app but **never leave the device** (not synced to Supabase) — keeps App Review simple (§14).
 
 ---
@@ -416,7 +418,7 @@ OnlyWorkout.xcodeproj           # Xcode project using synchronized folders
 OnlyWorkout/                    # iOS app — com.stefanblos.OnlyWorkouts
   App/                          # @main, root TabView, dependency setup
   Features/
-    Today/  Workouts/  Exercises/  Session/  Summary/  Progress/  Settings/
+    Today/  Workouts/  Exercises/  Session/  Summary/  History/  Progress/  Settings/
   Resources/                    # Assets (AccentColor), Localizable.xcstrings, PrivacyInfo.xcprivacy
 OnlyWorkoutWatch/               # watchOS app — com.stefanblos.OnlyWorkouts.watchkitapp
   App/  Features/Home/  Features/Session/  Features/Summary/  Resources/

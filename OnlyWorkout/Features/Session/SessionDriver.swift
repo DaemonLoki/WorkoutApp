@@ -47,7 +47,16 @@ extension SessionDriver {
 
     /// e.g. "Lat Pulldown · Set 2 of 3 · 12 × 55 kg"
     var nextSetDescription: String? {
-        guard let prompt = engine.currentSet, let exercise = exercise(id: prompt.exerciseID) else { return nil }
+        engine.currentSet.flatMap(description(of:))
+    }
+
+    /// During the last Set of a Superset pair: what follows the Rest it starts.
+    var setAfterRestDescription: String? {
+        engine.setAfterRest.flatMap(description(of:))
+    }
+
+    private func description(of prompt: SessionEngine.SetPrompt) -> String? {
+        guard let exercise = exercise(id: prompt.exerciseID) else { return nil }
         return String(
             localized: .nextSetDescription(
                 exercise.name, prompt.setNumber, prompt.totalSets, prompt.reps, prompt.weight.kilograms))

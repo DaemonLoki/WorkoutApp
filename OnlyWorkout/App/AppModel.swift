@@ -11,6 +11,8 @@ import UIKit
 final class AppModel {
     /// A Session untouched for this long is treated as forgotten and ended (README §6).
     static let abandonedSessionInterval: TimeInterval = 6 * 3600
+    /// `UserDefaults` key of Settings → Apple Watch → Start Sessions on Apple Watch; device-local, on by default.
+    static let startsSessionsOnWatchKey = "startsSessionsOnWatch"
 
     let log: TrainingLog
     /// `nil` when this build has no Supabase configuration, and in UI tests.
@@ -48,6 +50,7 @@ final class AppModel {
         strava?.didUpload = { [weak self] in self?.syncWithCloud(uploadsToStrava: false) }
 
         resumeUnfinishedSession()
+        deleteHealthWorkouts()
         syncWithCloud()
     }
 
@@ -56,6 +59,7 @@ final class AppModel {
     /// Starts a Session, explaining Apple Health first if the permission hasn't been asked yet.
     func requestStart(_ workout: Workout) {
         guard activeSession == nil, startingOnWatch == nil else { return }
+        nameUnnamedWorkouts()
         guard let recorder else {
             startOnPhone(workout)
             return
@@ -88,9 +92,10 @@ final class AppModel {
         }
     }
 
-    /// Runs the Session on the Watch when one is available (it measures heart rate), otherwise here.
+    /// Runs the Session on the Watch when one is available and the setting allows it (it measures
+    /// heart rate), otherwise here.
     private func start(_ workout: Workout) async {
-        guard let recorder, link.canUseWatch else {
+        guard let recorder, link.canUseWatch, startsSessionsOnWatch else {
             startOnPhone(workout)
             return
         }
@@ -107,6 +112,10 @@ final class AppModel {
             guard !Task.isCancelled, let self, self.startingOnWatch?.id == workout.id else { return }
             self.startOnPhone(workout)
         }
+    }
+
+    private var startsSessionsOnWatch: Bool {
+        UserDefaults.standard.object(forKey: Self.startsSessionsOnWatchKey) as? Bool ?? true
     }
 
     /// Also offered to the user while waiting for the Watch.
@@ -145,6 +154,35 @@ final class AppModel {
         publishToWatch()
     }
 
+    // MARK: - Workouts
+
+    /// A new Workout starts with an empty name (the editor shows the default as a placeholder);
+    /// one left unnamed gets the default once its editor closes or it's started.
+    func nameUnnamedWorkouts() {
+        let now = Date.now
+        for workout in log.workouts() where workout.name.trimmingCharacters(in: .whitespaces).isEmpty {
+            workout.name = String(localized: .newWorkoutName)
+            workout.updatedAt = now
+        }
+    }
+
+    // MARK: - Sessions
+
+    /// Deletes a past Session everywhere: soft delete, its Health workout, the Watch's copy and the cloud.
+    func delete(_ session: Session) {
+        log.delete(session)
+        deleteHealthWorkouts()
+        publishToWatch()
+        syncWithCloud()
+    }
+
+    /// Deletes the Health workouts of deleted Sessions recorded here, wherever they were deleted.
+    /// Those recorded on the Watch are deleted by the Watch, from the tombstones in its snapshot.
+    private func deleteHealthWorkouts() {
+        guard recorder != nil else { return }
+        Task { await WorkoutRecorder.deleteWorkouts(ofDeletedSessionsIn: log, recordedOn: .phone) }
+    }
+
     // MARK: - Suggestions
 
     func accept(_ suggestion: ProgressionSuggestion) {
@@ -165,6 +203,7 @@ final class AppModel {
         guard let cloud else { return }
         Task {
             await cloud.sync()
+            deleteHealthWorkouts()
             publishToWatch()
             guard uploadsToStrava, let strava else { return }
             await strava.refresh()

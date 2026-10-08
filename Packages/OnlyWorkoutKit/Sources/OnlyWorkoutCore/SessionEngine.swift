@@ -23,6 +23,17 @@ public struct SessionEngine: Hashable, Codable, Sendable {
             isExtra: exercise.nextSetIsExtra)
     }
 
+    /// During the last Set of a Superset pair: the Set that follows the Rest it starts, so the next
+    /// Exercise can be prepared. `nil` otherwise; outside a Superset the Rest view shows what's next.
+    public var setAfterRest: SetPrompt? {
+        guard rest == nil, let index = currentIndex, let prompt = currentSet,
+            blocks.contains(where: { $0.count > 1 && $0.contains(index) })
+        else { return nil }
+        var after = self
+        after.completeSet(reps: prompt.reps, weight: prompt.weight, at: .distantPast)
+        return after.rest == nil ? nil : after.currentSet
+    }
+
     /// Every Set is logged (skipped exercises owe none).
     public var isComplete: Bool {
         exercises.allSatisfy { $0.remainingSets == 0 }

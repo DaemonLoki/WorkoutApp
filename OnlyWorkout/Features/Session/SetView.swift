@@ -7,6 +7,8 @@ struct SetView: View {
     let prompt: SessionEngine.SetPrompt
     let exerciseName: String
     let isSuperset: Bool
+    /// What follows the Rest after this Set, shown during the last Set of a Superset pair.
+    let afterRest: String?
     let usesAddedWeight: Bool
     let weightStep: Double
     let onSkipSet: () -> Void
@@ -17,13 +19,15 @@ struct SetView: View {
     @State private var weight: Double
 
     init(
-        prompt: SessionEngine.SetPrompt, exerciseName: String, isSuperset: Bool, usesAddedWeight: Bool,
-        weightStep: Double, onSkipSet: @escaping () -> Void, onSkipExercise: @escaping () -> Void,
+        prompt: SessionEngine.SetPrompt, exerciseName: String, isSuperset: Bool, afterRest: String?,
+        usesAddedWeight: Bool, weightStep: Double, onSkipSet: @escaping () -> Void,
+        onSkipExercise: @escaping () -> Void,
         onDone: @escaping (_ reps: Int, _ weight: Double) -> Void
     ) {
         self.prompt = prompt
         self.exerciseName = exerciseName
         self.isSuperset = isSuperset
+        self.afterRest = afterRest
         self.usesAddedWeight = usesAddedWeight
         self.weightStep = weightStep
         self.onSkipSet = onSkipSet
@@ -47,6 +51,14 @@ struct SetView: View {
                         .foregroundStyle(.secondary)
                 }
                 .font(.headline)
+
+                if let afterRest {
+                    Text(.afterRest(afterRest))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, DesignTokens.Spacing.xs)
+                }
             }
 
             Spacer(minLength: 0)

@@ -34,6 +34,17 @@
         }
       }
     },
+    "afterRest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After Rest: %@"
+          }
+        }
+      }
+    },
     "allMuscleGroups" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -85,6 +96,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Every Session is saved to Apple Health as a strength workout. Manage access in the Health app."
+          }
+        }
+      }
+    },
+    "appleWatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Watch"
           }
         }
       }
@@ -305,7 +327,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Its Sets are removed from your history and statistics."
+            "value" : "Its Sets are removed from your history and statistics, and its workout from Apple Health. This can't be undone."
           }
         }
       }
@@ -1466,17 +1488,6 @@
         }
       }
     },
-    "sessions" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sessions"
-          }
-        }
-      }
-    },
     "setCount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1661,6 +1672,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Start"
+          }
+        }
+      }
+    },
+    "startsSessionsOnWatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Sessions on Apple Watch"
+          }
+        }
+      }
+    },
+    "startsSessionsOnWatchFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions you start on iPhone open on your Apple Watch, which shows your heart rate. When off, they run on iPhone without heart rate. Starting on the Watch isn't affected."
           }
         }
       }
@@ -2050,6 +2083,17 @@
         }
       }
     },
+    "tabHistory" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History"
+          }
+        }
+      }
+    },
     "tabProgress" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2204,17 +2248,6 @@
         }
       }
     },
-    "view" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View"
-          }
-        }
-      }
-    },
     "viewOnStrava" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2222,6 +2255,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "View on Strava"
+          }
+        }
+      }
+    },
+    "watchAfterRest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After Rest: %1$@ · %2$lld × %3$@"
           }
         }
       }

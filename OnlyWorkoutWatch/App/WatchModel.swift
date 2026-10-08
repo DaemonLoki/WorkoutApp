@@ -24,9 +24,12 @@ final class WatchModel {
     init(log: TrainingLog) {
         self.log = log
         link.onReceiveRecords = { [weak self] batch in
-            self?.log.apply(batch)
-            self?.planVersion += 1
-            self?.updateComplication()
+            guard let self else { return }
+            log.apply(batch)
+            planVersion += 1
+            updateComplication()
+            // Sessions deleted on the iPhone arrive as tombstones; only the Watch can delete their workouts.
+            Task { await WorkoutRecorder.deleteWorkouts(ofDeletedSessionsIn: self.log, recordedOn: .watch) }
         }
         link.onStartRequest = { [weak self] request in self?.pendingStart = request }
         link.onActivate = { [weak self] in self?.sendToPhone() }

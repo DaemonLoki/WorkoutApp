@@ -1,8 +1,9 @@
+import OnlyWorkoutDesign
 import OnlyWorkoutStore
 import SwiftData
 import SwiftUI
 
-/// Edits a Workout: its name, its Planned Exercises, their order and Supersets.
+/// Edits a Workout: its name, its Planned Exercises, their order and Supersets; can start a Session of it.
 struct WorkoutEditorView: View {
     @Bindable var workout: Workout
     @Environment(AppModel.self) private var appModel
@@ -13,6 +14,7 @@ struct WorkoutEditorView: View {
     @State private var picked: Exercise?
     @State private var linkChoice: LinkChoice?
     @State private var showsLinkChoice = false
+    @FocusState private var editsName: Bool
 
     /// The picked Exercise already exists in other Workouts: offer to link to one of them (ADR-0006).
     struct LinkChoice {
@@ -24,8 +26,12 @@ struct WorkoutEditorView: View {
         let planned = workout.orderedPlannedExercises
         List {
             Section {
-                TextField(text: $workout.name) { Text(.workoutName) }
+                // A new Workout starts unnamed so the name can be typed right away (#7);
+                // `AppModel.nameUnnamedWorkouts` fills in the default if it's left empty.
+                TextField(text: $workout.name, prompt: Text(.newWorkoutName)) { Text(.workoutName) }
                     .font(.headline)
+                    .focused($editsName)
+                    .submitLabel(.done)
             }
             Section {
                 ForEach(planned) { item in
@@ -65,10 +71,28 @@ struct WorkoutEditorView: View {
                 Text(.supersetHint)
             }
         }
-        .navigationTitle(workout.name)
+        .navigationTitle(workout.name.isEmpty ? String(localized: .newWorkoutName) : workout.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { EditButton() }
+        .safeAreaInset(edge: .bottom) {
+            if appModel.activeSession == nil, !editsName {
+                // Same path as Today: Health explanation, Watch first, iPhone as fallback.
+                Button {
+                    appModel.requestStart(workout)
+                } label: {
+                    Text(.startSession).font(.headline).frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glassProminent)
+                .controlSize(.extraLarge)
+                .disabled(planned.isEmpty)
+                .padding(DesignTokens.Spacing.m)
+                .accessibilityIdentifier("editorStartButton")
+            }
+        }
         .onChange(of: workout.name) { workout.updatedAt = .now }
+        .onAppear {
+            if workout.name.isEmpty { editsName = true }
+        }
         .navigationDestination(for: PlannedExercise.self) { item in
             PlannedExerciseEditorView(planned: item)
         }

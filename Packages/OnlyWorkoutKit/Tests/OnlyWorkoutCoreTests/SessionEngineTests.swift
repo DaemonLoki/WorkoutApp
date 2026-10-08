@@ -108,6 +108,51 @@ struct SessionEngineTests {
         #expect(rests == [nil, 60, 60, 60, nil])
     }
 
+    @Test func theLastSetOfASupersetPairShowsTheSetAfterTheRest() {
+        let pair = UUID()
+        let curl = exercise("Curl", sets: 2, weight: 12, superset: pair)
+        let pushdown = exercise("Pushdown", sets: 2, superset: pair)
+        var engine = SessionEngine(exercises: [curl, pushdown])
+
+        engine.completeSet(reps: 10, weight: 14, at: start)
+
+        #expect(engine.currentSet?.exerciseID == pushdown.id)
+        #expect(
+            engine.setAfterRest
+                == SessionEngine.SetPrompt(
+                    exerciseID: curl.id, setNumber: 2, totalSets: 2, reps: 10, weight: 14, isExtra: false))
+    }
+
+    @Test func theFirstSetOfASupersetPairShowsNothingAfterTheRest() {
+        let pair = UUID()
+        let engine = SessionEngine(exercises: [
+            exercise("Curl", superset: pair), exercise("Pushdown", superset: pair),
+        ])
+
+        #expect(engine.setAfterRest == nil)
+    }
+
+    @Test func theLastSetOfTheFinalSupersetPairShowsTheNextExerciseWithItsTarget() {
+        let pair = UUID()
+        let row = exercise("Row", sets: 3, reps: 8, weight: 60)
+        var engine = SessionEngine(exercises: [
+            exercise("Curl", sets: 1, superset: pair), exercise("Pushdown", sets: 1, superset: pair), row,
+        ])
+
+        engine.completeSet(reps: 10, weight: 50, at: start)
+
+        #expect(
+            engine.setAfterRest
+                == SessionEngine.SetPrompt(
+                    exerciseID: row.id, setNumber: 1, totalSets: 3, reps: 8, weight: 60, isExtra: false))
+    }
+
+    @Test func aSetOutsideASupersetShowsNothingAfterTheRest() {
+        let engine = SessionEngine(exercises: [exercise("Bench Press"), exercise("Row")])
+
+        #expect(engine.setAfterRest == nil)
+    }
+
     @Test func aSkippedExerciseIsLeftOutOfTheQueue() {
         let bench = exercise("Bench Press", sets: 1)
         let row = exercise("Row", sets: 1)

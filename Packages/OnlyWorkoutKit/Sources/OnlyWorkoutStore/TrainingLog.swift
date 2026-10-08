@@ -339,6 +339,21 @@ public struct TrainingLog {
         try? context.save()
     }
 
+    /// Deleted Sessions whose Apple Health workout is still there. HealthKit lets an app delete only
+    /// what it saved, so each device deletes the workouts of the Sessions it recorded.
+    public func healthWorkoutsToDelete(recordedOn device: Session.Device) -> [Session] {
+        let raw = device.rawValue
+        let descriptor = FetchDescriptor<Session>(
+            predicate: #Predicate { $0.deletedAt != nil && $0.healthWorkoutID != nil && $0.recordedOnRaw == raw })
+        return (try? context.fetch(descriptor)) ?? []
+    }
+
+    /// The Session's Health workout was deleted (or is gone). Local only, so `updatedAt` stays.
+    public func forgetHealthWorkout(of session: Session) {
+        session.healthWorkoutID = nil
+        try? context.save()
+    }
+
     /// Corrects a Set of a finished Session.
     public func update(_ set: SetEntry, reps: Int, weight: Double, now: Date = .now) {
         set.reps = reps
