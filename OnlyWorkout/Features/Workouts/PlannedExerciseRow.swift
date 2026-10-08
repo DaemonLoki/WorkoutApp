@@ -20,6 +20,8 @@ struct PlannedExerciseRow: View {
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
             }
+            // Long Exercise names wrap at large Dynamic Type sizes instead of being cut off.
+            .fixedSize(horizontal: false, vertical: true)
             Spacer()
             if planned.linkID != nil {
                 Image(systemName: "link")

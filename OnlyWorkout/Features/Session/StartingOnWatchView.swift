@@ -11,6 +11,7 @@ struct StartingOnWatchView: View {
                 .font(.largeTitle)
                 .foregroundStyle(.tint)
                 .symbolEffect(.pulse)
+                .accessibilityHidden(true)
             Text(.startingOnWatch)
                 .font(.headline)
             Button(.startOnIPhoneInstead, action: onStartOnPhone)
