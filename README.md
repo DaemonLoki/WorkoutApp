@@ -405,12 +405,14 @@ Apple Health does **not** forward third-party strength workouts to Strava, so On
 5. **When**: with auto-upload on (the default), every Session finished after connecting is uploaded after each cloud sync — after it ends, when a Watch Session arrives, on launch and foreground; failures stay queued. Earlier Sessions, or all with auto-upload off, have "Upload to Strava" on Session detail.
 6. **What is kept**: Strava's activity ID is Strava Data, which may be cached for 7 days at most (Strava API Policy §6.2). It stays on the iPhone that uploaded, never in Supabase, and is dropped after 7 days, so "View on Strava" shows for a week. The cloud keeps our own `strava_uploaded_at`, so no device uploads a Session twice.
 7. **Disconnect**: Edge Function **`strava-disconnect`** revokes access with `POST /oauth/revoke` and deletes the row; `delete-account` does the same first. Edge Function **`strava-webhook`** answers Strava's subscription check and deletes an athlete's row when they revoke access on Strava's side (required by Strava's API terms).
+8. **Capacity gate** (M5): Strava lets an API app connect a limited number of athletes (1 for a new app, 10 after the owner's self-upgrade, more only after Strava's review) and refuses everyone else on its own consent page, which the app can't detect ([docs/research/strava-athlete-capacity.md](docs/research/strava-athlete-capacity.md)). So the one-row table `strava_settings` holds the `athlete_capacity` Strava granted, and `strava_connect_open()` tells the app whether connecting can work (the caller is connected already, or fewer athletes are connected than the capacity). When it can't, Settings shows Strava as "Full for now" instead of the button. If Strava still refuses the token exchange for its athlete limit, `strava-connect` answers `athlete_limit` and the app says so.
 
 **Owner setup:**
 1. Create the API app at <https://www.strava.com/settings/api> (needs a Strava subscription): callback domain `onlyworkout.stefanblos.com`.
 2. `STRAVA_CLIENT_ID = …` in `Config/Secrets.xcconfig`.
 3. `supabase secrets set STRAVA_CLIENT_ID=… STRAVA_CLIENT_SECRET=… STRAVA_WEBHOOK_VERIFY_TOKEN=<random string>`, then `supabase db push` and `supabase functions deploy`.
 4. Subscribe the webhook once: `curl -X POST https://www.strava.com/api/v3/push_subscriptions -F client_id=… -F client_secret=… -F callback_url=https://<project>.supabase.co/functions/v1/strava-webhook -F verify_token=<same string>`, then `supabase secrets set STRAVA_WEBHOOK_SUBSCRIPTION_ID=<returned id>`.
+5. Keep the capacity at what Strava granted, in the SQL editor: `update public.strava_settings set athlete_capacity = 10;` (the migration starts at 1).
 
 ---
 
@@ -446,7 +448,10 @@ supabase/
   functions/                    # delete-account, strava-connect, strava-upload, strava-disconnect, strava-webhook;
                                 # _shared/ (Strava rules + Deno tests: `deno test --allow-env supabase/functions`)
 Config/                         # Shared.xcconfig (team, includes Secrets.xcconfig — gitignored), Info.plists, entitlements
-docs/adr/
+docs/adr/  docs/research/       # decisions; researched facts with sources
+docs/release/                   # App Store listing, App Privacy answers and App Review notes
+site/onlyworkout/               # Privacy Policy and Support pages, copied by the owner to stefanblos.com/onlyworkout/
+design/icon/                    # app icon concepts and the Icon Composer workflow
 .github/workflows/ci.yml
 ```
 
@@ -459,11 +464,14 @@ docs/adr/
 
 ## 14. App Store readiness (built in from day one)
 
+What is still missing for a release, checked against Apple's current requirements: [docs/research/app-store-readiness.md](docs/research/app-store-readiness.md).
+
 - **Account deletion** in Settings: the user confirms with Sign in with Apple once more; Edge Function `delete-account` swaps that fresh authorization code for a token, **revokes the Sign in with Apple token** (App Review guideline 5.1.1(v)), then deletes the auth user, which deletes all rows by cascade. No Apple tokens are stored. Local data stays on the device.
 - Health: purpose strings (`NSHealthShareUsageDescription`, `NSHealthUpdateUsageDescription`), Health data used only for the user's own tracking, never synced to the cloud or used for ads.
-- `PrivacyInfo.xcprivacy` for each target; privacy policy page (needed for HealthKit + accounts) before public release.
+- `PrivacyInfo.xcprivacy` in each target's `Resources/` (UserDefaults reasons; the iPhone app also lists the data Cloud Sync and Strava send). `ITSAppUsesNonExemptEncryption = NO`: the only cryptography is OS-provided HTTPS and CryptoKit hashing.
+- Privacy Policy and Support pages (`site/onlyworkout/`, live at `https://stefanblos.com/onlyworkout/privacy/` and `/support/`), linked from Settings. Sign in with Apple asks for no email (data minimisation).
 - No secrets in the binary except the Supabase publishable key (which is public by design and protected by RLS).
-- Strava: a new API app connects only its owner (capacity 1); a self-service upgrade raises that to 10, review is needed beyond. Brand guidelines: official "Connect with Strava" button, "View on Strava" links, "Compatible with Strava" attribution, no "Strava" in the app's name or icon. The privacy policy must name what goes to Strava.
+- Strava: a new API app connects only its owner (capacity 1); the owner can self-upgrade to 10 athletes without review. Beyond 10 needs Strava's Developer Program review, which Strava only considers once all 10 slots are used; approval, granted capacity (up to 9,999 on the Standard tier) and timing are at Strava's discretion, and the owner's Strava subscription must stay active. See [docs/research/strava-athlete-capacity.md](docs/research/strava-athlete-capacity.md). Brand guidelines: official "Connect with Strava" button, "View on Strava" links, "Compatible with Strava" attribution, no "Strava" in the app's name or icon. The privacy policy must name what goes to Strava.
 - Accessibility: Dynamic Type, VoiceOver labels on every icon-only control, Reduce Motion, 44 pt targets.
 
 ---
@@ -509,10 +517,20 @@ Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) fo
 - **Done when**: delete the app, reinstall, sign in → all data returns without duplicates; rows are visible in the Supabase dashboard and nobody else's are.
 
 ### M4 — Strava
-**Status:** in progress on branch `m4-strava`. Done and tested: the upload file and exercise-type list (Core), the catalog mapping, upload queue and 7-day activity-ID expiry (Store), `StravaLink` against a fake backend, the `strava_connections` table and RPCs (pgTAP), and the Strava rules in the Edge Functions (Deno tests with a stubbed fetch). On a device the owner connected Strava, uploaded test Sessions from the iPhone and the Watch, and checked that nothing is uploaded with auto-upload off (see §15 #4).
+**Status:** merged into `main` (DaemonLoki/WorkoutApp#8). Tested: the upload file and exercise-type list (Core), the catalog mapping, upload queue and 7-day activity-ID expiry (Store), `StravaLink` against a fake backend, the `strava_connections` table and RPCs (pgTAP), and the Strava rules in the Edge Functions (Deno tests with a stubbed fetch). On a device the owner connected Strava, uploaded test Sessions from the iPhone and the Watch, and checked that nothing is uploaded with auto-upload off (see §15 #4).
 
 - Resolve open questions #2–3; `strava-connect`, `strava-upload`, `strava-disconnect`; Exercise → Strava type mapping; Settings UI; auto-upload.
 - **Done when**: finishing a Session creates a Strava WeightTraining activity with every Set.
+
+### After M4 — feedback rounds
+The owner's feedback from using the app is tracked as GitHub issues and shipped in rounds: round 1 (DaemonLoki/WorkoutApp#13: History tab, deleting a Session also deletes its Health workout, Superset preview, start a Session from the Workout editor or on the Watch) and round 2 (DaemonLoki/WorkoutApp#16: Rest Timer that can be turned off, rep Step Ups, collapsible Ready to Step Up).
+
+### M5 — App Store readiness
+**Status:** in progress on branch `release-readiness-research`; GitHub milestone "M5 — App Store readiness" (DaemonLoki/WorkoutApp#17–#29). Research: [docs/research/app-store-readiness.md](docs/research/app-store-readiness.md), [docs/research/strava-athlete-capacity.md](docs/research/strava-athlete-capacity.md).
+
+- In code: privacy manifests for every target (#17); export compliance key, version 1.0, `-sampleData` in Debug only (#18); Privacy Policy and Support pages in `site/`, linked in Settings (#19); Health purpose strings mention calories (#20); no email scope at Sign in with Apple (#21); Strava capacity gate and athlete-limit message (#22); accessibility pass (#23); app icon via Icon Composer (#24); App Store listing and review notes in `docs/release/` (#25).
+- Owner: Strava capacity check, self-upgrade and Developer Program application (#26); hosted Supabase ready for review (#27); device check (#28); App Store Connect record, screenshots, TestFlight and submission (#29).
+- **Done when**: a TestFlight build uploads without App Store Connect warnings, and the app passes App Review with Strava behind the capacity gate.
 
 ---
 
