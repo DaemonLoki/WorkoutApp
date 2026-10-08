@@ -29,7 +29,8 @@ xcrun swift-format format --in-place --recursive <paths>
 # Supabase (M3+; `brew install supabase/tap/supabase`, needs Docker)
 supabase start && supabase db reset   # local stack + migrations
 supabase test db                      # pgTAP tests in supabase/tests/database (RLS, sync_push, sync_pull)
-supabase functions serve              # serves delete-account locally
+supabase functions serve              # serves delete-account and the strava-* functions locally
+deno test --allow-env supabase/functions   # Strava rules of the Edge Functions, against a stubbed fetch (`brew install deno`)
 ```
 
 The Xcode project uses **synchronized folders**: create files on disk inside a target folder and they join the target — only edit `project.pbxproj` for targets, capabilities and build settings. `SharedUI/` is compiled into both the iPhone and the Watch app. `Config/` holds `Shared.xcconfig` (team, secrets include), the Info.plists and entitlements (HealthKit; App Group `group.com.stefanblos.OnlyWorkouts` for the Watch complication).
@@ -41,7 +42,7 @@ Launch arguments: `-uiTesting` starts the iPhone app with an in-memory store, a 
 ## Architecture in one breath
 
 - `Packages/OnlyWorkoutKit/OnlyWorkoutCore` holds **all** domain logic as pure, `Sendable` value types (progression, Rotation, `SessionEngine`, stats, `RecordMerger`, messages). Views and SwiftData models stay thin and call into it.
-- `OnlyWorkoutStore` = SwiftData models + `TrainingLog` (all reads/writes views need; feeds Core with plain values) + Exercise Catalog seed + `SessionRunner` (runs a Session on whichever device is primary) + `RecordBatch` (Codable records moved between devices; `exportPlan`/`watchSnapshot`/`apply`). `OnlyWorkoutDesign` = `DesignTokens` + shared components. `OnlyWorkoutLiveActivity` = the `ActivityAttributes` shared by app and widget extension. `OnlyWorkoutConnectivity` = `WorkoutRecorder` (HealthKit workout + mirroring channel), `PhoneWatchLink` (WatchConnectivity), `MirrorMessage` (state/commands during a mirrored Session). `OnlyWorkoutSync` = `CloudSync` (push then pull, account lifecycle) behind the `CloudBackend` protocol, `SupabaseBackend`, `CloudCoding` (the RPC JSON); iOS only, the sole importer of `supabase-swift`.
+- `OnlyWorkoutStore` = SwiftData models + `TrainingLog` (all reads/writes views need; feeds Core with plain values) + Exercise Catalog seed + `SessionRunner` (runs a Session on whichever device is primary) + `RecordBatch` (Codable records moved between devices; `exportPlan`/`watchSnapshot`/`apply`). `OnlyWorkoutDesign` = `DesignTokens` + shared components. `OnlyWorkoutLiveActivity` = the `ActivityAttributes` shared by app and widget extension. `OnlyWorkoutConnectivity` = `WorkoutRecorder` (HealthKit workout + mirroring channel), `PhoneWatchLink` (WatchConnectivity), `MirrorMessage` (state/commands during a mirrored Session). `OnlyWorkoutSync` = `CloudSync` (push then pull, account lifecycle) behind the `CloudBackend` protocol, `StravaLink` (connect, upload, disconnect) behind `StravaBackend`, `SupabaseBackend` (both), `CloudCoding` (the RPC JSON); iOS only, the sole importer of `supabase-swift`.
 - The stored Set type is `SetEntry` because `Set` is Swift's collection; in Core the value type is `LoggedSet`.
 - `SessionRunner` wraps `SessionEngine` for a live Session: every event is saved via `TrainingLog.save` (which also stores the encoded engine so a Session resumes after termination). On iPhone the Session screen talks to a `SessionDriver`: `LocalSession` (runner + Live Activity + notification + Health) or `MirroredSession` (draws the Watch's `MirrorState`, sends `MirrorCommand`s back).
 - Every synced record carries `id`, `createdAt`, `updatedAt`, `deletedAt`; delete by setting `deletedAt`. Stored models also keep a local-only `syncedUpdatedAt`; bumping `updatedAt` is all it takes to get a change pushed. A new column goes into the migration, the `*Record` type and its `write(to:)`; the RPCs read the columns from the table.
@@ -56,7 +57,8 @@ Launch arguments: `-uiTesting` starts the iPhone app with an in-memory store, a 
 - **Strings**: every user-facing string goes into `SharedUI/Localizable.xcstrings` (shared by iPhone and Watch; the Watch widget extension has its own small catalog) with a symbol key and `extractionState: manual`, used as `Text(.keyName)` or `String(localized: .keyName)`. `%lld` becomes an `Int` argument, `%@` a `String`; counts use plural variations (`.setCount(n)`). Package modules take text as parameters instead of owning strings.
 - **Dependencies**: `supabase-swift` is the only third-party package; ask the owner before adding another.
 - **Secrets** live in `Config/Secrets.xcconfig` (gitignored; copy `Config/Secrets.example.xcconfig`) and in `supabase secrets`. The repo and binary carry only the Supabase publishable key.
-- **Health data** (heart rate, energy) stays on device — keep it out of synced models and the Supabase schema.
+- **Health data** (heart rate, energy) stays on device — keep it out of synced models, the Supabase schema and Strava uploads.
+- **Strava Data** (anything read from Strava's API, e.g. activity IDs) is kept 7 days at most and never in Supabase, except the tokens the Edge Functions need (README §12, ADR-0004).
 - **Git**: work on a feature branch; the owner reviews every change before it lands on `main`.
 
 ## Skills

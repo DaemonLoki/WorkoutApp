@@ -1,10 +1,11 @@
 import Foundation
 import Supabase
 
-/// The real cloud: Supabase Auth with Sign in with Apple, the sync RPCs and `delete-account`.
+/// The real cloud: Supabase Auth with Sign in with Apple, the sync RPCs and `delete-account`;
+/// the Strava calls are in `SupabaseBackend+Strava.swift`.
 @MainActor
 public final class SupabaseBackend: CloudBackend {
-    private let client: SupabaseClient
+    let client: SupabaseClient
 
     public init(url: URL, publishableKey: String) {
         client = SupabaseClient(

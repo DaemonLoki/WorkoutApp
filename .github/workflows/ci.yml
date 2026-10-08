@@ -42,3 +42,19 @@ jobs:
 
       - name: pgTAP tests
         run: supabase test db
+
+  functions:
+    # Strava rules of the Edge Functions (supabase/functions/_shared), against a stubbed fetch.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Formatting
+        run: deno fmt --check --line-width 120 supabase/functions
+
+      - name: Deno tests
+        run: deno test --no-lock --allow-env supabase/functions

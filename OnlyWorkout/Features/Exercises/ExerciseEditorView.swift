@@ -12,6 +12,7 @@ struct ExerciseEditorView: View {
     @State private var name: String
     @State private var equipment: Equipment
     @State private var muscleGroups: Set<MuscleGroup>
+    @State private var stravaType: String?
 
     init(exercise: Exercise?, onCreate: ((Exercise) -> Void)? = nil) {
         self.exercise = exercise
@@ -19,6 +20,7 @@ struct ExerciseEditorView: View {
         _name = State(initialValue: exercise?.name ?? "")
         _equipment = State(initialValue: exercise?.equipment ?? .machine)
         _muscleGroups = State(initialValue: Set(exercise?.muscleGroups ?? []))
+        _stravaType = State(initialValue: exercise?.stravaExerciseType)
     }
 
     var body: some View {
@@ -52,6 +54,24 @@ struct ExerciseEditorView: View {
                 } header: {
                     Text(.muscleGroups)
                 }
+                Section {
+                    NavigationLink(value: StravaExercisePickerRoute()) {
+                        LabeledContent {
+                            if let stravaType {
+                                Text(StravaExerciseGroup.displayName(of: stravaType))
+                            } else {
+                                Text(.stravaExerciseNone)
+                            }
+                        } label: {
+                            Text(.stravaExercise)
+                        }
+                    }
+                } footer: {
+                    Text(.stravaExerciseFooter)
+                }
+            }
+            .navigationDestination(for: StravaExercisePickerRoute.self) { _ in
+                StravaExercisePicker(selection: $stravaType)
             }
             .navigationTitle(Text(exercise == nil ? .newExercise : .editExercise))
             .navigationBarTitleDisplayMode(.inline)
@@ -74,9 +94,11 @@ struct ExerciseEditorView: View {
             exercise.name = trimmed
             exercise.equipment = equipment
             exercise.muscleGroups = ordered
+            exercise.stravaExerciseType = stravaType
             exercise.updatedAt = .now
         } else {
             let created = Exercise(name: trimmed, equipment: equipment, muscleGroups: ordered)
+            created.stravaExerciseType = stravaType
             modelContext.insert(created)
             onCreate?(created)
         }
@@ -84,3 +106,5 @@ struct ExerciseEditorView: View {
         dismiss()
     }
 }
+
+struct StravaExercisePickerRoute: Hashable {}

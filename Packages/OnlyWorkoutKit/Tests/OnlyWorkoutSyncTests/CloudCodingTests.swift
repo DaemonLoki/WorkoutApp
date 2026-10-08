@@ -60,7 +60,7 @@ struct CloudCodingTests {
           "sessions": [{"id": "40000000-0000-0000-0000-000000000001", "ended_at": "2026-09-05T19:00:00.25+00:00",
             "created_at": "2026-09-05T18:00:00+00:00", "deleted_at": null, "started_at": "2026-09-05T18:00:00+00:00",
             "updated_at": "2026-09-05T19:00:00.25+00:00", "workout_id": "10000000-0000-0000-0000-000000000001",
-            "recorded_on": "watch", "workout_name": "Leg Day", "strava_activity_id": null}],
+            "recorded_on": "watch", "workout_name": "Leg Day", "strava_uploaded_at": null}],
           "workouts": [],
           "exercises": [{"id": "20000000-0000-0000-0000-000000000001", "name": "Back Squat", "equipment": "barbell",
             "created_at": "1970-01-01T00:00:00+00:00", "deleted_at": null, "updated_at": "1970-01-01T00:00:00+00:00",

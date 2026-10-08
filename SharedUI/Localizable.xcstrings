@@ -188,6 +188,17 @@
         }
       }
     },
+    "connectWithStrava" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect with Strava"
+          }
+        }
+      }
+    },
     "continueLabel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -306,6 +317,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete this Session?"
+          }
+        }
+      }
+    },
+    "disconnectStrava" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect Strava"
+          }
+        }
+      }
+    },
+    "disconnectStravaMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OnlyWorkout stops uploading and gives up its access to your Strava account. Activities already on Strava stay there."
+          }
+        }
+      }
+    },
+    "disconnectStravaTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect Strava?"
           }
         }
       }
@@ -1698,6 +1742,193 @@
         }
       }
     },
+    "strava" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strava"
+          }
+        }
+      }
+    },
+    "stravaConnected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        }
+      }
+    },
+    "stravaConnectedFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compatible with Strava. Sessions you finish from now on are uploaded when they end; earlier ones can be uploaded from their detail screen."
+          }
+        }
+      }
+    },
+    "stravaConnectFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Connect to Strava"
+          }
+        }
+      }
+    },
+    "stravaConsentFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uploads each finished Session to Strava as a Weight Training activity with its exercises, Sets, reps and weights. Heart rate and other Apple Health data are never sent. You can disconnect here or in Strava's settings at any time."
+          }
+        }
+      }
+    },
+    "stravaExercise" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strava Exercise"
+          }
+        }
+      }
+    },
+    "stravaExerciseFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sets of this exercise are uploaded to Strava as this exercise, which also decides the muscles Strava highlights. With None, they stay off Strava."
+          }
+        }
+      }
+    },
+    "stravaExerciseNone" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None"
+          }
+        }
+      }
+    },
+    "stravaNeedsCloudFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strava uploads go through Cloud Sync. Sign in above to connect Strava."
+          }
+        }
+      }
+    },
+    "stravaNotConnectedAnyMore" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OnlyWorkout's access to Strava was revoked. Connect Strava again in Settings."
+          }
+        }
+      }
+    },
+    "stravaNothingToUpload" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None of these exercises has a Strava exercise, so there is nothing to upload."
+          }
+        }
+      }
+    },
+    "stravaStillProcessing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strava is still processing the upload. Try again in a minute."
+          }
+        }
+      }
+    },
+    "stravaTryAgainLater" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please try again later."
+          }
+        }
+      }
+    },
+    "stravaUnavailableFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strava isn't set up in this build."
+          }
+        }
+      }
+    },
+    "stravaUploadAutomatically" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upload Sessions Automatically"
+          }
+        }
+      }
+    },
+    "stravaUploadFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't Upload to Strava"
+          }
+        }
+      }
+    },
+    "stravaUploadsNotAllowed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow OnlyWorkout to upload your activities on Strava's page to connect."
+          }
+        }
+      }
+    },
     "summaryHeadline0" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1940,6 +2171,28 @@
         }
       }
     },
+    "uploadedToStrava" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uploaded to Strava"
+          }
+        }
+      }
+    },
+    "uploadToStrava" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upload to Strava"
+          }
+        }
+      }
+    },
     "version" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1958,6 +2211,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "View"
+          }
+        }
+      }
+    },
+    "viewOnStrava" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View on Strava"
           }
         }
       }

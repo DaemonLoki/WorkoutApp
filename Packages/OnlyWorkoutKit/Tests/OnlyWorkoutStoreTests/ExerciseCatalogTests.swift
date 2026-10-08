@@ -1,4 +1,5 @@
 import Foundation
+import OnlyWorkoutCore
 import SwiftData
 import Testing
 
@@ -23,5 +24,12 @@ struct ExerciseCatalogTests {
         #expect(squat?.id == UUID(uuidString: "f61458c1-a06a-5047-9e6c-17d73b36ca97"))
         #expect(squat?.name == "Back Squat")
         #expect(squat?.muscleGroups == [.quads, .glutes])
+    }
+
+    /// Strava builds its muscle map from these; an unknown type would fail the upload.
+    @Test func everyCatalogExerciseHasATypeStravaKnows() {
+        for entry in ExerciseCatalog.entries {
+            #expect(entry.stravaExerciseType.map(StravaExerciseGroup.isKnown) == true, "\(entry.key)")
+        }
     }
 }

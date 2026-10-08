@@ -21,8 +21,8 @@ struct OnlyWorkoutApp: App {
             SampleData.insertStarterWorkout(into: container.mainContext)
         }
         let log = TrainingLog(context: container.mainContext)
-        let cloud = isUITesting ? nil : CloudSync.configured(log: log)
-        _appModel = State(initialValue: AppModel(log: log, cloud: cloud, usesHealth: !isUITesting))
+        let services = isUITesting ? nil : CloudServices.configured(log: log)
+        _appModel = State(initialValue: AppModel(log: log, services: services, usesHealth: !isUITesting))
     }
 
     var body: some Scene {

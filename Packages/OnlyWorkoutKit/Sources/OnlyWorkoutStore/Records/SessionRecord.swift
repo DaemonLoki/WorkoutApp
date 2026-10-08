@@ -13,7 +13,8 @@ public struct SessionRecord: SyncRecord, Codable, Equatable, Sendable {
     public var recordedOn: String
     /// Travels between Watch and iPhone only; never to the cloud (README §11).
     public var healthWorkoutID: UUID?
-    public var stravaActivityID: Int64?
+    /// The Strava activity ID never travels: it is Strava Data, kept on the iPhone that uploaded (README §12).
+    public var stravaUploadedAt: Date?
 
     init(_ model: Session) {
         id = model.id
@@ -26,7 +27,7 @@ public struct SessionRecord: SyncRecord, Codable, Equatable, Sendable {
         endedAt = model.endedAt
         recordedOn = model.recordedOnRaw
         healthWorkoutID = model.healthWorkoutID
-        stravaActivityID = model.stravaActivityID
+        stravaUploadedAt = model.stravaUploadedAt
     }
 
     func write(to model: Session) {
@@ -39,6 +40,6 @@ public struct SessionRecord: SyncRecord, Codable, Equatable, Sendable {
         model.endedAt = endedAt
         model.recordedOnRaw = recordedOn
         model.healthWorkoutID = healthWorkoutID ?? model.healthWorkoutID
-        model.stravaActivityID = stravaActivityID
+        model.stravaUploadedAt = stravaUploadedAt
     }
 }

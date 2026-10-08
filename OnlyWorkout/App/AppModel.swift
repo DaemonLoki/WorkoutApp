@@ -6,7 +6,7 @@ import OnlyWorkoutStore
 import OnlyWorkoutSync
 import UIKit
 
-/// App-wide state: which Session is running and where, plus the link to the Watch.
+/// App-wide state: which Session is running and where, plus the links to the Watch, the cloud and Strava.
 @Observable
 final class AppModel {
     /// A Session untouched for this long is treated as forgotten and ended (README §6).
@@ -15,6 +15,8 @@ final class AppModel {
     let log: TrainingLog
     /// `nil` when this build has no Supabase configuration, and in UI tests.
     let cloud: CloudSync?
+    /// Same; Strava rides on the cloud account (README §12).
+    let strava: StravaLink?
     var activeSession: ActiveSession?
     /// The Watch has been asked to start this Workout; waiting for it to mirror back.
     var startingOnWatch: Workout?
@@ -28,9 +30,10 @@ final class AppModel {
     @ObservationIgnored private var startAfterHealthExplanation: Workout?
 
     /// - Parameter usesHealth: `false` for UI tests, which run without Apple Health and without a Watch.
-    init(log: TrainingLog, cloud: CloudSync? = nil, usesHealth: Bool = true) {
+    init(log: TrainingLog, services: CloudServices? = nil, usesHealth: Bool = true) {
         self.log = log
-        self.cloud = cloud
+        cloud = services?.sync
+        strava = services?.strava
         recorder = usesHealth && WorkoutRecorder.isAvailable ? WorkoutRecorder() : nil
 
         link.onReceiveRecords = { [weak self] batch in
@@ -41,6 +44,8 @@ final class AppModel {
         link.onActivate = { [weak self] in self?.publishToWatch() }
         link.activate()
         recorder?.observeMirroredSessions { [weak self] in self?.followWatchSession() }
+        // The upload mark is owed to the cloud right away, so another device never uploads again.
+        strava?.didUpload = { [weak self] in self?.syncWithCloud(uploadsToStrava: false) }
 
         resumeUnfinishedSession()
         syncWithCloud()
@@ -154,12 +159,16 @@ final class AppModel {
 
     // MARK: - Sync
 
-    /// Pushes and pulls when signed in (README §10), then hands whatever arrived on to the Watch.
-    func syncWithCloud() {
+    /// Pushes and pulls when signed in (README §10), hands whatever arrived on to the Watch, then uploads
+    /// finished Sessions to Strava. Pulling first brings in upload marks from other devices.
+    func syncWithCloud(uploadsToStrava: Bool = true) {
         guard let cloud else { return }
         Task {
             await cloud.sync()
             publishToWatch()
+            guard uploadsToStrava, let strava else { return }
+            await strava.refresh()
+            await strava.uploadPending()
         }
     }
 
