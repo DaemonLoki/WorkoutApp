@@ -32,6 +32,25 @@ enum SampleData {
         return workout
     }
 
+    /// A pending Step Up and a pending Step Down for the starter Workout's Planned Exercises.
+    static func insertPendingSuggestions(into context: ModelContext) {
+        let log = TrainingLog(context: context)
+        let planned = log.workouts().first?.orderedPlannedExercises ?? []
+        if let bench = planned.first {
+            log.offer(
+                WeightSuggestion(
+                    kind: .stepUp, reason: .targetHit, fromWeight: bench.weight, toWeight: bench.weight + 2.5),
+                for: bench.id, from: nil)
+        }
+        if planned.count > 1 {
+            let pushdown = planned[1]
+            log.offer(
+                WeightSuggestion(
+                    kind: .stepDown, reason: .stall, fromWeight: pushdown.weight, toWeight: pushdown.weight - 2.5),
+                for: pushdown.id, from: nil)
+        }
+    }
+
     /// An in-memory container with the catalog and a starter Workout, for previews.
     @MainActor
     static func previewContainer() -> ModelContainer {

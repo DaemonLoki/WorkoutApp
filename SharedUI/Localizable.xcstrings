@@ -1389,6 +1389,29 @@
         }
       }
     },
+    "readyToStepDownCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Exercise to Step Down"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Exercises to Step Down"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "readyToStepUp" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1396,6 +1419,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ready to Step Up"
+          }
+        }
+      }
+    },
+    "readyToStepUpCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Exercise ready to Step Up"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Exercises ready to Step Up"
+                }
+              }
+            }
           }
         }
       }

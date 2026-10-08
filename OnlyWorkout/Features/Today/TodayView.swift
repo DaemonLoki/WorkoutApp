@@ -55,13 +55,7 @@ struct TodayView: View {
     private var content: some View {
         List {
             if !suggestions.isEmpty {
-                Section {
-                    ForEach(suggestions) { suggestion in
-                        ReadyToStepUpRow(suggestion: suggestion)
-                    }
-                } header: {
-                    Text(.readyToStepUp)
-                }
+                ReadyToStepUpSection(suggestions: suggestions)
             }
 
             if let nextUp {
@@ -97,7 +91,16 @@ struct TodayView: View {
 }
 
 #Preview {
+    let container = SampleData.previewContainer()
     TodayView()
-        .environment(AppModel(log: TrainingLog(context: SampleData.previewContainer().mainContext)))
-        .modelContainer(SampleData.previewContainer())
+        .environment(AppModel(log: TrainingLog(context: container.mainContext)))
+        .modelContainer(container)
+}
+
+#Preview("Ready to Step Up") {
+    let container = SampleData.previewContainer()
+    SampleData.insertPendingSuggestions(into: container.mainContext)
+    return TodayView()
+        .environment(AppModel(log: TrainingLog(context: container.mainContext)))
+        .modelContainer(container)
 }

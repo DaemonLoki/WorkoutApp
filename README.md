@@ -223,7 +223,7 @@ The in-progress Session is saved after every event. After a crash/termination, t
 Four tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **History**, **Progress**. Settings is a sheet from Today's toolbar.
 
 ### Today
-1. **Ready to Step Up** (only when non-empty) — one row per pending Progression Suggestion: *"Bench Press · Push Day — 3×10 hit at 60 kg"* with **Step Up to 62.5 kg** button and swipe-to-dismiss. Step Downs appear here too, worded neutrally ("Squat · Leg Day — stalled at 80 kg. Step Down to 77.5 kg?").
+1. **Ready to Step Up** (only when non-empty) — collapsed into one row with the count ("3 Exercises ready to Step Up", Step Downs counted on a second line), closed on every launch; tap to open one row per pending Progression Suggestion: *"Bench Press · Push Day — 3×10 hit at 60 kg"* with **Step Up to 62.5 kg** button and swipe-to-dismiss. Step Downs appear here too, worded neutrally ("Squat · Leg Day — stalled at 80 kg. Step Down to 77.5 kg?").
 2. **Next Up** card — Workout name, its Planned Exercises with Targets (`3×12 @ 40 kg`, Supersets visually bracketed), large orange **Start** button.
 3. **Other Workouts** — compact list; tap → start.
 4. Empty state: `ContentUnavailableView` "No Workouts yet" + **Create Workout**.
