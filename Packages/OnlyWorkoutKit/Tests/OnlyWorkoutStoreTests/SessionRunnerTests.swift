@@ -155,4 +155,16 @@ struct SessionRunnerTests {
 
         #expect(log.pendingSuggestions().map(\.plannedExerciseID) == [linked.id])
     }
+
+    @Test(arguments: [(true, true, true), (false, true, false), (true, false, false), (false, false, false)])
+    func restIsTimedOnlyWhenTheWorkoutAndTheSettingBothUseTheRestTimer(
+        workoutUsesRestTimer: Bool, settingUsesRestTimer: Bool, timesRest: Bool
+    ) {
+        workout.usesRestTimer = workoutUsesRestTimer
+
+        var (_, engine) = log.startSession(workout, usesRestTimer: settingUsesRestTimer)
+        engine.completeSet(reps: 5, weight: 80, at: .now)
+
+        #expect((engine.rest != nil) == timesRest)
+    }
 }

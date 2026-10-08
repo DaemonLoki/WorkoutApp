@@ -29,6 +29,7 @@ struct RecordTransferTests {
 
     @Test func aWorkoutAndItsPlannedExercisesArriveUnchanged() throws {
         let workout = phone.addWorkout(named: "Leg Day")
+        workout.usesRestTimer = false
         let planned = phone.add(try squat(in: phone), to: workout)
         planned.targetReps = 5
         planned.weight = 80
@@ -38,6 +39,7 @@ struct RecordTransferTests {
         let received = try #require(watch.workouts().first)
         #expect(received.id == workout.id)
         #expect(received.name == "Leg Day")
+        #expect(!received.usesRestTimer)
         let receivedPlanned = try #require(received.orderedPlannedExercises.first)
         #expect(receivedPlanned.id == planned.id)
         #expect(receivedPlanned.target == Target(sets: 3, reps: 5, weight: 80))

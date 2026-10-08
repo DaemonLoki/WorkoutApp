@@ -71,6 +71,7 @@ All synced records share: `id: UUID`, `createdAt`, `updatedAt` (client clock, dr
 |---|---|---|
 | name | String | e.g. "Pull Day" |
 | rotationIndex | Int | position in the Rotation; the Workouts list order *is* the Rotation |
+| usesRestTimer | Bool | default true; off, this Workout's Sessions time no Rest (§6) |
 
 ### Planned Exercise
 | Field | Type | Default | Notes |
@@ -190,11 +191,12 @@ A pure `SessionEngine` (in `OnlyWorkoutCore`) turns a Workout into a queue of st
 - Planned Exercises in `position` order.
 - A Superset (A, B) expands to `A1 → B1 → Rest → A2 → B2 → Rest …`. If Set counts differ, the remaining Sets of the longer one continue alone with Rest after each. Superset Rest = `max(restA, restB)`.
 - A normal Planned Exercise: `Set → Rest → Set → …`. No Rest after the last Set of the Session.
+- **Rest Timer**: Rest is timed only when both the Workout's Rest Timer and the device-local setting (Settings → Sessions, on by default; the iPhone sends it to the Watch with the plan) are on. Otherwise no Rest follows any Set: the next Set comes right away, without Rest notification or Live Activity countdown; Step Up / Step Down cards still appear after the last planned Set. Decided at Session start and kept with the engine.
 
 ### Events
 | Event | Effect |
 |---|---|
-| `completeSet(reps, weight)` | Logs a Set (prefilled with Target reps/weight; adjusting is optional), starts Rest |
+| `completeSet(reps, weight)` | Logs a Set (prefilled with Target reps/weight; adjusting is optional), starts Rest (unless the Rest Timer is off) |
 | `skipRest` / `extendRest(+30 s)` | |
 | `skipSet(plannedExercise)` | Passes over the current Set (e.g. machine taken): not performed, not owed again, no Rest; in a Superset the partner comes next |
 | `skip(plannedExercise)` | Marks Session Exercise `skipped`; a Superset partner continues alone with Rest after each Set |
@@ -230,7 +232,7 @@ Four tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **History**
 
 ### Workouts
 - List in Rotation order; drag to reorder, swipe to delete (soft delete), `+` to create.
-- **Workout editor**: name (a new Workout opens with an empty, focused name field and "New Workout" as placeholder; left empty, it's named "New Workout" once the editor closes); Planned Exercises (reorder, delete); **Add Exercise** → picker; context menu **Superset with Next** / **Break Superset**. Planned Exercises with a pending suggestion show a small orange badge; linked ones a link icon. A large orange **Start** at the bottom starts a Session of this Workout the same way as Today (disabled without Planned Exercises); it doesn't change the Rotation rules.
+- **Workout editor**: name (a new Workout opens with an empty, focused name field and "New Workout" as placeholder; left empty, it's named "New Workout" once the editor closes); Planned Exercises (reorder, delete); **Add Exercise** → picker; context menu **Superset with Next** / **Break Superset**; **Rest Timer** toggle (§6). Planned Exercises with a pending suggestion show a small orange badge; linked ones a link icon. A large orange **Start** at the bottom starts a Session of this Workout the same way as Today (disabled without Planned Exercises); it doesn't change the Rotation rules.
 - **Adding an Exercise that is already in another Workout** asks "Bench Press is already in another Workout — use the same settings?" with one button per existing setup ("Same as Push Day · 3 × 8 · 60 kg") and **Set Up Separately**. Choosing one links them (see §4).
 - **Planned Exercise editor** of a linked one shows "Linked with Push Day" and **Unlink**; every edit is applied to all linked Planned Exercises.
 - **Planned Exercise editor**: Sets (stepper), reps (stepper), weight (`TextField` bound to `Double` with `.decimalPad`, kg), Weight Step (menu: 0.5, 1, 1.25, 2, 2.5, 4, 5, 10), Rest (menu: 0:30 … 5:00).
@@ -256,7 +258,7 @@ Celebration (§9), then: duration, Sets, volume, heart rate & calories (if recor
 - **Exercise detail** (Swift Charts): line of working weight per Session (max weight of its Sets), Step Up markers (annotated points), selection scrubbing (`chartXSelection`); best Set (heaviest weight, then most reps); total volume (Σ reps × weight; bodyweight Exercises with 0 kg show total reps instead); list of past Sets grouped by Session.
 
 ### Settings
-Sync (Sign in with Apple / status / sign out) · Apple Health status · Apple Watch (**Start Sessions on Apple Watch**, on by default; off runs Sessions started on iPhone on the iPhone, without heart rate) · Strava (connect, auto-upload, disconnect) · Delete account & cloud data · About / privacy.
+Sync (Sign in with Apple / status / sign out) · Apple Health status · Sessions (**Rest Timer**, on by default; off times no Rest in any Workout, also on the Watch) · Apple Watch (**Start Sessions on Apple Watch**, on by default; off runs Sessions started on iPhone on the iPhone, without heart rate) · Strava (connect, auto-upload, disconnect) · Delete account & cloud data · About / privacy.
 
 ### Live Activity & rest notifications
 - A Live Activity runs for every Session: Lock Screen shows Workout name, current step ("Bench Press · Set 2 of 3 · 10 @ 60 kg" or Rest countdown via `Text(timerInterval:)`) and what's next; Dynamic Island compact shows the Rest countdown / Set indicator.

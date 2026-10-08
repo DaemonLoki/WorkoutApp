@@ -17,7 +17,7 @@ language sql as $$
     select jsonb_build_object('workouts', jsonb_build_array(jsonb_build_object(
         'id', '10000000-0000-0000-0000-000000000001',
         'created_at', '2026-09-01T10:00:00.000Z', 'updated_at', updated_at, 'deleted_at', deleted_at,
-        'name', name, 'rotation_index', 0)));
+        'name', name, 'rotation_index', 0, 'uses_rest_timer', true)));
 $$;
 
 -- Signed in as the owner.
@@ -46,7 +46,7 @@ select is(
 select public.sync_push($$ {"workouts": [{
     "id": "10000000-0000-0000-0000-000000000002",
     "created_at": "2026-09-03T10:00:00.000Z", "updated_at": "2026-09-03T10:00:00.000Z",
-    "name": "Pull Day", "rotation_index": 1
+    "name": "Pull Day", "rotation_index": 1, "uses_rest_timer": true
 }]} $$);
 select is(
     (select count(*) from jsonb_array_elements(

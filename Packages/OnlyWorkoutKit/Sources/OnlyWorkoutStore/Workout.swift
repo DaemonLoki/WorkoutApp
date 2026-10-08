@@ -14,6 +14,8 @@ public final class Workout {
     public var name: String
     /// Position in the Rotation.
     public var rotationIndex: Int
+    /// Off: this Workout's Sessions time no Rest (the global setting can also turn it off).
+    public var usesRestTimer: Bool = true
 
     @Relationship(deleteRule: .cascade, inverse: \PlannedExercise.workout)
     public var plannedExercises: [PlannedExercise] = []

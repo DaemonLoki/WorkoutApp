@@ -64,6 +64,10 @@ _Avoid_: Round, rep (a rep is a single repetition inside a Set)
 The timed pause after a Set (or after a Superset pair) before the next one starts.
 _Avoid_: Break, pause
 
+**Rest Timer**:
+Whether a Session times Rest at all; it can be turned off per Workout and in Settings, and when off the next Set follows right away.
+_Avoid_: Auto-rest, rest mode
+
 ### Progression
 
 **Weight Step**:

@@ -13,6 +13,8 @@ final class AppModel {
     static let abandonedSessionInterval: TimeInterval = 6 * 3600
     /// `UserDefaults` key of Settings → Apple Watch → Start Sessions on Apple Watch; device-local, on by default.
     static let startsSessionsOnWatchKey = "startsSessionsOnWatch"
+    /// `UserDefaults` key of Settings → Sessions → Rest Timer; device-local (shared with the Watch), on by default.
+    static let usesRestTimerKey = "usesRestTimer"
 
     let log: TrainingLog
     /// `nil` when this build has no Supabase configuration, and in UI tests.
@@ -100,7 +102,7 @@ final class AppModel {
             return
         }
         startingOnWatch = workout
-        link.requestStart(of: workout.id, with: log.watchSnapshot())
+        link.requestStart(of: workout.id, with: log.watchSnapshot(), settings: watchSettings)
         do {
             try await recorder.startWatchApp()
         } catch {
@@ -118,12 +120,20 @@ final class AppModel {
         UserDefaults.standard.object(forKey: Self.startsSessionsOnWatchKey) as? Bool ?? true
     }
 
+    private var usesRestTimer: Bool {
+        UserDefaults.standard.object(forKey: Self.usesRestTimerKey) as? Bool ?? true
+    }
+
+    private var watchSettings: PhoneWatchLink.Settings {
+        PhoneWatchLink.Settings(usesRestTimer: usesRestTimer)
+    }
+
     /// Also offered to the user while waiting for the Watch.
     func startOnPhone(_ workout: Workout) {
         watchStartTimeout?.cancel()
         startingOnWatch = nil
         guard activeSession == nil else { return }
-        let (session, engine) = log.startSession(workout, recordedOn: .phone)
+        let (session, engine) = log.startSession(workout, recordedOn: .phone, usesRestTimer: usesRestTimer)
         let runner = SessionRunner(session: session, engine: engine, log: log)
         activeSession = ActiveSession(driver: LocalSession(runner: runner, log: log, recorder: recorder))
     }
@@ -211,9 +221,9 @@ final class AppModel {
         }
     }
 
-    /// Sends the plan and recent history, so the Watch can run Sessions without the iPhone.
+    /// Sends the plan, recent history and Settings, so the Watch can run Sessions without the iPhone.
     func publishToWatch() {
-        link.publish(log.watchSnapshot())
+        link.publish(log.watchSnapshot(), settings: watchSettings)
     }
 
     private func resumeUnfinishedSession() {

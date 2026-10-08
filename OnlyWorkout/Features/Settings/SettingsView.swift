@@ -1,10 +1,11 @@
 import SwiftUI
 
-/// Sync, Strava, Apple Health, Apple Watch and app information.
+/// Sync, Strava, Apple Health, Sessions, Apple Watch and app information.
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AppModel.self) private var appModel
     @AppStorage(AppModel.startsSessionsOnWatchKey) private var startsSessionsOnWatch = true
+    @AppStorage(AppModel.usesRestTimerKey) private var usesRestTimer = true
 
     var body: some View {
         NavigationStack {
@@ -15,6 +16,16 @@ struct SettingsView: View {
                     Label(.appleHealth, systemImage: "heart.text.square")
                 } footer: {
                     Text(.appleHealthFooter)
+                }
+                Section {
+                    Toggle(isOn: $usesRestTimer) {
+                        Text(.restTimer)
+                    }
+                    .onChange(of: usesRestTimer) { appModel.publishToWatch() }
+                } header: {
+                    Text(.sessionsSettings)
+                } footer: {
+                    Text(.restTimerFooter)
                 }
                 Section {
                     Toggle(isOn: $startsSessionsOnWatch) {

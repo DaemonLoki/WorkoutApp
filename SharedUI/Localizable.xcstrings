@@ -1501,6 +1501,28 @@
         }
       }
     },
+    "restTimer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest Timer"
+          }
+        }
+      }
+    },
+    "restTimerFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off: no Rest is timed after a Set, so the next Set follows right away. A Workout can also turn it off for its own Sessions."
+          }
+        }
+      }
+    },
     "save" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1530,6 +1552,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ · %2$@ · %3$@"
+          }
+        }
+      }
+    },
+    "sessionsSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions"
           }
         }
       }
@@ -2412,6 +2445,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Workout name"
+          }
+        }
+      }
+    },
+    "workoutRestTimerFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off: this Workout's Sessions time no Rest, so the next Set follows right away. Settings can turn it off for every Workout."
           }
         }
       }

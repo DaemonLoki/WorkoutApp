@@ -8,9 +8,12 @@ public struct SessionEngine: Hashable, Codable, Sendable {
     public private(set) var rest: Rest?
     /// The Session was ended, possibly early.
     public private(set) var isEnded = false
+    /// With the Rest Timer off, no Rest is timed: the next Set follows right away.
+    public let usesRestTimer: Bool
 
-    public init(exercises: [Exercise]) {
+    public init(exercises: [Exercise], usesRestTimer: Bool = true) {
         self.exercises = exercises
+        self.usesRestTimer = usesRestTimer
     }
 
     /// The next Set to perform, prefilled; `nil` when nothing is left.
@@ -39,8 +42,8 @@ public struct SessionEngine: Hashable, Codable, Sendable {
         exercises.allSatisfy { $0.remainingSets == 0 }
     }
 
-    /// Logs the current Set and starts Rest, except between the two halves of a Superset round
-    /// and after the Session's final Set.
+    /// Logs the current Set and starts Rest, except between the two halves of a Superset round,
+    /// after the Session's final Set and with the Rest Timer off.
     /// - Returns: `nil` if there was no Set to perform.
     @discardableResult
     public mutating func completeSet(reps: Int, weight: Double, at date: Date) -> CompletedSet? {
@@ -144,7 +147,7 @@ public struct SessionEngine: Hashable, Codable, Sendable {
 
     /// `nil` when no Rest follows the Set just logged at `index`.
     private func restDuration(after index: Int) -> TimeInterval? {
-        guard let next = currentIndex else { return nil }
+        guard usesRestTimer, let next = currentIndex else { return nil }
         guard let block = blocks.first(where: { $0.contains(index) }), block.count > 1 else {
             return TimeInterval(exercises[index].restSeconds)
         }
@@ -153,5 +156,20 @@ public struct SessionEngine: Hashable, Codable, Sendable {
             && exercises[next].progress < exercises[index].progress
         if partnerOwesThisRound { return nil }
         return TimeInterval(block.map { exercises[$0].restSeconds }.max() ?? exercises[index].restSeconds)
+    }
+}
+
+extension SessionEngine {
+    private enum CodingKeys: String, CodingKey {
+        case exercises, rest, isEnded, usesRestTimer
+    }
+
+    /// Decodes Sessions saved before a field existed (a Session may be resumed after an app update).
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        exercises = try container.decode([Exercise].self, forKey: .exercises)
+        rest = try container.decodeIfPresent(Rest.self, forKey: .rest)
+        isEnded = try container.decodeIfPresent(Bool.self, forKey: .isEnded) ?? false
+        usesRestTimer = try container.decodeIfPresent(Bool.self, forKey: .usesRestTimer) ?? true
     }
 }

@@ -239,9 +239,10 @@ public struct TrainingLog {
     // MARK: - Sessions
 
     /// Creates a Session snapshotting the Workout, plus the engine that will run it.
-    public func startSession(_ workout: Workout, recordedOn device: Session.Device = .phone, now: Date = .now)
-        -> (Session, SessionEngine)
-    {
+    /// - Parameter usesRestTimer: The device's global Rest Timer setting; Rest is timed only if the Workout's is on too.
+    public func startSession(
+        _ workout: Workout, recordedOn device: Session.Device = .phone, usesRestTimer: Bool = true, now: Date = .now
+    ) -> (Session, SessionEngine) {
         let session = Session(workoutID: workout.id, workoutName: workout.name, startedAt: now, recordedOn: device)
         context.insert(session)
 
@@ -259,7 +260,7 @@ public struct TrainingLog {
                     supersetID: planned.supersetID))
         }
 
-        let engine = SessionEngine(exercises: engineExercises)
+        let engine = SessionEngine(exercises: engineExercises, usesRestTimer: usesRestTimer && workout.usesRestTimer)
         save(engine, to: session, now: now)
         return (session, engine)
     }

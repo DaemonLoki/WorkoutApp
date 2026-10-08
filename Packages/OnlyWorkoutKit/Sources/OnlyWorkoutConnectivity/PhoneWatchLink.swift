@@ -25,9 +25,19 @@
             }
         }
 
+        /// The iPhone's device-local Settings that also apply to Sessions started on the Watch.
+        public struct Settings: Codable, Sendable {
+            public var usesRestTimer: Bool
+
+            public init(usesRestTimer: Bool) {
+                self.usesRestTimer = usesRestTimer
+            }
+        }
+
         public private(set) var isReachable = false
 
         @ObservationIgnored public var onReceiveRecords: ((RecordBatch) -> Void)?
+        @ObservationIgnored public var onReceiveSettings: ((Settings) -> Void)?
         @ObservationIgnored public var onStartRequest: ((StartRequest) -> Void)?
         /// WatchConnectivity is ready; the first moment anything can be sent.
         @ObservationIgnored public var onActivate: (() -> Void)?
@@ -70,13 +80,14 @@
                 return session.isPaired && session.isWatchAppInstalled
             }
 
-            /// Publishes the plan to the Watch, replacing any earlier snapshot.
-            public func publish(_ snapshot: RecordBatch, start: StartRequest? = nil) {
+            /// Publishes the plan and Settings to the Watch, replacing any earlier snapshot.
+            public func publish(_ snapshot: RecordBatch, settings: Settings, start: StartRequest? = nil) {
                 guard let session, session.activationState == .activated, session.isPaired,
-                    let data = try? JSONEncoder().encode(snapshot)
+                    let data = try? JSONEncoder().encode(snapshot),
+                    let settingsData = try? JSONEncoder().encode(settings)
                 else { return }
                 lastSnapshot = data
-                var context: [String: Any] = [LinkPayload.recordsKey: data]
+                var context: [String: Any] = [LinkPayload.recordsKey: data, LinkPayload.settingsKey: settingsData]
                 if let start, let startData = try? JSONEncoder().encode(start) {
                     context[LinkPayload.startKey] = startData
                 }
@@ -84,8 +95,8 @@
             }
 
             /// Asks the Watch to start a Workout (read by the Watch when `startWatchApp` launches it).
-            public func requestStart(of workoutID: UUID, with snapshot: RecordBatch) {
-                publish(snapshot, start: StartRequest(workoutID: workoutID, requestedAt: .now))
+            public func requestStart(of workoutID: UUID, with snapshot: RecordBatch, settings: Settings) {
+                publish(snapshot, settings: settings, start: StartRequest(workoutID: workoutID, requestedAt: .now))
             }
         #endif
 
@@ -115,22 +126,28 @@
             if let data = payload.records, let batch = try? JSONDecoder().decode(RecordBatch.self, from: data) {
                 onReceiveRecords?(batch)
             }
+            if let data = payload.settings, let settings = try? JSONDecoder().decode(Settings.self, from: data) {
+                onReceiveSettings?(settings)
+            }
             if let data = payload.start, let request = try? JSONDecoder().decode(StartRequest.self, from: data) {
                 onStartRequest?(request)
             }
         }
     }
 
-    /// The two values OnlyWorkout puts in WatchConnectivity dictionaries, extracted so they can cross actors.
+    /// The values OnlyWorkout puts in WatchConnectivity dictionaries, extracted so they can cross actors.
     private struct LinkPayload: Sendable {
         static let recordsKey = "records"
+        static let settingsKey = "settings"
         static let startKey = "start"
 
         var records: Data?
+        var settings: Data?
         var start: Data?
 
         init(_ dictionary: [String: Any]) {
             records = dictionary[Self.recordsKey] as? Data
+            settings = dictionary[Self.settingsKey] as? Data
             start = dictionary[Self.startKey] as? Data
         }
     }
