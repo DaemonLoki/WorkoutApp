@@ -166,4 +166,35 @@ struct StravaLinkTests {
         #expect(link.status == .notConnected)
         #expect(session.stravaUploadedAt == nil)
     }
+
+    // Strava's capacity gate (README §12): Strava refuses new athletes on its consent page once the
+    // API app's capacity is used up, so the button must not lead there.
+
+    @Test func withEverySlotUsedStravaShowsAsFullInsteadOfConnectable() async throws {
+        strava.isConnectOpen = false
+        let link = makeLink()
+
+        await link.refresh()
+
+        #expect(link.status == .full)
+    }
+
+    @Test func aConnectedAthleteStaysConnectedWhenEverySlotIsUsed() async throws {
+        strava.isConnectOpen = false
+
+        let link = try await connectedLink()
+
+        #expect(link.status == .connected(StravaConnection(connectedAt: connectedAt, autoUpload: true)))
+    }
+
+    @Test func aConnectionRefusedForStravasAthleteLimitShowsStravaAsFull() async throws {
+        strava.refusesForAthleteLimit = true
+        let link = makeLink()
+        let state = try state(of: link.authorizationURL(clientID: "12345"))
+
+        await #expect(throws: StravaBackendError.athleteLimitReached) {
+            try await link.finishConnecting(redirect: try redirect("state=\(state)&code=abc123&scope=activity:write"))
+        }
+        #expect(link.status == .full)
+    }
 }

@@ -42,6 +42,7 @@ struct StravaExercisePicker: View {
             LabeledContent {
                 if selection == type {
                     Image(systemName: "checkmark").foregroundStyle(.tint)
+                        .accessibilityHidden(true)
                 }
             } label: {
                 if let type {
@@ -52,6 +53,7 @@ struct StravaExercisePicker: View {
             }
         }
         .tint(.primary)
+        .accessibilityAddTraits(selection == type ? .isSelected : [])
     }
 }
 

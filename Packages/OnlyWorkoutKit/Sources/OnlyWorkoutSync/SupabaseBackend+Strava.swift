@@ -9,6 +9,10 @@ extension SupabaseBackend: StravaBackend {
         return try Self.stravaDecoder.decode(StravaConnection?.self, from: data)
     }
 
+    public func stravaConnectOpen() async throws -> Bool {
+        try await client.rpc("strava_connect_open").execute().value
+    }
+
     public func connectStrava(authorizationCode: String) async throws -> StravaConnection {
         try await invokeStrava("strava-connect", body: ["code": AnyJSON.string(authorizationCode)])
     }
@@ -47,6 +51,7 @@ extension SupabaseBackend: StravaBackend {
             )
             switch (code, failure?.error) {
             case (404, "not_connected"): throw StravaBackendError.notConnected
+            case (409, "athlete_limit"): throw StravaBackendError.athleteLimitReached
             case (422, _): throw StravaBackendError.rejected(detail: failure?.detail ?? "")
             default: throw StravaBackendError.unavailable
             }

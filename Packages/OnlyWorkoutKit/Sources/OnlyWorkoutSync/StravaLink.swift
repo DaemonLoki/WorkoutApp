@@ -17,6 +17,8 @@ public final class StravaLink {
         /// Not loaded yet.
         case unknown
         case notConnected
+        /// Not connected, and every slot of the Strava API app's athlete capacity is used.
+        case full
         case connected(StravaConnection)
     }
 
@@ -92,7 +94,12 @@ public final class StravaLink {
             Logger.strava.error("Strava granted only \(value("scope") ?? "nothing", privacy: .public)")
             throw ConnectError.uploadsNotAllowed
         }
-        status = .connected(try await backend.connectStrava(authorizationCode: code))
+        do {
+            status = .connected(try await backend.connectStrava(authorizationCode: code))
+        } catch StravaBackendError.athleteLimitReached {
+            status = .full
+            throw StravaBackendError.athleteLimitReached
+        }
     }
 
     /// Revokes access at Strava and forgets the tokens; Sessions and their upload marks stay.
@@ -116,7 +123,11 @@ public final class StravaLink {
             return
         }
         do {
-            status = try await backend.stravaConnection().map(Status.connected) ?? .notConnected
+            if let connection = try await backend.stravaConnection() {
+                status = .connected(connection)
+            } else {
+                status = try await backend.stravaConnectOpen() ? .notConnected : .full
+            }
         } catch {
             // Offline: keep what we knew.
         }

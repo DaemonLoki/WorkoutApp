@@ -39,6 +39,16 @@ export class StravaError extends Error {
   }
 }
 
+/**
+ * Strava refuses new athletes once the API app's athlete capacity is used up. Undocumented; matched
+ * on the text developers report (docs/research/strava-athlete-capacity.md §4).
+ */
+export class AthleteLimitError extends StravaError {
+  static matches(status: number, detail: string): boolean {
+    return status === 403 && /limit of connected athletes|too many athletes/i.test(detail);
+  }
+}
+
 export interface Grant {
   athleteID: number;
   scope: string;
@@ -85,7 +95,11 @@ async function tokenRequest(strava: Strava, fields: Record<string, string>) {
     method: "POST",
     body: new URLSearchParams({ client_id: strava.clientID, client_secret: strava.clientSecret, ...fields }),
   });
-  if (!response.ok) throw new StravaError(response.status, await response.text());
+  if (!response.ok) {
+    const detail = await response.text();
+    if (AthleteLimitError.matches(response.status, detail)) throw new AthleteLimitError(response.status, detail);
+    throw new StravaError(response.status, detail);
+  }
   return await response.json();
 }
 

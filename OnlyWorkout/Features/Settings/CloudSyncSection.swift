@@ -50,7 +50,8 @@ struct CloudSyncSection: View {
     private func signInButton(_ cloud: CloudSync) -> some View {
         SignInWithAppleButton(.signIn) { request in
             nonce = AppleSignInNonce()
-            request.requestedScopes = [.email]
+            // No email: nothing uses it (data minimisation, App Review guideline 5.1.1(iii)).
+            request.requestedScopes = []
             request.nonce = nonce.hashed
         } onCompletion: { result in
             if case .failure(let error) = result {

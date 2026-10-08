@@ -44,12 +44,14 @@ struct ExerciseEditorView: View {
                             LabeledContent {
                                 if muscleGroups.contains(group) {
                                     Image(systemName: "checkmark").foregroundStyle(.tint)
+                                        .accessibilityHidden(true)
                                 }
                             } label: {
                                 Text(group.title)
                             }
                         }
                         .tint(.primary)
+                        .accessibilityAddTraits(muscleGroups.contains(group) ? .isSelected : [])
                     }
                 } header: {
                     Text(.muscleGroups)

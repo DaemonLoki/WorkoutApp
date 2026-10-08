@@ -9,6 +9,10 @@ final class FakeStrava: StravaBackend {
     var connection: StravaConnection?
     var outcome = StravaUploadOutcome.uploaded(activityID: 16_000_000_001)
     var failsUpload = false
+    /// `strava_connect_open()`: a slot is free, or this user is connected already.
+    var isConnectOpen = true
+    /// Strava refuses the token exchange because the API app's capacity is used up.
+    var refusesForAthleteLimit = false
 
     private(set) var connectedWith: [String] = []
     private(set) var uploads: [StravaUploadRequest] = []
@@ -18,7 +22,12 @@ final class FakeStrava: StravaBackend {
         connection
     }
 
+    func stravaConnectOpen() async throws -> Bool {
+        isConnectOpen
+    }
+
     func connectStrava(authorizationCode: String) async throws -> StravaConnection {
+        if refusesForAthleteLimit { throw StravaBackendError.athleteLimitReached }
         connectedWith.append(authorizationCode)
         let connection = StravaConnection(connectedAt: Date(timeIntervalSince1970: 1_790_000_000), autoUpload: true)
         self.connection = connection

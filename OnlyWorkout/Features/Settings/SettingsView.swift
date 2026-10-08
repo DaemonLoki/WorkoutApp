@@ -42,6 +42,12 @@ struct SettingsView: View {
                     } label: {
                         Text(.version)
                     }
+                    Link(destination: WebPages.privacyPolicy) {
+                        Text(.privacyPolicy)
+                    }
+                    Link(destination: WebPages.support) {
+                        Text(.support)
+                    }
                 } footer: {
                     Text(.privacyFooter)
                 }

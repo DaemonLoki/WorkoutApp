@@ -75,6 +75,7 @@ struct TodayView: View {
                         } label: {
                             LabeledContent {
                                 Image(systemName: "play.fill").foregroundStyle(.tint)
+                                    .accessibilityLabel(Text(.startSession))
                             } label: {
                                 Text(workout.name)
                                 Text(.exerciseCount(workout.orderedPlannedExercises.count))
