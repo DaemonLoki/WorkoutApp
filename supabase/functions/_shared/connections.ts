@@ -1,7 +1,7 @@
 // The strava_connections table and the answers every strava-* function shares (README §12).
 
 import type { SupabaseContext } from "@supabase/server";
-import { type Connection, type Grant, StravaError } from "./strava.ts";
+import { AthleteLimitError, type Connection, type Grant, StravaError } from "./strava.ts";
 
 type Admin = SupabaseContext["supabaseAdmin"];
 
@@ -57,8 +57,15 @@ function tokenColumns(connection: Connection) {
   };
 }
 
-/** Error codes the app tells apart: `not_connected`, `rate_limited`, `strava_rejected`, `strava_failed`. */
+/**
+ * Error codes the app tells apart: `not_connected`, `athlete_limit`, `rate_limited`, `strava_rejected`,
+ * `strava_failed`.
+ */
 export function failure(error: unknown): Response {
+  if (error instanceof AthleteLimitError) {
+    console.error("Strava's athlete capacity is used up", error.detail);
+    return Response.json({ error: "athlete_limit" }, { status: 409 });
+  }
   if (error instanceof StravaError) {
     console.error("Strava request failed", error.status, error.detail);
     if (error.status === 429) return Response.json({ error: "rate_limited" }, { status: 503 });

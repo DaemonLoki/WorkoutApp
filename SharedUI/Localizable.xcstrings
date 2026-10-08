@@ -2101,6 +2101,39 @@
         }
       }
     },
+    "stravaFull" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full for now"
+          }
+        }
+      }
+    },
+    "stravaFullFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strava limits how many people can connect to OnlyWorkout, and every place is taken for now. Your Sessions stay in OnlyWorkout; check back later."
+          }
+        }
+      }
+    },
+    "stravaFullMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strava limits how many people can connect to OnlyWorkout, and every place is taken right now. Please try again later."
+          }
+        }
+      }
+    },
     "stravaNeedsCloudFooter" : {
       "extractionState" : "manual",
       "localizations" : {

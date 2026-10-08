@@ -35,6 +35,12 @@ struct StravaSection: View {
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
                     .disabled(isBusy)
+                case .full:
+                    LabeledContent {
+                        Text(.stravaFull)
+                    } label: {
+                        Text(.strava)
+                    }
                 case .connected(let connection):
                     LabeledContent {
                         Text(.stravaConnected)
@@ -77,8 +83,11 @@ struct StravaSection: View {
     private var footer: LocalizedStringResource {
         guard strava != nil, CloudServices.stravaClientID != nil else { return .stravaUnavailableFooter }
         guard isSignedIn else { return .stravaNeedsCloudFooter }
-        if case .connected = strava?.status { return .stravaConnectedFooter }
-        return .stravaConsentFooter
+        switch strava?.status {
+        case .connected: return .stravaConnectedFooter
+        case .full: return .stravaFullFooter
+        default: return .stravaConsentFooter
+        }
     }
 
     private var isFailing: Binding<Bool> {
@@ -108,8 +117,13 @@ struct StravaSection: View {
                     additionalHeaderFields: [:])
                 try await strava.finishConnecting(redirect: redirect)
                 await strava.uploadPending()
-            } catch ASWebAuthenticationSessionError.canceledLogin, StravaLink.ConnectError.declined {
+            } catch ASWebAuthenticationSessionError.canceledLogin {
+                // The user changed their mind, or closed Strava's own error page, e.g. its athlete limit.
+                Logger.strava.debug("Strava's consent page was closed without connecting")
+            } catch StravaLink.ConnectError.declined {
                 // The user changed their mind.
+            } catch StravaBackendError.athleteLimitReached {
+                failure = (.stravaConnectFailed, .stravaFullMessage)
             } catch StravaLink.ConnectError.uploadsNotAllowed {
                 failure = (.stravaConnectFailed, .stravaUploadsNotAllowed)
             } catch {

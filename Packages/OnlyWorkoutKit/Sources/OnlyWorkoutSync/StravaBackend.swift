@@ -8,6 +8,9 @@ public protocol StravaBackend: AnyObject {
     var isSignedIn: Bool { get }
     /// `nil` when no Strava account is connected.
     func stravaConnection() async throws -> StravaConnection?
+    /// Whether connecting can work: a slot of the Strava API app's athlete capacity is free, or the user
+    /// is connected already (`strava_connect_open()`).
+    func stravaConnectOpen() async throws -> Bool
     /// Hands the one-time code from Strava's redirect to `strava-connect`, which swaps it for tokens.
     func connectStrava(authorizationCode: String) async throws -> StravaConnection
     func setStravaAutoUpload(_ isOn: Bool) async throws
@@ -46,6 +49,8 @@ public enum StravaUploadOutcome: Equatable, Sendable {
 public enum StravaBackendError: Error, Equatable {
     /// No Strava connection in the cloud, e.g. revoked on Strava's side.
     case notConnected
+    /// Strava's athlete capacity for the API app is used up; nobody new can connect for now.
+    case athleteLimitReached
     /// Strava refused the file; `detail` is Strava's English message.
     case rejected(detail: String)
     /// Over Strava's rate limit, or Strava itself failed; try again later.

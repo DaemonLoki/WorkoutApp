@@ -3,6 +3,7 @@
 
 import { assertEquals, assertRejects } from "jsr:@std/assert@^1";
 import {
+  AthleteLimitError,
   type Connection,
   deauthorizedAthlete,
   exchangeCode,
@@ -194,6 +195,24 @@ Deno.test("a grant without permission to upload is refused", async () => {
   const { strava } = stubbedStrava(Response.json({ ...tokenResponse, scope: "read" }));
 
   await assertRejects(() => exchangeCode(strava, "abc123"), Error, "activity:write");
+});
+
+// Strava doesn't document this answer; the text is what developers report (docs/research/strava-athlete-capacity.md §4).
+Deno.test("a token exchange refused for the athlete limit is told apart", async () => {
+  const { strava } = stubbedStrava(
+    Response.json({ message: "Limit of connected athletes exceeded", errors: [] }, { status: 403 }),
+  );
+
+  await assertRejects(() => exchangeCode(strava, "abc123"), AthleteLimitError);
+});
+
+Deno.test("any other refused token exchange is not an athlete-limit error", async () => {
+  const { strava } = stubbedStrava(
+    Response.json({ message: "Bad Request", errors: [{ field: "code", code: "invalid" }] }, { status: 400 }),
+  );
+
+  const error = await assertRejects(() => exchangeCode(strava, "abc123"));
+  assertEquals(error instanceof AthleteLimitError, false);
 });
 
 Deno.test("disconnecting revokes the refresh token with the app's credentials", async () => {
