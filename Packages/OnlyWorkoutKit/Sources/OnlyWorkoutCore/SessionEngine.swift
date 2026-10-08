@@ -99,6 +99,12 @@ public struct SessionEngine: Hashable, Codable, Sendable {
         exercises[index].target.weight = weight
     }
 
+    /// Changes this Session's Target reps for an exercise, e.g. after accepting a Layoff Step Down at 0 kg.
+    public mutating func setTargetReps(_ reps: Int, for exerciseID: UUID) {
+        guard let index = exercises.firstIndex(where: { $0.id == exerciseID }) else { return }
+        exercises[index].target.reps = reps
+    }
+
     /// Requests one more Set beyond the Target.
     public mutating func addExtraSet(_ exerciseID: UUID) {
         guard let index = exercises.firstIndex(where: { $0.id == exerciseID }) else { return }

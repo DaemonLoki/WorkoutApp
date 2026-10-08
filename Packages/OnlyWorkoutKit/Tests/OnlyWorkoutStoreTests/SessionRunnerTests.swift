@@ -42,7 +42,10 @@ struct SessionRunnerTests {
         runner.completeSet(reps: 6, weight: 80)
 
         let offer = try #require(runner.offer)
-        #expect(offer.suggestion == WeightSuggestion(kind: .stepUp, reason: .targetHit, fromWeight: 80, toWeight: 82.5))
+        #expect(
+            offer.suggestion
+                == WeightSuggestion(
+                    kind: .stepUp, reason: .targetHit, fromWeight: 80, toWeight: 82.5, fromReps: 5, toReps: 6))
 
         runner.answer(offer, accept: true)
 
@@ -69,13 +72,44 @@ struct SessionRunnerTests {
 
         let runner = runner()
         let offer = try #require(runner.offer)
-        #expect(offer.suggestion == WeightSuggestion(kind: .stepDown, reason: .layoff, fromWeight: 80, toWeight: 77.5))
+        #expect(
+            offer.suggestion
+                == WeightSuggestion(
+                    kind: .stepDown, reason: .layoff, fromWeight: 80, toWeight: 77.5, fromReps: 5, toReps: 5))
         #expect(runner.engine.exercises[0].sets.isEmpty)
 
         runner.answer(offer, accept: true)
 
         #expect(runner.engine.currentSet?.weight == 77.5)
         #expect(squat.weight == 77.5)
+    }
+
+    @Test func aLayoffAtZeroKilogramsOffersOneRepFewerForThisSessionToo() throws {
+        squat.weight = 0
+        let earlier = runner(startedAt: .now.addingTimeInterval(-35 * 86_400))
+        earlier.completeSet(reps: 4, weight: 0)
+        earlier.finish()
+
+        let runner = runner()
+        runner.answer(try #require(runner.offer), accept: true)
+
+        #expect(runner.engine.currentSet?.reps == 4)
+        #expect(runner.session.exercises.first?.targetReps == 4)
+        #expect(squat.target == Target(sets: 2, reps: 4, weight: 0))
+    }
+
+    @Test func theSummaryCelebratesARepStepUpChosenDuringTheSession() throws {
+        let runner = runner()
+        runner.completeSet(reps: 5, weight: 80)
+        runner.completeSet(reps: 5, weight: 80)
+        runner.answer(try #require(runner.offer), accept: true, choosing: .reps)
+
+        runner.finish()
+
+        #expect(squat.target == Target(sets: 2, reps: 6, weight: 80))
+        #expect(
+            runner.summary?.events.contains(.repStepUp(exercise: "Back Squat", sets: 2, fromReps: 5, toReps: 6)) == true
+        )
     }
 
     @Test func theSummaryCelebratesAnAcceptedStepUp() throws {
@@ -121,6 +155,24 @@ struct SessionRunnerTests {
 
         #expect(squat.weight == 82.5)
         #expect(linked.weight == 82.5)
+    }
+
+    @Test func acceptingARepStepUpRaisesTheRepsOfEveryLinkedPlannedExerciseAndKeepsTheWeight() throws {
+        let linked = try linkedSquat()
+        let runner = runner()
+        runner.completeSet(reps: 5, weight: 80)
+        runner.completeSet(reps: 5, weight: 80)
+        let record = try #require(log.pendingSuggestions().first)
+
+        log.accept(record, choosing: .reps)
+
+        #expect(squat.target == Target(sets: 2, reps: 6, weight: 80))
+        #expect(linked.target == Target(sets: 2, reps: 6, weight: 80))
+        #expect(record.status == .accepted)
+        #expect(
+            record.suggestion
+                == WeightSuggestion(
+                    kind: .stepUp, reason: .targetHit, fromWeight: 80, toWeight: 80, fromReps: 5, toReps: 6))
     }
 
     @Test func linkedPlannedExercisesShareOneHistorySoTheOtherWorkoutPreventsALayoff() throws {

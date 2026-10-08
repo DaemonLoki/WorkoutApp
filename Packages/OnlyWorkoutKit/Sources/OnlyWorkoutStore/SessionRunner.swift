@@ -126,20 +126,23 @@ public final class SessionRunner: Identifiable {
         afterChange()
     }
 
-    public func answer(_ offer: SessionOffer, accept: Bool) {
+    /// - Parameter change: Which change of a Step Up to accept; `nil` for its first one (the weight).
+    public func answer(_ offer: SessionOffer, accept: Bool, choosing change: WeightSuggestion.Change? = nil) {
         guard let record = log.pendingSuggestions().first(where: { $0.id == offer.id }) else {
             self.offer = nil
             afterChange()
             return
         }
         if accept {
-            log.accept(record, now: now())
-            if offer.suggestion.reason == .layoff {
-                engine.setTargetWeight(offer.suggestion.toWeight, for: offer.exerciseID)
+            log.accept(record, choosing: change, now: now())
+            let applied = record.suggestion
+            if applied.reason == .layoff {
+                engine.setTargetWeight(applied.toWeight, for: offer.exerciseID)
+                engine.setTargetReps(applied.toReps, for: offer.exerciseID)
                 persist()
             }
-            if offer.suggestion.kind == .stepUp {
-                acceptedStepUps[offer.exerciseID] = offer.suggestion
+            if applied.kind == .stepUp {
+                acceptedStepUps[offer.exerciseID] = applied
             }
         } else if offer.suggestion.reason == .layoff {
             // A declined Layoff Step Down only makes sense right now.
@@ -175,7 +178,7 @@ public final class SessionRunner: Identifiable {
         let history = log.history(plannedExerciseID: planned.id) + [current]
         guard
             let suggestion = Progression.suggestion(
-                history: history, currentWeight: planned.weight, weightStep: planned.weightStep)
+                history: history, current: planned.target, weightStep: planned.weightStep)
         else {
             log.supersedePending(for: planned.id, now: now())
             return
@@ -197,7 +200,7 @@ public final class SessionRunner: Identifiable {
         guard
             let suggestion = Progression.layoffSuggestion(
                 lastPerformed: log.lastPerformed(plannedExerciseID: planned.id), now: now(),
-                currentWeight: planned.weight, weightStep: planned.weightStep)
+                current: planned.target, weightStep: planned.weightStep)
         else { return }
         layoffDetected.insert(exercise.id)
         let record = log.offer(suggestion, for: planned.id, from: session.id, now: now())

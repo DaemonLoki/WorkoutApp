@@ -7,7 +7,7 @@ import SwiftUI
 extension MotivationEvent {
     var symbol: String {
         switch self {
-        case .stepUp: "arrow.up.circle.fill"
+        case .stepUp, .repStepUp: "arrow.up.circle.fill"
         case .targetHit: "target"
         case .newBest: "star.fill"
         case .comeback: "hand.wave.fill"
@@ -17,7 +17,7 @@ extension MotivationEvent {
     /// - Parameter variant: 0 or 1, from `Motivation.variant`, so messages don't repeat every time.
     func title(variant: Int) -> LocalizedStringResource {
         switch self {
-        case .stepUp(let exercise, _, _, _, _): .eventStepUpTitle(exercise)
+        case .stepUp(let exercise, _, _, _, _), .repStepUp(let exercise, _, _, _): .eventStepUpTitle(exercise)
         case .targetHit(let exercise, _):
             variant == 0 ? .eventTargetHitTitle0(exercise) : .eventTargetHitTitle1(exercise)
         case .newBest(let exercise, _): .eventNewBestTitle(exercise)
@@ -34,6 +34,8 @@ extension MotivationEvent {
             } else {
                 .eventStepUpMessage(from.kilograms, to.kilograms)
             }
+        case .repStepUp(_, let sets, let fromReps, let toReps):
+            .eventRepStepUpMessage(sets, fromReps, sets, toReps)
         case .targetHit(_, let target):
             .eventTargetHitMessage(target.sets, target.reps, target.weight.kilograms)
         case .newBest(_, let set):

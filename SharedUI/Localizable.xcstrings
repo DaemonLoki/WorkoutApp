@@ -596,6 +596,17 @@
         }
       }
     },
+    "eventRepStepUpMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld × %2$lld → %3$lld × %4$lld."
+          }
+        }
+      }
+    },
     "eventStepUpMessage" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -791,6 +802,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Increase"
+          }
+        }
+      }
+    },
+    "keepReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep reps"
           }
         }
       }
@@ -1235,6 +1257,29 @@
         }
       }
     },
+    "offerLayoffMessageReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Start a step lighter at %lld rep today?"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Start a step lighter at %lld reps today?"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "offerLayoffTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1257,6 +1302,29 @@
         }
       }
     },
+    "offerStallMessageReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Stepping down to %lld rep helps you build back up."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Stepping down to %lld reps helps you build back up."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "offerStallTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1264,6 +1332,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ has stalled at %2$@"
+          }
+        }
+      }
+    },
+    "offerStallTitleReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ has stalled at %2$lld reps"
+          }
+        }
+      }
+    },
+    "offerTargetHitChoiceMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready for %1$@ or %2$lld reps next time?"
           }
         }
       }
@@ -1374,6 +1464,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stalled at %@"
+          }
+        }
+      }
+    },
+    "readyStalledReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Stalled at %lld rep"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Stalled at %lld reps"
+                }
+              }
+            }
           }
         }
       }
@@ -1832,6 +1945,29 @@
         }
       }
     },
+    "stepDownToReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Step Down to %lld rep"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Step Down to %lld reps"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "stepUp" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1850,6 +1986,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Step Up to %@"
+          }
+        }
+      }
+    },
+    "stepUpToReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Step Up to %lld rep"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Step Up to %lld reps"
+                }
+              }
+            }
           }
         }
       }

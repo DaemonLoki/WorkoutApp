@@ -79,15 +79,15 @@ A Session in which every planned Set of a Planned Exercise reached at least the 
 _Avoid_: Success, completed, passed
 
 **Step Up**:
-The app's suggestion, after a Target Hit, to raise a Planned Exercise's weight by one Weight Step; if declined it is offered again after the next Target Hit.
+The app's suggestion, after a Target Hit, to raise a Planned Exercise's Target by one Weight Step or by one rep per Set, whichever the user picks; if declined it is offered again after the next Target Hit.
 _Avoid_: Raise, bump, progression, level up
 
 **Step Down**:
-The app's suggestion to lower a Planned Exercise's weight by one Weight Step, either after a Stall or after a Layoff.
+The app's suggestion to lower a Planned Exercise's weight by one Weight Step (or, at 0 kg, its reps by one), either after a Stall or after a Layoff.
 _Avoid_: Deload, reduce, regression
 
 **Stall**:
-Three consecutive Sessions of a Planned Exercise at the same weight that miss the Target without beating the previous Session's total reps.
+Three consecutive Sessions of a Planned Exercise at the same Target that miss it without beating the previous Session's total reps.
 _Avoid_: Plateau, failure
 
 **Layoff**:

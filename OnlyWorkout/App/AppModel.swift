@@ -195,8 +195,8 @@ final class AppModel {
 
     // MARK: - Suggestions
 
-    func accept(_ suggestion: ProgressionSuggestion) {
-        log.accept(suggestion)
+    func accept(_ suggestion: ProgressionSuggestion, choosing change: WeightSuggestion.Change? = nil) {
+        log.accept(suggestion, choosing: change)
         syncWithCloud()
     }
 

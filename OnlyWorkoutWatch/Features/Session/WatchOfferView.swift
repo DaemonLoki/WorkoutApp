@@ -7,7 +7,9 @@ import SwiftUI
 struct WatchOfferView: View {
     let offer: SessionOffer
     let rest: SessionEngine.Rest?
-    let onAnswer: (_ accept: Bool) -> Void
+    /// Bodyweight Exercises show one more rep as the prominent choice.
+    let prefersReps: Bool
+    let onAnswer: (_ accept: Bool, _ change: WeightSuggestion.Change?) -> Void
 
     var body: some View {
         ScrollView {
@@ -26,9 +28,15 @@ struct WatchOfferView: View {
                 Text(offer.message)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-                Button(offer.acceptTitle) { onAnswer(true) }
-                    .buttonStyle(.borderedProminent)
-                Button(offer.declineTitle) { onAnswer(false) }
+                let choices = offer.suggestion.choices(prefersReps: prefersReps)
+                if let first = choices.first {
+                    Button(offer.suggestion.acceptTitle(for: first)) { onAnswer(true, first) }
+                        .buttonStyle(.borderedProminent)
+                }
+                ForEach(choices.dropFirst(), id: \.self) { change in
+                    Button(offer.suggestion.acceptTitle(for: change)) { onAnswer(true, change) }
+                }
+                Button(offer.declineTitle) { onAnswer(false, nil) }
             }
         }
     }

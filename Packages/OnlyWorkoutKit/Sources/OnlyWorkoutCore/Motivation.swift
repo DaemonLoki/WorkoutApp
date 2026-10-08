@@ -21,6 +21,11 @@ public enum Motivation {
 
     /// An accepted Step Up, otherwise a plain Target Hit.
     private static func targetEvent(for recap: ExerciseRecap) -> MotivationEvent? {
+        if let stepUp = recap.acceptedStepUp, stepUp.changes == [.reps] {
+            return .repStepUp(
+                exercise: recap.exerciseName, sets: recap.result.target.sets, fromReps: stepUp.fromReps,
+                toReps: stepUp.toReps)
+        }
         if let stepUp = recap.acceptedStepUp {
             return .stepUp(
                 exercise: recap.exerciseName, from: stepUp.fromWeight, to: stepUp.toWeight,

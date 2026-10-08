@@ -171,7 +171,7 @@ extension TrainingLog {
                     suggestion: WeightSuggestion(
                         kind: .init(rawValue: record.kind) ?? .stepUp,
                         reason: .init(rawValue: record.reason) ?? .targetHit,
-                        fromWeight: record.fromWeight, toWeight: record.toWeight),
+                        fromWeight: record.fromWeight, toWeight: record.toWeight, fromReps: 0, toReps: 0),
                     sourceSessionID: record.sourceSessionID, now: record.createdAt)
             },
             write: { record, model in record.write(to: model) })

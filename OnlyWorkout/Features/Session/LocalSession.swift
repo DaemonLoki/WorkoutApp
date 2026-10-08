@@ -48,7 +48,9 @@ final class LocalSession: SessionDriver {
     func skip(_ exerciseID: UUID) { runner.skip(exerciseID) }
     func doLater(_ exerciseID: UUID) { runner.doLater(exerciseID) }
     func addExtraSet(_ exerciseID: UUID) { runner.addExtraSet(exerciseID) }
-    func answer(_ offer: SessionOffer, accept: Bool) { runner.answer(offer, accept: accept) }
+    func answer(_ offer: SessionOffer, accept: Bool, choosing change: WeightSuggestion.Change?) {
+        runner.answer(offer, accept: accept, choosing: change)
+    }
 
     func editSet(exerciseID: UUID, at index: Int, reps: Int, weight: Double) {
         runner.editSet(exerciseID: exerciseID, at: index, reps: reps, weight: weight)

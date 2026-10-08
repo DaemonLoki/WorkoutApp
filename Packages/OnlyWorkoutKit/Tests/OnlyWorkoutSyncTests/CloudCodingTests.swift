@@ -39,6 +39,17 @@ struct CloudCodingTests {
         #expect(row["healthWorkoutID"] == nil)
     }
 
+    @Test func aPushedSuggestionCarriesItsRepChange() throws {
+        log.offer(
+            WeightSuggestion(kind: .stepUp, reason: .targetHit, fromWeight: 0, toWeight: 2.5, fromReps: 8, toReps: 9),
+            for: UUID(), from: nil)
+
+        let rows = try #require(try pushedJSON()["progression_suggestions"] as? [[String: Any]])
+
+        #expect(rows.first?["from_reps"] as? Int == 8)
+        #expect(rows.first?["to_reps"] as? Int == 9)
+    }
+
     @Test func aPushedDateIsUTCWithMilliseconds() throws {
         // 2026-09-05 18:05:00.123 UTC
         log.addWorkout(named: "Leg Day", now: Date(timeIntervalSince1970: 1_788_631_500.123))

@@ -30,7 +30,8 @@ protocol SessionDriver: AnyObject, Observable {
     func doLater(_ exerciseID: UUID)
     func addExtraSet(_ exerciseID: UUID)
     func editSet(exerciseID: UUID, at index: Int, reps: Int, weight: Double)
-    func answer(_ offer: SessionOffer, accept: Bool)
+    /// - Parameter change: Which change of a Step Up to accept; `nil` for its first one.
+    func answer(_ offer: SessionOffer, accept: Bool, choosing change: WeightSuggestion.Change?)
     func finish()
     /// The app came to the foreground: a good moment to start a Live Activity that couldn't start earlier.
     func appDidBecomeActive()
