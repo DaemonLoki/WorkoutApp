@@ -596,6 +596,17 @@
         }
       }
     },
+    "eventRepStepUpMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld × %2$lld → %3$lld × %4$lld."
+          }
+        }
+      }
+    },
     "eventStepUpMessage" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -791,6 +802,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Increase"
+          }
+        }
+      }
+    },
+    "keepReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep reps"
           }
         }
       }
@@ -1235,6 +1257,29 @@
         }
       }
     },
+    "offerLayoffMessageReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Start a step lighter at %lld rep today?"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Start a step lighter at %lld reps today?"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "offerLayoffTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1257,6 +1302,29 @@
         }
       }
     },
+    "offerStallMessageReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Stepping down to %lld rep helps you build back up."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Stepping down to %lld reps helps you build back up."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "offerStallTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1264,6 +1332,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ has stalled at %2$@"
+          }
+        }
+      }
+    },
+    "offerStallTitleReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ has stalled at %2$lld reps"
+          }
+        }
+      }
+    },
+    "offerTargetHitChoiceMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready for %1$@ or %2$lld reps next time?"
           }
         }
       }
@@ -1378,6 +1468,29 @@
         }
       }
     },
+    "readyStalledReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Stalled at %lld rep"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Stalled at %lld reps"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "readyTargetHit" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1389,6 +1502,29 @@
         }
       }
     },
+    "readyToStepDownCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Exercise to Step Down"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Exercises to Step Down"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "readyToStepUp" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1396,6 +1532,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ready to Step Up"
+          }
+        }
+      }
+    },
+    "readyToStepUpCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Exercise ready to Step Up"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Exercises ready to Step Up"
+                }
+              }
+            }
           }
         }
       }
@@ -1455,6 +1614,28 @@
         }
       }
     },
+    "restTimer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest Timer"
+          }
+        }
+      }
+    },
+    "restTimerFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off: no Rest is timed after a Set, so the next Set follows right away. A Workout can also turn it off for its own Sessions."
+          }
+        }
+      }
+    },
     "save" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1484,6 +1665,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ · %2$@ · %3$@"
+          }
+        }
+      }
+    },
+    "sessionsSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions"
           }
         }
       }
@@ -1753,6 +1945,29 @@
         }
       }
     },
+    "stepDownToReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Step Down to %lld rep"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Step Down to %lld reps"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "stepUp" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1771,6 +1986,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Step Up to %@"
+          }
+        }
+      }
+    },
+    "stepUpToReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Step Up to %lld rep"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Step Up to %lld reps"
+                }
+              }
+            }
           }
         }
       }
@@ -2366,6 +2604,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Workout name"
+          }
+        }
+      }
+    },
+    "workoutRestTimerFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off: this Workout's Sessions time no Rest, so the next Set follows right away. Settings can turn it off for every Workout."
           }
         }
       }

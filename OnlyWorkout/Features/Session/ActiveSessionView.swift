@@ -58,8 +58,8 @@ struct ActiveSessionView: View {
         .padding(DesignTokens.Spacing.m)
         .safeAreaInset(edge: .bottom) {
             if let offer = session.offer {
-                OfferCard(offer: offer) { accept in
-                    session.answer(offer, accept: accept)
+                OfferCard(offer: offer, prefersReps: session.usesAddedWeight(for: offer.exerciseID)) { accept, change in
+                    session.answer(offer, accept: accept, choosing: change)
                 }
                 .padding(DesignTokens.Spacing.m)
                 .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))

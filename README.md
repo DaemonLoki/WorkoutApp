@@ -71,6 +71,7 @@ All synced records share: `id: UUID`, `createdAt`, `updatedAt` (client clock, dr
 |---|---|---|
 | name | String | e.g. "Pull Day" |
 | rotationIndex | Int | position in the Rotation; the Workouts list order *is* the Rotation |
+| usesRestTimer | Bool | default true; off, this Workout's Sessions time no Rest (§6) |
 
 ### Planned Exercise
 | Field | Type | Default | Notes |
@@ -128,7 +129,8 @@ A pending/answered Step Up or Step Down.
 | plannedExerciseID | UUID | |
 | kind | enum | `stepUp, stepDown` |
 | reason | enum | `targetHit, stall, layoff` |
-| fromWeight, toWeight | Double | |
+| fromWeight, toWeight | Double | equal when the weight doesn't change |
+| fromReps, toReps | Int? | reps per Set; equal when the reps don't change; nil on suggestions from before rep Step Ups |
 | sourceSessionID | UUID? | nil for Layoff |
 | status | enum | `pending, accepted, dismissed, superseded` |
 | resolvedAt | Date? | |
@@ -148,13 +150,13 @@ A Session Exercise is a Target Hit when **all** of:
 - every one of those Sets has `weight == targetWeight` (changing weight mid-Exercise disqualifies it).
 
 ### Step Up
-- After a Target Hit, immediately after the last planned Set, a **Step Up card** appears during Rest (iPhone and Watch): **"Step Up to 42.5 kg"** / **"Not yet"**.
-- **Step Up** → Planned Exercise `weight += weightStep`, suggestion `accepted`, celebration (§9).
+- After a Target Hit, immediately after the last planned Set, a **Step Up card** appears (iPhone and Watch) offering two changes: **"Step Up to 42.5 kg"** (one Weight Step) or **"Step Up to 13 reps"** (one more rep per Set, max 50), plus **"Not yet"**. The prominent choice is one more rep for bodyweight Exercises, the Weight Step otherwise; nothing about it is stored.
+- **Step Up** → Planned Exercise `weight += weightStep` *or* `targetReps += 1`, suggestion `accepted` (its record keeps only the chosen change), celebration (§9).
 - **Not yet** → suggestion stays `pending` and appears in **Ready to Step Up** on the iPhone Today screen until accepted, dismissed, or superseded by the next Session of that Planned Exercise.
-- Every subsequent Target Hit creates a fresh Step Up offer (still at `weight + weightStep`).
+- Every subsequent Target Hit creates a fresh Step Up offer (still at `weight + weightStep` or `targetReps + 1`).
 
 ### Step Down — Stall
-Let S1, S2, S3 be the three most recent Sessions of the Planned Exercise (oldest first). It is a **Stall** when all three were at the current weight, none was a Target Hit, and neither S2 nor S3 set a new best total reps:
+Let S1, S2, S3 be the three most recent Sessions of the Planned Exercise (oldest first). It is a **Stall** when all three were at the current Target (same weight *and* reps, so a rep Step Up starts a fresh window), none was a Target Hit, and neither S2 nor S3 set a new best total reps:
 `total(S2) ≤ total(S1)` and `total(S3) ≤ max(total(S1), total(S2))`.
 
 Examples (3×12 Target, same weight): totals `30, 28, 29` → Stall. `28, 30, 30` → no Stall (S2 improved). `30, 31, 33` → no Stall (still progressing).
@@ -162,10 +164,10 @@ Examples (3×12 Target, same weight): totals `30, 28, 29` → Stall. `28, 30, 30
 Offered the same way as a Step Up (card after last Set + Ready list). If declined, it is offered again after the next Session in which the rule still holds (sliding window).
 
 ### Step Down — Layoff
-When a Session reaches a Planned Exercise whose last performed Session is **more than 21 days** ago, a card appears **before its first Set**: "It's been 5 weeks — start at 57.5 kg?" Accepting lowers the Planned Exercise's weight *and* this Session's Target weight.
+When a Session reaches a Planned Exercise whose last performed Session is **more than 21 days** ago, a card appears **before its first Set**: "It's been 5 weeks — start at 57.5 kg?" Accepting lowers the Planned Exercise's weight (or reps, at 0 kg) *and* this Session's Target.
 
 ### Constraints
-- Step Down never goes below 0 kg (`max(0, weight − weightStep)`).
+- Step Down never goes below 0 kg (`max(0, weight − weightStep)`). At 0 kg it lowers the reps by one instead (e.g. bodyweight Pull-ups), never below 1 rep; there is no choice for Step Downs.
 - Thresholds (3 Sessions, 21 days) are constants in v1, not user settings.
 - Skipped Session Exercises neither count as performed (Layoff) nor as misses (Stall).
 - A Session Exercise with a skipped Set is not a Target Hit and doesn't count towards a Stall (it does count as performed for Layoff).
@@ -190,11 +192,12 @@ A pure `SessionEngine` (in `OnlyWorkoutCore`) turns a Workout into a queue of st
 - Planned Exercises in `position` order.
 - A Superset (A, B) expands to `A1 → B1 → Rest → A2 → B2 → Rest …`. If Set counts differ, the remaining Sets of the longer one continue alone with Rest after each. Superset Rest = `max(restA, restB)`.
 - A normal Planned Exercise: `Set → Rest → Set → …`. No Rest after the last Set of the Session.
+- **Rest Timer**: Rest is timed only when both the Workout's Rest Timer and the device-local setting (Settings → Sessions, on by default; the iPhone sends it to the Watch with the plan) are on. Otherwise no Rest follows any Set: the next Set comes right away, without Rest notification or Live Activity countdown; Step Up / Step Down cards still appear after the last planned Set. Decided at Session start and kept with the engine.
 
 ### Events
 | Event | Effect |
 |---|---|
-| `completeSet(reps, weight)` | Logs a Set (prefilled with Target reps/weight; adjusting is optional), starts Rest |
+| `completeSet(reps, weight)` | Logs a Set (prefilled with Target reps/weight; adjusting is optional), starts Rest (unless the Rest Timer is off) |
 | `skipRest` / `extendRest(+30 s)` | |
 | `skipSet(plannedExercise)` | Passes over the current Set (e.g. machine taken): not performed, not owed again, no Rest; in a Superset the partner comes next |
 | `skip(plannedExercise)` | Marks Session Exercise `skipped`; a Superset partner continues alone with Rest after each Set |
@@ -223,14 +226,14 @@ The in-progress Session is saved after every event. After a crash/termination, t
 Four tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **History**, **Progress**. Settings is a sheet from Today's toolbar.
 
 ### Today
-1. **Ready to Step Up** (only when non-empty) — one row per pending Progression Suggestion: *"Bench Press · Push Day — 3×10 hit at 60 kg"* with **Step Up to 62.5 kg** button and swipe-to-dismiss. Step Downs appear here too, worded neutrally ("Squat · Leg Day — stalled at 80 kg. Step Down to 77.5 kg?").
+1. **Ready to Step Up** (only when non-empty) — collapsed into one row with the count ("3 Exercises ready to Step Up", Step Downs counted on a second line), closed on every launch; tap to open one row per pending Progression Suggestion: *"Bench Press · Push Day — 3×10 hit at 60 kg"* with **Step Up to 62.5 kg** and **Step Up to 11 reps** buttons (prominent one first, §4) and swipe-to-dismiss. Step Downs appear here too, worded neutrally ("Squat · Leg Day — stalled at 80 kg. Step Down to 77.5 kg?").
 2. **Next Up** card — Workout name, its Planned Exercises with Targets (`3×12 @ 40 kg`, Supersets visually bracketed), large orange **Start** button.
 3. **Other Workouts** — compact list; tap → start.
 4. Empty state: `ContentUnavailableView` "No Workouts yet" + **Create Workout**.
 
 ### Workouts
 - List in Rotation order; drag to reorder, swipe to delete (soft delete), `+` to create.
-- **Workout editor**: name (a new Workout opens with an empty, focused name field and "New Workout" as placeholder; left empty, it's named "New Workout" once the editor closes); Planned Exercises (reorder, delete); **Add Exercise** → picker; context menu **Superset with Next** / **Break Superset**. Planned Exercises with a pending suggestion show a small orange badge; linked ones a link icon. A large orange **Start** at the bottom starts a Session of this Workout the same way as Today (disabled without Planned Exercises); it doesn't change the Rotation rules.
+- **Workout editor**: name (a new Workout opens with an empty, focused name field and "New Workout" as placeholder; left empty, it's named "New Workout" once the editor closes); Planned Exercises (reorder, delete); **Add Exercise** → picker; context menu **Superset with Next** / **Break Superset**; **Rest Timer** toggle (§6). Planned Exercises with a pending suggestion show a small orange badge; linked ones a link icon. A large orange **Start** at the bottom starts a Session of this Workout the same way as Today (disabled without Planned Exercises); it doesn't change the Rotation rules.
 - **Adding an Exercise that is already in another Workout** asks "Bench Press is already in another Workout — use the same settings?" with one button per existing setup ("Same as Push Day · 3 × 8 · 60 kg") and **Set Up Separately**. Choosing one links them (see §4).
 - **Planned Exercise editor** of a linked one shows "Linked with Push Day" and **Unlink**; every edit is applied to all linked Planned Exercises.
 - **Planned Exercise editor**: Sets (stepper), reps (stepper), weight (`TextField` bound to `Double` with `.decimalPad`, kg), Weight Step (menu: 0.5, 1, 1.25, 2, 2.5, 4, 5, 10), Rest (menu: 0:30 … 5:00).
@@ -238,7 +241,7 @@ Four tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **History**
 
 ### Active Session (full-screen cover)
 - **Set view**: Exercise name, "Set 2 of 3" (Superset: "A · Set 2 of 3"), reps and weight in huge rounded monospaced digits, tap either to adjust (steppers); full-width **Done**; a small **Skip** menu below it with **Skip Set** and **Skip ‹Exercise›**. During the last Set of a Superset pair it also shows what follows the Rest ("After Rest: Curl · Set 2 of 3 · 10 × 14 kg"), so the next Exercise can be prepared.
-- **Rest view**: countdown ring, time remaining, **+30 s** / **Skip**; below: "Next: Lat Pulldown · 3×12 @ 55 kg". Step Up / Step Down cards slide in here.
+- **Rest view**: countdown ring, time remaining, **+30 s** / **Skip**; below: "Next: Lat Pulldown · 3×12 @ 55 kg". Step Up / Step Down cards slide in here (or over the Set view without Rest); a Step Up card offers both changes (§4).
 - Header: elapsed time, heart rate (when Watch-mirrored), per-Exercise progress dots.
 - **Overview** sheet: queue with Skip / Do later / Add Set / edit logged Sets. **End** with confirmation only if Sets remain.
 - When the Watch is primary, this same UI is shown mirrored; taps become commands to the Watch.
@@ -256,7 +259,7 @@ Celebration (§9), then: duration, Sets, volume, heart rate & calories (if recor
 - **Exercise detail** (Swift Charts): line of working weight per Session (max weight of its Sets), Step Up markers (annotated points), selection scrubbing (`chartXSelection`); best Set (heaviest weight, then most reps); total volume (Σ reps × weight; bodyweight Exercises with 0 kg show total reps instead); list of past Sets grouped by Session.
 
 ### Settings
-Sync (Sign in with Apple / status / sign out) · Apple Health status · Apple Watch (**Start Sessions on Apple Watch**, on by default; off runs Sessions started on iPhone on the iPhone, without heart rate) · Strava (connect, auto-upload, disconnect) · Delete account & cloud data · About / privacy.
+Sync (Sign in with Apple / status / sign out) · Apple Health status · Sessions (**Rest Timer**, on by default; off times no Rest in any Workout, also on the Watch) · Apple Watch (**Start Sessions on Apple Watch**, on by default; off runs Sessions started on iPhone on the iPhone, without heart rate) · Strava (connect, auto-upload, disconnect) · Delete account & cloud data · About / privacy.
 
 ### Live Activity & rest notifications
 - A Live Activity runs for every Session: Lock Screen shows Workout name, current step ("Bench Press · Set 2 of 3 · 10 @ 60 kg" or Rest countdown via `Text(timerInterval:)`) and what's next; Dynamic Island compact shows the Rest countdown / Set indicator.

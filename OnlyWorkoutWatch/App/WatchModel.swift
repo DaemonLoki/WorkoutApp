@@ -11,6 +11,8 @@ final class WatchModel {
     static let startNextUpURL = URL(string: "onlyworkout://start")
     /// Watch Sessions this recent are resent to the iPhone until it certainly has them; merging makes repeats harmless.
     static let resendWindow: TimeInterval = 14 * 86_400
+    /// `UserDefaults` key of the iPhone's Rest Timer setting, as last received.
+    static let usesRestTimerKey = "usesRestTimer"
 
     let log: TrainingLog
     let recorder = WorkoutRecorder()
@@ -30,6 +32,9 @@ final class WatchModel {
             updateComplication()
             // Sessions deleted on the iPhone arrive as tombstones; only the Watch can delete their workouts.
             Task { await WorkoutRecorder.deleteWorkouts(ofDeletedSessionsIn: self.log, recordedOn: .watch) }
+        }
+        link.onReceiveSettings = { settings in
+            UserDefaults.standard.set(settings.usesRestTimer, forKey: Self.usesRestTimerKey)
         }
         link.onStartRequest = { [weak self] request in self?.pendingStart = request }
         link.onActivate = { [weak self] in self?.sendToPhone() }
@@ -56,7 +61,7 @@ final class WatchModel {
     /// Starts a Session from the wrist. It runs even without Health access (then without heart rate or mirroring).
     func start(_ workout: Workout) {
         guard runner == nil else { return }
-        let (session, engine) = log.startSession(workout, recordedOn: .watch)
+        let (session, engine) = log.startSession(workout, recordedOn: .watch, usesRestTimer: usesRestTimer)
         run(SessionRunner(session: session, engine: engine, log: log))
         let startedAt = session.startedAt
         Task {
@@ -64,6 +69,10 @@ final class WatchModel {
             await recorder.start(at: startedAt, mirrorToCompanion: true)
             broadcast()
         }
+    }
+
+    private var usesRestTimer: Bool {
+        UserDefaults.standard.object(forKey: Self.usesRestTimerKey) as? Bool ?? true
     }
 
     func startNextUp() {
@@ -86,7 +95,8 @@ final class WatchModel {
                 await recorder.discard()
                 return
             }
-            let (session, engine) = log.startSession(workout, recordedOn: .watch, now: startedAt)
+            let (session, engine) = log.startSession(
+                workout, recordedOn: .watch, usesRestTimer: usesRestTimer, now: startedAt)
             run(SessionRunner(session: session, engine: engine, log: log))
             broadcast()
         }

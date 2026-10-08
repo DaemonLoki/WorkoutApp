@@ -21,6 +21,9 @@ public final class ProgressionSuggestion {
     public var reasonRaw: String
     public var fromWeight: Double
     public var toWeight: Double
+    /// `nil` for suggestions from before reps could change; then the reps don't change.
+    public var fromReps: Int?
+    public var toReps: Int?
     public var sourceSessionID: UUID?
     public var statusRaw: String
     public var resolvedAt: Date?
@@ -36,6 +39,8 @@ public final class ProgressionSuggestion {
         self.reasonRaw = suggestion.reason.rawValue
         self.fromWeight = suggestion.fromWeight
         self.toWeight = suggestion.toWeight
+        self.fromReps = suggestion.fromReps
+        self.toReps = suggestion.toReps
         self.sourceSessionID = sourceSessionID
         self.statusRaw = Status.pending.rawValue
     }
@@ -54,6 +59,8 @@ public final class ProgressionSuggestion {
     }
 
     public var suggestion: WeightSuggestion {
-        WeightSuggestion(kind: kind, reason: reason, fromWeight: fromWeight, toWeight: toWeight)
+        WeightSuggestion(
+            kind: kind, reason: reason, fromWeight: fromWeight, toWeight: toWeight, fromReps: fromReps ?? 0,
+            toReps: toReps ?? fromReps ?? 0)
     }
 }

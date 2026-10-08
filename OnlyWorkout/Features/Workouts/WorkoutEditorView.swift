@@ -70,6 +70,11 @@ struct WorkoutEditorView: View {
             } footer: {
                 Text(.supersetHint)
             }
+            Section {
+                Toggle(isOn: $workout.usesRestTimer) { Text(.restTimer) }
+            } footer: {
+                Text(.workoutRestTimerFooter)
+            }
         }
         .navigationTitle(workout.name.isEmpty ? String(localized: .newWorkoutName) : workout.name)
         .navigationBarTitleDisplayMode(.inline)
@@ -90,6 +95,7 @@ struct WorkoutEditorView: View {
             }
         }
         .onChange(of: workout.name) { workout.updatedAt = .now }
+        .onChange(of: workout.usesRestTimer) { workout.updatedAt = .now }
         .onAppear {
             if workout.name.isEmpty { editsName = true }
         }

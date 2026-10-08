@@ -239,9 +239,10 @@ public struct TrainingLog {
     // MARK: - Sessions
 
     /// Creates a Session snapshotting the Workout, plus the engine that will run it.
-    public func startSession(_ workout: Workout, recordedOn device: Session.Device = .phone, now: Date = .now)
-        -> (Session, SessionEngine)
-    {
+    /// - Parameter usesRestTimer: The device's global Rest Timer setting; Rest is timed only if the Workout's is on too.
+    public func startSession(
+        _ workout: Workout, recordedOn device: Session.Device = .phone, usesRestTimer: Bool = true, now: Date = .now
+    ) -> (Session, SessionEngine) {
         let session = Session(workoutID: workout.id, workoutName: workout.name, startedAt: now, recordedOn: device)
         context.insert(session)
 
@@ -259,7 +260,7 @@ public struct TrainingLog {
                     supersetID: planned.supersetID))
         }
 
-        let engine = SessionEngine(exercises: engineExercises)
+        let engine = SessionEngine(exercises: engineExercises, usesRestTimer: usesRestTimer && workout.usesRestTimer)
         save(engine, to: session, now: now)
         return (session, engine)
     }
@@ -277,6 +278,7 @@ public struct TrainingLog {
                 }
             }
             update(\.position, position)
+            update(\.targetReps, exercise.target.reps)
             update(\.targetWeight, exercise.target.weight)
             update(\.statusRaw, exercise.status.rawValue)
             update(\.skippedSets, exercise.skippedSets)
@@ -394,13 +396,25 @@ public struct TrainingLog {
         }
     }
 
-    public func accept(_ suggestion: ProgressionSuggestion, now: Date = .now) {
+    /// Applies the suggestion to the whole link group; the record keeps only the change that was applied.
+    /// - Parameter change: Which change of a Step Up to apply; `nil` for its first one (the weight).
+    public func accept(
+        _ suggestion: ProgressionSuggestion, choosing change: WeightSuggestion.Change? = nil, now: Date = .now
+    ) {
+        let offered = suggestion.suggestion
+        guard let change = change ?? offered.changes.first else { return }
+        let applied = offered.choosing(change)
         if let planned = plannedExercise(id: suggestion.plannedExerciseID) {
             for member in linkGroup(of: planned) {
-                member.weight = suggestion.toWeight
+                switch change {
+                case .weight: member.weight = applied.toWeight
+                case .reps: member.targetReps = applied.toReps
+                }
                 member.updatedAt = now
             }
         }
+        suggestion.toWeight = applied.toWeight
+        if suggestion.toReps != nil { suggestion.toReps = applied.toReps }
         resolve(suggestion, as: .accepted, now: now)
         try? context.save()
     }

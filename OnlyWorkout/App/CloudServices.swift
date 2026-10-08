@@ -17,7 +17,8 @@ struct CloudServices {
         let backend = SupabaseBackend(url: url, publishableKey: key)
         let creator = info["CFBundleDisplayName"] as? String ?? "OnlyWorkout"
         return CloudServices(
-            sync: CloudSync(log: log, backend: backend), strava: StravaLink(log: log, backend: backend, creator: creator))
+            sync: CloudSync(log: log, backend: backend),
+            strava: StravaLink(log: log, backend: backend, creator: creator))
     }
 
     /// The Strava API app's client ID (not secret); `nil` until `STRAVA_CLIENT_ID` is in `Secrets.xcconfig`.

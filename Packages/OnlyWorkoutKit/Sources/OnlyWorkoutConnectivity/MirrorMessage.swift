@@ -68,7 +68,7 @@ public enum MirrorCommand: Codable, Sendable {
     case doLater(UUID)
     case addExtraSet(UUID)
     case editSet(exerciseID: UUID, index: Int, reps: Int, weight: Double)
-    case answer(SessionOffer, accept: Bool)
+    case answer(SessionOffer, accept: Bool, change: WeightSuggestion.Change?)
     case finish
 }
 
@@ -84,7 +84,7 @@ extension SessionRunner {
         case .addExtraSet(let id): addExtraSet(id)
         case .editSet(let id, let index, let reps, let weight):
             editSet(exerciseID: id, at: index, reps: reps, weight: weight)
-        case .answer(let offer, let accept): answer(offer, accept: accept)
+        case .answer(let offer, let accept, let change): answer(offer, accept: accept, choosing: change)
         case .finish: finish()
         }
     }

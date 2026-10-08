@@ -33,6 +33,8 @@ public enum DesignTokens {
         public static let valueChange = Animation.snappy(duration: 0.2)
         /// Step Up / Step Down cards entering and leaving: spring without bounce.
         public static let card = Animation.smooth(duration: 0.35)
+        /// A collapsed section opening or closing (e.g. Ready to Step Up on Today).
+        public static let disclosure = Animation.smooth(duration: 0.25)
         /// The Session-complete celebration: the one place with bounce.
         public static let celebration = Animation.spring(duration: 0.5, bounce: 0.2)
         /// Delay between progress cards appearing on the Summary.

@@ -309,4 +309,35 @@ struct SessionEngineTests {
         #expect(order == [a.id, a.id])
         #expect(rests == [90, nil])
     }
+
+    @Test func withTheRestTimerOffNoRestFollowsASetOrASupersetPair() {
+        let pair = UUID()
+        let curl = exercise("Curl", sets: 1, superset: pair)
+        let pushdown = exercise("Pushdown", sets: 1, superset: pair)
+        var engine = SessionEngine(exercises: [exercise("Bench Press", sets: 2), curl, pushdown], usesRestTimer: false)
+        var rests: [SessionEngine.Rest?] = []
+
+        while engine.currentSet != nil {
+            engine.completeSet(reps: 10, weight: 50, at: start)
+            rests.append(engine.rest)
+        }
+
+        #expect(rests == [nil, nil, nil, nil])
+        #expect(engine.isComplete)
+    }
+
+    @Test func aSessionSavedBeforeTheRestTimerSettingResumesWithTheRestTimerOn() throws {
+        let saved = Data(
+            """
+            {"exercises": [{"id": "6F1C1F5E-2B54-4C7A-9A57-0C3E8D3E1A10", "name": "Bench Press",
+              "target": {"sets": 3, "reps": 10, "weight": 50}, "restSeconds": 90}],
+             "isEnded": false}
+            """.utf8)
+
+        var engine = try JSONDecoder().decode(SessionEngine.self, from: saved)
+        engine.completeSet(reps: 10, weight: 50, at: start)
+
+        #expect(engine.usesRestTimer)
+        #expect(engine.rest?.duration == 90)
+    }
 }

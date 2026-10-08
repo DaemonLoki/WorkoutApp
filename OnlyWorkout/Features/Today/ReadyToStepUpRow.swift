@@ -17,19 +17,34 @@ struct ReadyToStepUpRow: View {
             Text(message(planned: planned))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            Button {
-                appModel.accept(suggestion)
-                acceptedCount += 1
-            } label: {
-                Text(
-                    suggestion.kind == .stepUp
-                        ? .stepUpTo(suggestion.toWeight.kilograms) : .stepDownTo(suggestion.toWeight.kilograms))
+            let offered = suggestion.suggestion
+            let choices = offered.choices(prefersReps: planned?.exercise?.equipment.usesAddedWeight ?? false)
+            // Side by side when they fit, stacked otherwise (large Dynamic Type).
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: DesignTokens.Spacing.xs) { buttons(for: choices, of: offered) }
+                VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) { buttons(for: choices, of: offered) }
             }
-            .buttonStyle(.glassProminent)
         }
         .sensoryFeedback(.success, trigger: acceptedCount)
         .swipeActions {
             Button(.dismiss, systemImage: "xmark") { appModel.dismiss(suggestion) }
+        }
+    }
+
+    /// The prominent choice first; a Step Up offers a heavier weight and one more rep.
+    private func buttons(for choices: [WeightSuggestion.Change], of offered: WeightSuggestion) -> some View {
+        ForEach(choices, id: \.self) { change in
+            let button = Button {
+                appModel.accept(suggestion, choosing: change)
+                acceptedCount += 1
+            } label: {
+                Text(offered.acceptTitle(for: change))
+            }
+            if change == choices.first {
+                button.buttonStyle(.glassProminent)
+            } else {
+                button.buttonStyle(.glass)
+            }
         }
     }
 
@@ -38,7 +53,8 @@ struct ReadyToStepUpRow: View {
         case .targetHit:
             .readyTargetHit(planned?.targetSets ?? 0, planned?.targetReps ?? 0, suggestion.fromWeight.kilograms)
         case .stall, .layoff:
-            .readyStalled(suggestion.fromWeight.kilograms)
+            suggestion.suggestion.changes == [.reps]
+                ? .readyStalledReps(suggestion.suggestion.fromReps) : .readyStalled(suggestion.fromWeight.kilograms)
         }
     }
 }

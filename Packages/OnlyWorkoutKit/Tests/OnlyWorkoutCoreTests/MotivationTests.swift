@@ -24,7 +24,8 @@ struct MotivationTests {
     }
 
     @Test func anAcceptedStepUpIsCelebratedInsteadOfItsTargetHit() {
-        let stepUp = WeightSuggestion(kind: .stepUp, reason: .targetHit, fromWeight: 60, toWeight: 62.5)
+        let stepUp = WeightSuggestion(
+            kind: .stepUp, reason: .targetHit, fromWeight: 60, toWeight: 62.5, fromReps: 10, toReps: 10)
 
         let events = Motivation.events(for: [recap(stepUp: stepUp, firstWeight: 52.5)])
 
@@ -67,5 +68,14 @@ struct MotivationTests {
         #expect(Set(variants).count == 1)
         #expect((0..<3).contains(variants[0]))
         #expect(Motivation.variant(for: session, salt: 0, count: 1) == 0)
+    }
+
+    @Test func anAcceptedRepStepUpIsCelebratedWithItsReps() {
+        let stepUp = WeightSuggestion(
+            kind: .stepUp, reason: .targetHit, fromWeight: 60, toWeight: 60, fromReps: 10, toReps: 11)
+
+        let events = Motivation.events(for: [recap(stepUp: stepUp, firstWeight: 52.5)])
+
+        #expect(events == [.repStepUp(exercise: "Squat", sets: 2, fromReps: 10, toReps: 11)])
     }
 }

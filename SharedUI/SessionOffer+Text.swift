@@ -12,6 +12,7 @@ extension SessionOffer {
     var title: LocalizedStringResource {
         switch suggestion.reason {
         case .targetHit: .offerTargetHitTitle(exerciseName)
+        case .stall where changesOnlyReps: .offerStallTitleReps(exerciseName, suggestion.fromReps)
         case .stall: .offerStallTitle(exerciseName, suggestion.fromWeight.kilograms)
         case .layoff: .offerLayoffTitle(exerciseName)
         }
@@ -19,17 +20,25 @@ extension SessionOffer {
 
     var message: LocalizedStringResource {
         switch suggestion.reason {
+        case .targetHit where suggestion.changes.count > 1:
+            .offerTargetHitChoiceMessage(suggestion.toWeight.kilograms, suggestion.toReps)
         case .targetHit: .offerTargetHitMessage(suggestion.toWeight.kilograms)
+        case .stall where changesOnlyReps: .offerStallMessageReps(suggestion.toReps)
         case .stall: .offerStallMessage(suggestion.toWeight.kilograms)
+        case .layoff where changesOnlyReps: .offerLayoffMessageReps(suggestion.toReps)
         case .layoff: .offerLayoffMessage(suggestion.toWeight.kilograms)
         }
     }
 
-    var acceptTitle: LocalizedStringResource {
-        suggestion.kind == .stepUp ? .stepUp : .stepDown
+    var declineTitle: LocalizedStringResource {
+        switch suggestion.kind {
+        case .stepUp: .notYet
+        case .stepDown: changesOnlyReps ? .keepReps : .keepWeight
+        }
     }
 
-    var declineTitle: LocalizedStringResource {
-        suggestion.kind == .stepUp ? .notYet : .keepWeight
+    /// A Step Down at 0 kg lowers the reps instead of the weight.
+    private var changesOnlyReps: Bool {
+        suggestion.changes == [.reps]
     }
 }

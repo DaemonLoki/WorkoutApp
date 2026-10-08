@@ -5,3 +5,7 @@ Each Planned Exercise has a fixed Target (e.g. 3×12 @ 40 kg), not a rep range. 
 ## Consequences
 
 Missing the Target is normal right after a Step Up, so a single miss must never trigger a Step Down — that's why the Stall rule requires three misses *and* no rep improvement. Don't "simplify" this into rep ranges or automatic weight changes.
+
+## Amendment (2026-10-08): rep Step Ups
+
+Weight-only Step Ups don't work for bodyweight Exercises at 0 kg Added Weight (#5). A Step Up now offers a choice: one Weight Step *or* one more rep per Set. The Target stays fixed either way; it's still a single number of reps, never a range. There's deliberately no double progression (reps up to a ceiling, then weight up and reps reset): that would bring back rep ranges. Step Downs stay a single option. They lower the weight, or the reps when the weight is already 0 kg. A Stall needs three misses at the same weight *and* reps, so a rep Step Up starts a fresh window, just as a weight Step Up does.

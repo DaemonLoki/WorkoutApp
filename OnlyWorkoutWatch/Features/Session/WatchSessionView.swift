@@ -35,8 +35,10 @@ struct WatchSessionView: View {
     @ViewBuilder
     private var current: some View {
         if let offer = runner.offer {
-            WatchOfferView(offer: offer, rest: runner.engine.rest) { accept in
-                runner.answer(offer, accept: accept)
+            WatchOfferView(
+                offer: offer, rest: runner.engine.rest, prefersReps: runner.usesAddedWeight(for: offer.exerciseID)
+            ) { accept, change in
+                runner.answer(offer, accept: accept, choosing: change)
             }
         } else if let rest = runner.engine.rest {
             WatchRestView(

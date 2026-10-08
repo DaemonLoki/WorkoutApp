@@ -29,6 +29,7 @@ struct RecordTransferTests {
 
     @Test func aWorkoutAndItsPlannedExercisesArriveUnchanged() throws {
         let workout = phone.addWorkout(named: "Leg Day")
+        workout.usesRestTimer = false
         let planned = phone.add(try squat(in: phone), to: workout)
         planned.targetReps = 5
         planned.weight = 80
@@ -38,6 +39,7 @@ struct RecordTransferTests {
         let received = try #require(watch.workouts().first)
         #expect(received.id == workout.id)
         #expect(received.name == "Leg Day")
+        #expect(!received.usesRestTimer)
         let receivedPlanned = try #require(received.orderedPlannedExercises.first)
         #expect(receivedPlanned.id == planned.id)
         #expect(receivedPlanned.target == Target(sets: 3, reps: 5, weight: 80))
@@ -101,5 +103,17 @@ struct RecordTransferTests {
         #expect(received.linkID != nil)
         #expect(received.linkID == original.linkID)
         #expect(watch.linkGroup(of: received).count == 2)
+    }
+
+    @Test func aSuggestionArrivesWithItsWeightAndRepChanges() throws {
+        let workout = phone.addWorkout(named: "Leg Day")
+        let planned = phone.add(try squat(in: phone), to: workout)
+        let stepUp = WeightSuggestion(
+            kind: .stepUp, reason: .targetHit, fromWeight: 80, toWeight: 82.5, fromReps: 8, toReps: 9)
+        phone.offer(stepUp, for: planned.id, from: nil)
+
+        watch.apply(phone.exportPlan())
+
+        #expect(watch.pendingSuggestions().first?.suggestion == stepUp)
     }
 }

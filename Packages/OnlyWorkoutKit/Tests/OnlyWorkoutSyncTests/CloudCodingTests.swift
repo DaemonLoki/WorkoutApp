@@ -39,6 +39,17 @@ struct CloudCodingTests {
         #expect(row["healthWorkoutID"] == nil)
     }
 
+    @Test func aPushedSuggestionCarriesItsRepChange() throws {
+        log.offer(
+            WeightSuggestion(kind: .stepUp, reason: .targetHit, fromWeight: 0, toWeight: 2.5, fromReps: 8, toReps: 9),
+            for: UUID(), from: nil)
+
+        let rows = try #require(try pushedJSON()["progression_suggestions"] as? [[String: Any]])
+
+        #expect(rows.first?["from_reps"] as? Int == 8)
+        #expect(rows.first?["to_reps"] as? Int == 9)
+    }
+
     @Test func aPushedDateIsUTCWithMilliseconds() throws {
         // 2026-09-05 18:05:00.123 UTC
         log.addWorkout(named: "Leg Day", now: Date(timeIntervalSince1970: 1_788_631_500.123))
@@ -89,5 +100,21 @@ struct CloudCodingTests {
         #expect(batch.exercises.first?.catalogKey == "back-squat")
         #expect(batch.exercises.first?.updatedAt == Date(timeIntervalSince1970: 0))
         #expect(abs(try #require(cursor).timeIntervalSince1970 - 1_790_793_766.760_643) < 0.000_001)
+    }
+
+    /// The app may be updated before the cloud migration that adds a column has run.
+    @Test func aWorkoutPulledWithoutTheRestTimerColumnUsesTheRestTimer() throws {
+        let pulled = Data(
+            """
+            {"workouts": [{"id": "10000000-0000-0000-0000-000000000001", "name": "Leg Day", "rotation_index": 0,
+              "created_at": "2026-09-05T18:00:00+00:00", "updated_at": "2026-09-05T18:00:00+00:00",
+              "deleted_at": null}],
+             "exercises": [], "planned_exercises": [], "sessions": [], "session_exercises": [], "sets": [],
+             "progression_suggestions": [], "cursor": null}
+            """.utf8)
+
+        let (batch, _) = try CloudCoding.decodePull(pulled)
+
+        #expect(batch.workouts.first?.usesRestTimer == true)
     }
 }

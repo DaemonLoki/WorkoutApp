@@ -11,6 +11,8 @@ public struct SuggestionRecord: SyncRecord, Codable, Equatable, Sendable {
     public var reason: String
     public var fromWeight: Double
     public var toWeight: Double
+    public var fromReps: Int?
+    public var toReps: Int?
     public var sourceSessionID: UUID?
     public var status: String
     public var resolvedAt: Date?
@@ -25,6 +27,8 @@ public struct SuggestionRecord: SyncRecord, Codable, Equatable, Sendable {
         reason = model.reasonRaw
         fromWeight = model.fromWeight
         toWeight = model.toWeight
+        fromReps = model.fromReps
+        toReps = model.toReps
         sourceSessionID = model.sourceSessionID
         status = model.statusRaw
         resolvedAt = model.resolvedAt
@@ -39,6 +43,8 @@ public struct SuggestionRecord: SyncRecord, Codable, Equatable, Sendable {
         model.reasonRaw = reason
         model.fromWeight = fromWeight
         model.toWeight = toWeight
+        model.fromReps = fromReps
+        model.toReps = toReps
         model.sourceSessionID = sourceSessionID
         model.statusRaw = status
         model.resolvedAt = resolvedAt

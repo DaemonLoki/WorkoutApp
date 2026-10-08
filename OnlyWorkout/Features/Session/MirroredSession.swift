@@ -40,7 +40,9 @@ final class MirroredSession: SessionDriver {
     func skip(_ exerciseID: UUID) { send(.skip(exerciseID)) }
     func doLater(_ exerciseID: UUID) { send(.doLater(exerciseID)) }
     func addExtraSet(_ exerciseID: UUID) { send(.addExtraSet(exerciseID)) }
-    func answer(_ offer: SessionOffer, accept: Bool) { send(.answer(offer, accept: accept)) }
+    func answer(_ offer: SessionOffer, accept: Bool, choosing change: WeightSuggestion.Change?) {
+        send(.answer(offer, accept: accept, change: change))
+    }
     func finish() { send(.finish) }
 
     func editSet(exerciseID: UUID, at index: Int, reps: Int, weight: Double) {
