@@ -1,18 +1,19 @@
 # App icon
 
-Concepts for DaemonLoki/WorkoutApp#24, white glyphs on the app's orange (`AccentColor`, `#FF7A00`), 1024×1024:
+**Chosen: A, the Step Up plate** (DaemonLoki/WorkoutApp#24): a weight plate with a Step Up chevron, white on the app's orange (`AccentColor`, `#FF7A00`). It names the app's one big idea, progression, and the ring sits concentric with the Watch's round mask.
 
-| File | Idea |
+The app uses `AppIcon.icon` (Icon Composer's format) in `OnlyWorkout/Resources/` and `OnlyWorkoutWatch/Resources/`; the build setting `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon` picks it up. Both copies must stay identical.
+
+| File | What |
 |---|---|
-| `concepts/a-plate-step-up.svg` | A weight plate with a Step Up chevron: the app's progression in one mark |
-| `concepts/b-barbell.svg` | A barbell with two plates per side |
-| `concepts/c-rising-plates.svg` | Three plates rising like a progress chart |
-| `concepts/d-dumbbell.svg` | A diagonal dumbbell |
+| `a-step-up-plate/plate.svg` | Layer: the ring (r 304, stroke 104), transparent background |
+| `a-step-up-plate/chevron.svg` | Layer: the chevron (stroke 96, round caps), a little above centre so it looks centred |
+| `a-step-up-plate/background.svg` | The orange as a flat file, for places that need one image (web, App Store Connect previews) |
+| `a-step-up-plate/preview.svg` | All three combined |
+| `concepts/` | The four concepts the icon was chosen from |
 
-No Strava logo or name in the icon (Strava brand guidelines).
+In `AppIcon.icon/icon.json` the background is an automatic gradient of the accent orange, and the chevron and plate are separate groups, so Liquid Glass gives them depth; both have a neutral shadow and 40 % translucency.
 
-## From the chosen concept to the app
+## Changing it
 
-1. Split the chosen SVG into layers: the background (the orange) and the glyph (white shapes, transparent background), each 1024×1024.
-2. Open **Icon Composer** (Xcode → Open Developer Tool → Icon Composer), drop the glyph in as a layer, and set the orange as the background fill. Check the Default, Dark, Tinted and Clear appearances and the round watchOS preview; adjust Liquid Glass and shadow per layer.
-3. Save as `AppIcon.icon` into `OnlyWorkout/Resources/` and `OnlyWorkoutWatch/Resources/` (synchronized folders: the files join their targets), delete the empty `AppIcon.appiconset`s, and keep the build setting `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`.
+Open `OnlyWorkout/Resources/AppIcon.icon` in **Icon Composer** (Xcode → Open Developer Tool → Icon Composer). Check the Default, Dark, Tinted and Clear appearances and the round watchOS preview, adjust glass, shadow or translucency per group, save, and copy the result over `OnlyWorkoutWatch/Resources/AppIcon.icon`. Update the SVGs here if a layer's shape changes. No Strava logo or name in the icon (Strava brand guidelines).

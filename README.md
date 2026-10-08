@@ -451,7 +451,7 @@ Config/                         # Shared.xcconfig (team, includes Secrets.xcconf
 docs/adr/  docs/research/       # decisions; researched facts with sources
 docs/release/                   # App Store listing, App Privacy answers and App Review notes
 site/onlyworkout/               # Privacy Policy and Support pages, copied by the owner to stefanblos.com/onlyworkout/
-design/icon/                    # app icon concepts and the Icon Composer workflow
+design/icon/                    # app icon layers (source of AppIcon.icon), concepts, Icon Composer notes
 .github/workflows/ci.yml
 ```
 
@@ -528,7 +528,7 @@ The owner's feedback from using the app is tracked as GitHub issues and shipped 
 ### M5 — App Store readiness
 **Status:** in progress on branch `release-readiness-research`; GitHub milestone "M5 — App Store readiness" (DaemonLoki/WorkoutApp#17–#29). Research: [docs/research/app-store-readiness.md](docs/research/app-store-readiness.md), [docs/research/strava-athlete-capacity.md](docs/research/strava-athlete-capacity.md).
 
-- In code: privacy manifests for every target (#17); export compliance key, version 1.0, `-sampleData` in Debug only (#18); Privacy Policy and Support pages in `site/`, linked in Settings (#19); Health purpose strings mention calories (#20); no email scope at Sign in with Apple (#21); Strava capacity gate and athlete-limit message (#22); accessibility pass (#23); app icon via Icon Composer (#24); App Store listing and review notes in `docs/release/` (#25).
+- In code: privacy manifests for every target (#17); export compliance key, version 1.0, `-sampleData` in Debug only (#18); Privacy Policy and Support pages in `site/`, linked in Settings (#19); Health purpose strings mention calories (#20); no email scope at Sign in with Apple (#21); Strava capacity gate and athlete-limit message (#22); accessibility pass (#23); app icon `AppIcon.icon` (concept A, the Step Up plate; #24); App Store listing and review notes in `docs/release/` (#25).
 - Owner: Strava capacity check, self-upgrade and Developer Program application (#26); hosted Supabase ready for review (#27); device check (#28); App Store Connect record, screenshots, TestFlight and submission (#29).
 - **Done when**: a TestFlight build uploads without App Store Connect warnings, and the app passes App Review with Strava behind the capacity gate.
 
