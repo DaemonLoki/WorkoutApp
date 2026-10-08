@@ -67,7 +67,8 @@ struct StravaLinkTests {
         try await link.finishConnecting(redirect: try redirect("state=\(state)&code=abc123&scope=read,activity:write"))
 
         #expect(strava.connectedWith == ["abc123"])
-        #expect(link.status == .connected(StravaConnection(connectedAt: Date(timeIntervalSince1970: 1_790_000_000), autoUpload: true)))
+        let connectedAt = Date(timeIntervalSince1970: 1_790_000_000)
+        #expect(link.status == .connected(StravaConnection(connectedAt: connectedAt, autoUpload: true)))
     }
 
     /// Strava separates scopes with commas in the redirect but with spaces in its token answer.
@@ -75,7 +76,8 @@ struct StravaLinkTests {
         let link = makeLink()
         let state = try state(of: link.authorizationURL(clientID: "12345"))
 
-        try await link.finishConnecting(redirect: try redirect("state=\(state)&code=abc123&scope=read%20activity:write"))
+        try await link.finishConnecting(
+            redirect: try redirect("state=\(state)&code=abc123&scope=read%20activity:write"))
 
         #expect(strava.connectedWith == ["abc123"])
     }
