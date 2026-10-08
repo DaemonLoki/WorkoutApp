@@ -1402,6 +1402,17 @@
         }
       }
     },
+    "privacyPolicy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy Policy"
+          }
+        }
+      }
+    },
     "range1Y" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2306,6 +2317,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Superset with Next"
+          }
+        }
+      }
+    },
+    "support" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support"
           }
         }
       }
