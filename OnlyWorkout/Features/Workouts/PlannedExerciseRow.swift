@@ -4,18 +4,27 @@ import SwiftUI
 
 /// "Bench Press   3 × 10 · 60 kg", with a bracket for Supersets and a badge for a waiting Step Up.
 struct PlannedExerciseRow: View {
-    let planned: PlannedExercise
+    let summary: PlannedExerciseSummary
     var hasPendingSuggestion = false
+
+    init(summary: PlannedExerciseSummary, hasPendingSuggestion: Bool = false) {
+        self.summary = summary
+        self.hasPendingSuggestion = hasPendingSuggestion
+    }
+
+    init(planned: PlannedExercise, hasPendingSuggestion: Bool = false) {
+        self.init(summary: PlannedExerciseSummary(planned), hasPendingSuggestion: hasPendingSuggestion)
+    }
 
     var body: some View {
         HStack(spacing: DesignTokens.Spacing.s) {
             Capsule()
-                .fill(planned.supersetID == nil ? AnyShapeStyle(.clear) : AnyShapeStyle(.tint))
+                .fill(summary.isSuperset ? AnyShapeStyle(.tint) : AnyShapeStyle(.clear))
                 .frame(width: DesignTokens.Spacing.xxs)
                 .accessibilityHidden(true)
             VStack(alignment: .leading) {
-                Text(planned.exerciseName)
-                Text(planned.target.summary)
+                Text(summary.name)
+                Text(summary.showsWeight ? summary.target.summary : summary.target.setsAndReps)
                     .font(.subheadline)
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
@@ -23,7 +32,7 @@ struct PlannedExerciseRow: View {
             // Long Exercise names wrap at large Dynamic Type sizes instead of being cut off.
             .fixedSize(horizontal: false, vertical: true)
             Spacer()
-            if planned.linkID != nil {
+            if summary.isLinked {
                 Image(systemName: "link")
                     .foregroundStyle(.secondary)
                     .accessibilityLabel(Text(.linkedAccessibility))
@@ -35,6 +44,6 @@ struct PlannedExerciseRow: View {
             }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityHint(planned.supersetID == nil ? Text(verbatim: "") : Text(.superset))
+        .accessibilityHint(summary.isSuperset ? Text(.superset) : Text(verbatim: ""))
     }
 }

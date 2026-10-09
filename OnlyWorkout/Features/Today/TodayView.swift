@@ -32,7 +32,15 @@ struct TodayView: View {
                 }
             }
             .navigationTitle(Text(.tabToday))
-            .onAppear(perform: appModel.nameUnnamedWorkouts)
+            .onAppear {
+                // Onboarding ended with Build My Own: open the new Workout's editor with its name still empty.
+                if let workout = appModel.workoutToEdit {
+                    appModel.workoutToEdit = nil
+                    newWorkout = workout
+                } else {
+                    appModel.nameUnnamedWorkouts()
+                }
+            }
             .navigationDestination(item: $newWorkout) { workout in
                 WorkoutEditorView(workout: workout)
             }

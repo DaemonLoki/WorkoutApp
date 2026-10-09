@@ -9,4 +9,11 @@ public struct SessionOffer: Identifiable, Hashable, Codable, Sendable {
     public let exerciseID: UUID
     public let exerciseName: String
     public let suggestion: WeightSuggestion
+
+    public init(id: UUID, exerciseID: UUID, exerciseName: String, suggestion: WeightSuggestion) {
+        self.id = id
+        self.exerciseID = exerciseID
+        self.exerciseName = exerciseName
+        self.suggestion = suggestion
+    }
 }

@@ -21,7 +21,21 @@ struct OnlyWorkoutApp: App {
         }
         let log = TrainingLog(context: container.mainContext)
         let services = isUITesting ? nil : CloudServices.configured(log: log)
-        _appModel = State(initialValue: AppModel(log: log, services: services, usesHealth: !isUITesting))
+        // Decided before `AppModel` starts the Watch link, which can deliver Workouts at any moment.
+        let showsOnboarding = !isUITesting && (Self.forcesOnboarding || AppModel.needsOnboarding(log: log))
+        _appModel = State(
+            initialValue: AppModel(
+                log: log, services: services, usesHealth: !isUITesting, showsOnboarding: showsOnboarding))
+    }
+
+    /// `-onboarding` shows onboarding even when it's done or the store has data, to try it out.
+    /// Debug builds only, like `-sampleData`.
+    private static var forcesOnboarding: Bool {
+        #if DEBUG
+            ProcessInfo.processInfo.arguments.contains("-onboarding")
+        #else
+            false
+        #endif
     }
 
     /// `-sampleData` seeds a starter Workout into the real store, e.g. to try the Watch in the simulator.

@@ -15,6 +15,10 @@ final class AppModel {
     static let startsSessionsOnWatchKey = "startsSessionsOnWatch"
     /// `UserDefaults` key of Settings → Sessions → Rest Timer; device-local (shared with the Watch), on by default.
     static let usesRestTimerKey = "usesRestTimer"
+    /// `UserDefaults` key set once onboarding has finished; device-local (README §7 Onboarding).
+    static let hasCompletedOnboardingKey = "hasCompletedOnboarding"
+    /// `UserDefaults` key of the Equipment Access chosen in onboarding; device-local, reused by Recommendations.
+    static let equipmentAccessKey = "equipmentAccess"
 
     let log: TrainingLog
     /// `nil` when this build has no Supabase configuration, and in UI tests.
@@ -26,6 +30,10 @@ final class AppModel {
     var startingOnWatch: Workout?
     /// Shown once, before the Apple Health permission sheet.
     var healthExplanationFor: Workout?
+    /// The first-launch onboarding replaces the tabs until it finishes.
+    private(set) var showsOnboarding: Bool
+    /// A Workout created at the end of onboarding that Today opens in the Workout editor.
+    var workoutToEdit: Workout?
 
     @ObservationIgnored private let link = PhoneWatchLink()
     @ObservationIgnored private let recorder: WorkoutRecorder?
@@ -33,9 +41,12 @@ final class AppModel {
     /// Set when the user continues past the Health explanation; the start waits until that sheet is gone.
     @ObservationIgnored private var startAfterHealthExplanation: Workout?
 
-    /// - Parameter usesHealth: `false` for UI tests, which run without Apple Health and without a Watch.
-    init(log: TrainingLog, services: CloudServices? = nil, usesHealth: Bool = true) {
+    /// - Parameters:
+    ///   - usesHealth: `false` for UI tests, which run without Apple Health and without a Watch.
+    ///   - showsOnboarding: decided by `needsOnboarding(log:)` before this model starts the Watch link.
+    init(log: TrainingLog, services: CloudServices? = nil, usesHealth: Bool = true, showsOnboarding: Bool = false) {
         self.log = log
+        self.showsOnboarding = showsOnboarding
         cloud = services?.sync
         strava = services?.strava
         recorder = usesHealth && WorkoutRecorder.isAvailable ? WorkoutRecorder() : nil
@@ -54,6 +65,37 @@ final class AppModel {
         resumeUnfinishedSession()
         deleteHealthWorkouts()
         syncWithCloud()
+    }
+
+    // MARK: - Onboarding
+
+    /// Onboarding is for a fresh install: nothing planned or performed yet (catalog Exercises don't count). A store
+    /// that already has data, e.g. after updating from a version without onboarding, is marked as done silently.
+    static func needsOnboarding(log: TrainingLog, defaults: UserDefaults = .standard) -> Bool {
+        guard !defaults.bool(forKey: hasCompletedOnboardingKey) else { return false }
+        guard log.workouts().isEmpty, log.lastStartedSession() == nil else {
+            defaults.set(true, forKey: hasCompletedOnboardingKey)
+            return false
+        }
+        return true
+    }
+
+    /// Ends onboarding for good and shows the tabs, opening `workout` in the editor when given.
+    func finishOnboarding(editing workout: Workout? = nil) {
+        UserDefaults.standard.set(true, forKey: Self.hasCompletedOnboardingKey)
+        workoutToEdit = workout
+        showsOnboarding = false
+        publishToWatch()
+        syncWithCloud()
+    }
+
+    /// Whether Apple Health would show its permission sheet; `false` without Apple Health.
+    func healthNeedsAuthorization() async -> Bool {
+        await recorder?.needsAuthorization() ?? false
+    }
+
+    func requestHealthAuthorization() async {
+        await recorder?.requestAuthorization()
     }
 
     // MARK: - Starting

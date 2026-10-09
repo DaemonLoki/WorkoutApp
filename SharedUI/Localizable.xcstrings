@@ -111,6 +111,17 @@
         }
       }
     },
+    "back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        }
+      }
+    },
     "bestSet" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -122,6 +133,17 @@
         }
       }
     },
+    "bestToStart" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best to start"
+          }
+        }
+      }
+    },
     "breakSuperset" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -129,6 +151,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Break Superset"
+          }
+        }
+      }
+    },
+    "buildMyOwn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Build My Own"
           }
         }
       }
@@ -475,6 +508,83 @@
         }
       }
     },
+    "equipmentAccess" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equipment"
+          }
+        }
+      }
+    },
+    "equipmentAccessBodyweightDetail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No weights. You need a pull-up bar and a bench or sturdy box."
+          }
+        }
+      }
+    },
+    "equipmentAccessBodyweightShort" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bodyweight"
+          }
+        }
+      }
+    },
+    "equipmentAccessDumbbellsDetail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dumbbells and a bench. Kettlebell Exercises work with one dumbbell."
+          }
+        }
+      }
+    },
+    "equipmentAccessDumbbellsShort" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dumbbells"
+          }
+        }
+      }
+    },
+    "equipmentAccessGymDetail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Barbells, dumbbells, machines and cables."
+          }
+        }
+      }
+    },
+    "equipmentAccessGymShort" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gym"
+          }
+        }
+      }
+    },
     "equipmentBarbell" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -762,6 +872,105 @@
         }
       }
     },
+    "focusArmsWorkoutName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arm Day"
+          }
+        }
+      }
+    },
+    "focusCoreWorkoutName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core"
+          }
+        }
+      }
+    },
+    "focusFullBodyWorkoutName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full Body"
+          }
+        }
+      }
+    },
+    "focusLegsWorkoutName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leg Day"
+          }
+        }
+      }
+    },
+    "focusLowerBodyWorkoutName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lower Body"
+          }
+        }
+      }
+    },
+    "focusPullWorkoutName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pull Day"
+          }
+        }
+      }
+    },
+    "focusPushWorkoutName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Push Day"
+          }
+        }
+      }
+    },
+    "focusUpperBodyWorkoutName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upper Body"
+          }
+        }
+      }
+    },
+    "getStarted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get Started"
+          }
+        }
+      }
+    },
     "healthExplanationMessage" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -780,6 +989,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Save Sessions to Apple Health"
+          }
+        }
+      }
+    },
+    "healthPageMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every Session is saved as a strength workout, with heart rate and calories when you train with Apple Watch."
+          }
+        }
+      }
+    },
+    "healthPageTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save your Sessions to Apple Health"
           }
         }
       }
@@ -824,6 +1055,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keep weight"
+          }
+        }
+      }
+    },
+    "kg" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kg"
+          }
+        }
+      }
+    },
+    "letsGo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let's Go"
           }
         }
       }
@@ -1391,6 +1644,17 @@
         }
       }
     },
+    "pageIndicator" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Page %1$lld of %2$lld"
+          }
+        }
+      }
+    },
     "privacyFooter" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1468,6 +1732,39 @@
         }
       }
     },
+    "readyMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Workouts are ready. Start a Session from Today whenever you're at the gym."
+          }
+        }
+      }
+    },
+    "readyRestoredMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Workouts and Sessions are back, right where you left them."
+          }
+        }
+      }
+    },
+    "readyRestoredTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome back"
+          }
+        }
+      }
+    },
     "readyStalled" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1509,6 +1806,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$lld × %2$lld hit at %3$@"
+          }
+        }
+      }
+    },
+    "readyThen" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Then: %@"
+          }
+        }
+      }
+    },
+    "readyTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're all set"
           }
         }
       }
@@ -1610,6 +1929,72 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rest"
+          }
+        }
+      }
+    },
+    "restAlertsMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get an alert when Rest ends, even while OnlyWorkout is in the background."
+          }
+        }
+      }
+    },
+    "restAlertsTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Know when Rest is over"
+          }
+        }
+      }
+    },
+    "restoreFooter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud Sync is optional. You can turn it on later in Settings."
+          }
+        }
+      }
+    },
+    "restoreMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to bring back your Workouts and Sessions with Cloud Sync."
+          }
+        }
+      }
+    },
+    "restoreTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already use OnlyWorkout?"
+          }
+        }
+      }
+    },
+    "restoring" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restoring…"
           }
         }
       }
@@ -1846,6 +2231,116 @@
         }
       }
     },
+    "starterFullBodyDetail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 Workout · for 2–3 Sessions a week"
+          }
+        }
+      }
+    },
+    "starterFullBodyTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full Body"
+          }
+        }
+      }
+    },
+    "starterHealthNote" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If you have a health condition or symptoms, are pregnant, or haven't been active for a long time, check with a healthcare professional before you start."
+          }
+        }
+      }
+    },
+    "starterMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A common starting point, ready to go. You can change anything later."
+          }
+        }
+      }
+    },
+    "starterPushPullLegsDetail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3 Workouts · for 6 Sessions a week"
+          }
+        }
+      }
+    },
+    "starterPushPullLegsTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Push / Pull / Legs"
+          }
+        }
+      }
+    },
+    "starterTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick your first Workouts"
+          }
+        }
+      }
+    },
+    "starterUpperLowerDetail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 Workouts · for 4 Sessions a week"
+          }
+        }
+      }
+    },
+    "starterUpperLowerTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upper / Lower"
+          }
+        }
+      }
+    },
+    "startFresh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Fresh"
+          }
+        }
+      }
+    },
     "startingOnWatch" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1853,6 +2348,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Starting on Apple Watch…"
+          }
+        }
+      }
+    },
+    "startingWeightsMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a weight you could lift for 2–3 more reps than the Target; for dumbbells, the weight of one. Leave a field empty to start at 0 kg. You can change it any time."
+          }
+        }
+      }
+    },
+    "startingWeightsTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting weights"
           }
         }
       }
@@ -2442,6 +2959,17 @@
         }
       }
     },
+    "targetSetsAndReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld × %2$lld"
+          }
+        }
+      }
+    },
     "targetSummary" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2493,6 +3021,193 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Total Volume"
+          }
+        }
+      }
+    },
+    "tourLogSetMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Target is already filled in, so every Set is one tap on Done. Change reps or weight only when a Set went differently."
+          }
+        }
+      }
+    },
+    "tourLogSetTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log a Set with one tap"
+          }
+        }
+      }
+    },
+    "tourPlanMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Build Workouts from more than 90 Exercises. Each has a Target, like 3 × 8 at 60 kg, and two can share a Superset."
+          }
+        }
+      }
+    },
+    "tourPlanTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get stronger, one step at a time"
+          }
+        }
+      }
+    },
+    "tourStepUpChange" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@"
+          }
+        }
+      }
+    },
+    "tourStepUpChangeReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld → %2$lld reps"
+          }
+        }
+      }
+    },
+    "tourStepUpMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hit every rep of your Target and OnlyWorkout offers a Step Up: a little more weight or one more rep. You decide."
+          }
+        }
+      }
+    },
+    "tourStepUpTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Step Up when you're ready"
+          }
+        }
+      }
+    },
+    "tourSyncCloudSync" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan and history, backed up"
+          }
+        }
+      }
+    },
+    "tourSyncHealth" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved as a strength workout"
+          }
+        }
+      }
+    },
+    "tourSyncMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every finished Session is saved to Apple Health and backed up with Cloud Sync, and you can upload it to Strava."
+          }
+        }
+      }
+    },
+    "tourSyncStrava" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upload with every Set"
+          }
+        }
+      }
+    },
+    "tourSyncTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Sessions go where you want them"
+          }
+        }
+      }
+    },
+    "tourWatchMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run a whole Session from your wrist, with your heart rate, even with your iPhone in the locker. Every Set is one tap there too."
+          }
+        }
+      }
+    },
+    "tourWatchTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On your iPhone or Apple Watch"
+          }
+        }
+      }
+    },
+    "tourWelcomeMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan your Workouts, log every Set with one tap and get stronger, step by step."
+          }
+        }
+      }
+    },
+    "tourWelcomeTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to OnlyWorkout"
           }
         }
       }
@@ -2637,6 +3352,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Weight Step"
+          }
+        }
+      }
+    },
+    "welcomeTour" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome Tour"
           }
         }
       }

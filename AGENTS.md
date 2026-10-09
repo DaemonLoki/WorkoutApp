@@ -35,7 +35,7 @@ deno test --allow-env supabase/functions   # Strava rules of the Edge Functions,
 
 The Xcode project uses **synchronized folders**: create files on disk inside a target folder and they join the target — only edit `project.pbxproj` for targets, capabilities and build settings. `SharedUI/` is compiled into both the iPhone and the Watch app. `Config/` holds `Shared.xcconfig` (team, secrets include), the Info.plists and entitlements (HealthKit; App Group `group.com.stefanblos.OnlyWorkouts` for the Watch complication).
 
-Launch arguments: `-uiTesting` starts the iPhone app with an in-memory store, a sample "Push Day" Workout and no Apple Health; `-sampleData` adds that Workout to the real store (handy for trying the Watch). Previews use `SampleData.previewContainer()`.
+Launch arguments: `-uiTesting` starts the iPhone app with an in-memory store, a sample "Push Day" Workout and no Apple Health; `-sampleData` adds that Workout to the real store (handy for trying the Watch); `-onboarding` shows onboarding even when it's done (Debug only; a fresh install shows it by itself). Previews use `SampleData.previewContainer()`.
 
 **Watch in the simulator:** use a *paired* pair (`xcrun simctl list pairs`, e.g. iPhone 18 Pro Max + Apple Watch Series 12 (46mm)), install `OnlyWorkout.app` on the iPhone and `OnlyWorkout.app/Watch/OnlyWorkoutWatch.app` on the Watch. Queued `transferUserInfo` deliveries often never arrive in the simulator (they work on devices), and rebooting only the iPhone simulator can break the pair's messaging until both are restarted.
 
