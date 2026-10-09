@@ -358,12 +358,12 @@ Guided by the `apple-design` and `emil-design-eng` skills. Principles: simplicit
 - Haptics via `sensoryFeedback()` only.
 
 ### Muscle Map (M7)
-A gender-neutral figure, front and back side by side (never a flip: hiding half the body hides half the answer), one region per Muscle Group, drawn as SwiftUI `Shape`s in `OnlyWorkoutDesign` from the chosen concept in [design/muscle-map/](design/muscle-map/) (encoding, colour steps and motion are specified there).
+A gender-neutral figure, front and back side by side (never a flip: hiding half the body hides half the answer), each Muscle Group drawn as its natural heads, drawn as SwiftUI `Shape`s in `OnlyWorkoutDesign` from the chosen concept in [design/muscle-map/](design/muscle-map/) (encoding, colour steps and motion are specified there).
 
 - **Emphasis** per Muscle Group = Σ Sets × (1 for a Muscle Group, ½ for a Secondary Muscle Group), normalised to the largest; shown in three steps (strong ≥ 0.75, medium ≥ 0.45, light > 0) of solid colours mixed from the accent over the neutral body, defined per appearance in `DesignTokens`. One hue, more is more orange. A Workout counts its planned Sets; Sessions count their logged Sets (extras included).
 - This is a deliberate use of orange as a "progress picture"; no other orange element sits beside a map.
 - Never colour alone: each map has a text summary ("Mostly Chest, Front Delts and Triceps"), which is also its VoiceOver label; large maps get a three-step legend; Increase Contrast outlines trained regions.
-- Sizes: compact (list rows, ~44 pt tall, front and back) and full (headers, detail, Summary, Progress). Tapping a region on a full map selects it and shows its name and Sets.
+- Sizes: compact (list rows and cards, ~50 pt tall: only the view carrying more Emphasis, no effects) and full (headers, detail, Summary, Progress: front and back with sheen and the glow on strong Emphasis). Tapping a region on a full map selects it and shows its name and Sets. Chosen design: concept E · Glass Mosaic.
 
 ### Motivational messages
 Handwritten templates filled with real numbers — no generated text. The message is chosen deterministically (seeded by Session id) from 2–4 variants per trigger so it doesn't repeat every time.
@@ -606,9 +606,9 @@ The owner's feedback from using the app is tracked as GitHub issues and shipped 
 - **Done when**: a fresh install shows the tour; Restore brings everything back without duplicates; the Apple Health and notification sheets each appear once, from their pages; a finished or skipped onboarding never comes back by itself but replays from Settings; and the 1.0 build with onboarding is submitted (#29).
 
 ### M7 — Muscle Map (1.1)
-**Status:** planned; GitHub milestone "M7 — Muscle Map" (DaemonLoki/WorkoutApp#39–#48). Concepts drafted for the owner to pick: [design/muscle-map/](design/muscle-map/). Research: [docs/research/exercise-muscle-data.md](docs/research/exercise-muscle-data.md). Decision: [ADR-0007](docs/adr/0007-delts-secondary-muscle-groups-and-catalog-revisions.md). Spec: §3, §7, §9, §10, §17.
+**Status:** planned; GitHub milestone "M7 — Muscle Map" (DaemonLoki/WorkoutApp#39–#48). Figure: concept E · Glass Mosaic, chosen ([design/muscle-map/](design/muscle-map/)). Research: [docs/research/exercise-muscle-data.md](docs/research/exercise-muscle-data.md). Decision: [ADR-0007](docs/adr/0007-delts-secondary-muscle-groups-and-catalog-revisions.md). Spec: §3, §7, §9, §10, §17.
 
-- **Artwork**: the owner picks a concept. The anatomy is refined in `design/muscle-map/generate.py`, which also emits the SwiftUI `Path` code, so drawing and app never drift. `MuscleMap` view in `OnlyWorkoutDesign` (compact/full, selection, legend, accessibility); colour steps per appearance in `DesignTokens`.
+- **Artwork**: concept E · Glass Mosaic (chosen). Its anatomy lives in `design/muscle-map/mosaic.py`, which also emits the SwiftUI `Path` code, so drawing and app never drift. `MuscleMap` view in `OnlyWorkoutDesign` (compact/full, selection, legend, accessibility); colour steps per appearance in `DesignTokens`.
 - **Core**: 18 Muscle Groups with legacy `shoulders` decoding; `Emphasis` (Sets → share per Muscle Group → step, plus the groups the text summary names).
 - **Data**: `secondaryMuscleGroups` on Exercise (model, record, `CloudCoding`, migration with the 18 + legacy check, pgTAP); catalog revisions (ADR-0007) and the first revision (the 44 revised per §17); Custom Exercises' `shoulders` rewritten once.
 - **UI**: Exercise rows, the new Exercise detail and the Custom Exercise editor (Secondary Muscle Groups picker with a live map); Workout editor header; Next Up card; Session Summary; Progress → Muscle Coverage; every Muscle Group filter lists the 18.
@@ -618,7 +618,7 @@ The owner's feedback from using the app is tracked as GitHub issues and shipped 
   - Store: a catalog revision rewrites changed rows once with its date, leaves newer rows alone, is idempotent, and two stores converge after merging; the `shoulders` rewrite; record round trip.
   - Sync: `CloudCoding` of the new column.
   - pgTAP: the column and constraint (18 + legacy accepted, unknown rejected), `sync_push`/`sync_pull` carry it.
-- **Owner**: pick the concept; run the hosted migration first; check maps against his own Workouts on device.
+- **Owner**: run the hosted migration first; check maps against his own Workouts on device.
 - **Done when**: every Exercise, Workout, Next Up card, Session Summary and Progress show a Muscle Map whose Emphasis matches §9; a Push and a Pull Workout are told apart at a glance; and after the update, the owner's catalog Exercises carry the revised Muscle Groups on the iPhone, the Watch and in Supabase, without duplicates or sync loops.
 
 ### M8 — Recommendations (1.2)
@@ -654,6 +654,9 @@ The owner's feedback from using the app is tracked as GitHub issues and shipped 
   - A Workout missing a required Muscle Group shows that Gap with an Exercise to add.
   - Recommend a Rotation, for every Training Goal and 2–6 Weekly Sessions, adds or replaces Workouts that fit 45–75 min and cover their Focus, with weights and links.
   - Reasons read well with Apple Intelligence on and off.
+
+### Later (not scheduled) — 3D figure and animated Exercises
+Researched in [docs/research/3d-muscle-map-realitykit.md](docs/research/3d-muscle-map-realitykit.md): a RealityKit figure is possible on iPhone (iOS 27 `RealityView` with a virtual camera, orbit controls, per-region materials, skeletal animation) but **impossible on the Watch** (no RealityKit on watchOS 27) and wrong for list rows, so it could only ever be a hero view (Exercise detail, Session Summary) beside the 2D Muscle Map, never replace it. It needs a licensed base body (MakeHuman/MPFB output is CC0) with the 18 regions painted on, and owner approval for the asset. Animated Exercises are a project of their own (93 clips, most with props, a form review per clip, several MB). M7 keeps the door open at no cost: region IDs are the `MuscleGroup` raw values, and `MuscleMap` takes Emphasis, not artwork. Start with the 1–2 day spike in that research's §7.3 if wanted.
 
 ---
 

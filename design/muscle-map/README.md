@@ -1,8 +1,20 @@
 # Muscle Map
 
-The drawn, gender-neutral figure that shows which Muscle Groups an Exercise, a Workout or recent Sessions train (M7, README §7). **Status: concepts drafted, owner picks one** (DaemonLoki/WorkoutApp#39).
+The drawn, gender-neutral figure that shows which Muscle Groups an Exercise, a Workout or recent Sessions train (M7, README §7). **Status: chosen — E · Glass Mosaic** (the refinement of A · Mosaic; DaemonLoki/WorkoutApp#39).
 
-## Concepts
+## E · Glass Mosaic (chosen)
+
+`concepts/e-glass-mosaic.svg`, drawn by `mosaic.py` (anatomy v2), shows Push and Pull Day as Workout-editor header cards, Exercise rows and a Next Up card, in light and dark.
+
+- **The figure is made of its muscles.** Each Muscle Group is drawn as its natural heads (two pec plates, a three-row six-pack, two quad heads, two hamstring and calf heads, the three Delts, shoulder-blade plates for Upper Back), all lit together. Head, hands, knees, feet and the hip crease are quieter tiles, so the body is never drawn as an outline.
+- **Tiles in the app's own materials.** Soft rounded pebbles with an even gap in the card colour (the icon's rounded vocabulary), a vertical gradient per tile, and a faint top sheen at full size, like Liquid Glass.
+- **Orange as progress.** Three solid gradient steps of the accent (Most, Some, A little). Strong Emphasis also gets a soft orange glow, the same "progress moment" as the Step Up accept. Dark mode has its own steps; the faintest is a warm amber, not mud.
+- **Sizes have different jobs.** Full maps (header, detail, Summary, Progress) show front and back, with sheen and glow. A compact row map (~50 pt) shows only the view that carries more Emphasis (Face Pull → back, Bench Press → front), without effects, because one larger figure reads better than two tiny ones. Gaps stay a fixed number of points at every size (1.6 full, 0.8 compact).
+- `mosaic.py` becomes the source of the SwiftUI shapes in M7 (DaemonLoki/WorkoutApp#40).
+
+Regenerate: `python3 design/muscle-map/mosaic.py design/muscle-map/concepts`.
+
+## First concepts (A–D)
 
 `generate.py` draws all four from one anatomy (front and back, 200 × 420 each, right half mirrored, one path per Muscle Group), so picking a concept picks a *rendering*, not new artwork. Each sheet shows Push, Pull and Leg Day in light and dark, plus the small sizes used in list rows (~44 pt) and cards (~100 pt).
 
@@ -13,7 +25,7 @@ The drawn, gender-neutral figure that shows which Muscle Groups an Exercise, a W
 | `concepts/c-line-art.svg` | **C · Line art**: outline plus hairline muscle contours; trained muscles filled | Most "drawn human", elegant at large sizes | Hairlines vanish below ~80 pt; outlines fight the fills in dark mode |
 | `concepts/d-capsules.svg` | **D · Capsules**: abstract rounded strokes, the icon's vocabulary | Most distinctive, fits the Step Up plate icon, legible on the Watch | Abstract: reads as a figure, less as muscles |
 
-Regenerate after changing a shape: `python3 design/muscle-map/generate.py design/muscle-map/concepts`, then preview with `qlmanage -t -s 1240 -o /tmp design/muscle-map/concepts/*.svg`.
+Regenerate A–D after changing a shape: `python3 design/muscle-map/generate.py design/muscle-map/concepts`, then preview with `qlmanage -t -s 1240 -o /tmp design/muscle-map/concepts/*.svg`.
 
 ## Encoding (applies to every concept)
 
@@ -41,4 +53,4 @@ Regenerate after changing a shape: `python3 design/muscle-map/generate.py design
 | Session Summary | once per Session | Trained muscles fill in step by step after the celebration, in the stagger rhythm (~60 ms). Reduce Motion: a single cross-fade. |
 | Tap a muscle (large maps only) | rare | Selects it: a 1 pt outline plus its name and Sets in a caption. Tap again or elsewhere to clear. Responds on touch-down. |
 
-No flipping between front and back: both are always shown side by side, because hiding half the body hides half the answer.
+No flipping between front and back: full maps always show both side by side, because hiding half the body hides half the answer. Compact maps show the one view that carries more Emphasis (see E).
