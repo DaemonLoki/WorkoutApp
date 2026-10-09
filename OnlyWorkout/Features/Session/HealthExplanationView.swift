@@ -7,10 +7,7 @@ struct HealthExplanationView: View {
 
     var body: some View {
         VStack(spacing: DesignTokens.Spacing.l) {
-            Image(systemName: "heart.text.square.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(.red)
-                .accessibilityHidden(true)
+            AppleHealthIcon(size: DesignTokens.Size.onboardingSymbol)
             VStack(spacing: DesignTokens.Spacing.xs) {
                 Text(.healthExplanationTitle)
                     .font(.title2.bold())

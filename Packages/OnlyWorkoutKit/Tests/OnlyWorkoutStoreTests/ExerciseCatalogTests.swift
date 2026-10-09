@@ -17,7 +17,7 @@ struct ExerciseCatalogTests {
 
         let exercises = try context.fetch(FetchDescriptor<Exercise>())
         #expect(exercises.count == ExerciseCatalog.entries.count)
-        #expect(exercises.count == 44)
+        #expect(exercises.count == 93)
 
         // Reference value: Python uuid5(uuid5(NAMESPACE_DNS, "onlyworkout.stefanblos.com"), "back-squat").
         let squat = exercises.first { $0.catalogKey == "back-squat" }

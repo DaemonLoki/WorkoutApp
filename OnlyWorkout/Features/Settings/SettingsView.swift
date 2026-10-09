@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(AppModel.self) private var appModel
     @AppStorage(AppModel.startsSessionsOnWatchKey) private var startsSessionsOnWatch = true
     @AppStorage(AppModel.usesRestTimerKey) private var usesRestTimer = true
+    @State private var showsWelcomeTour = false
 
     var body: some View {
         NavigationStack {
@@ -13,7 +14,11 @@ struct SettingsView: View {
                 CloudSyncSection(cloud: appModel.cloud)
                 StravaSection(strava: appModel.strava, cloud: appModel.cloud)
                 Section {
-                    Label(.appleHealth, systemImage: "heart.text.square")
+                    Label {
+                        Text(.appleHealth)
+                    } icon: {
+                        AppleHealthIcon()
+                    }
                 } footer: {
                     Text(.appleHealthFooter)
                 }
@@ -48,8 +53,16 @@ struct SettingsView: View {
                     Link(destination: WebPages.support) {
                         Text(.support)
                     }
+                    Button(.welcomeTour) { showsWelcomeTour = true }
                 } footer: {
                     Text(.privacyFooter)
+                }
+            }
+            .fullScreenCover(isPresented: $showsWelcomeTour) {
+                NavigationStack {
+                    TourView(startTitle: .continueLabel, finishTitle: .done, leaveTitle: .done) {
+                        showsWelcomeTour = false
+                    }
                 }
             }
             .navigationTitle(Text(.settings))

@@ -84,6 +84,7 @@ struct SetView: View {
             .buttonStyle(.glassProminent)
             .controlSize(.extraLarge)
             .accessibilityIdentifier("doneButton")
+            .anchorPreference(key: DoneButtonAnchorKey.self, value: .bounds) { $0 }
 
             Menu {
                 Button(.skipSet, systemImage: "forward", action: onSkipSet)

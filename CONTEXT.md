@@ -124,6 +124,10 @@ _Avoid_: Break, gap, detraining
 An Exercise, Workout or Rotation the app proposes from a Focus or a Training Goal, always with its reason; nothing changes until the user adds it.
 _Avoid_: Suggestion (reserved for Step Up and Step Down), AI pick, template
 
+**Starter Rotation**:
+A ready-made Rotation (Full Body; Upper Body and Lower Body; or Push, Pull and Legs) offered to a new user for one Equipment Access; once added, its Workouts are ordinary Workouts.
+_Avoid_: Template, program, plan, split
+
 **Blueprint**:
 The ordered list of Needs that makes up a good Workout of one Focus, from which the app recommends Exercises.
 _Avoid_: Template, slot list, program

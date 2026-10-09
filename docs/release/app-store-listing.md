@@ -34,6 +34,9 @@ gym,weightlifting,lifting,progressive overload,workout log,strength,sets,reps,ba
 > PROGRESSIVE OVERLOAD, BUILT IN
 > Every exercise has a fixed Target, like 3 × 8 at 60 kg. Hit it and OnlyWorkout offers a Step Up next time. Stall for three Sessions, or come back after more than three weeks, and it suggests a Step Down. You always decide.
 >
+> READY IN A MINUTE
+> Pick a ready-made plan to start with: Full Body, Upper / Lower or Push / Pull / Legs, for the gym, for dumbbells at home or for bodyweight only. Or build your own Workouts from more than 90 exercises.
+>
 > RUNS ON YOUR WRIST
 > The Apple Watch app runs whole Sessions on its own, even with your iPhone left in the locker: log Sets, follow the rest timer, accept a Step Up. Start on the iPhone and the Session moves to your Watch; the iPhone shows it live.
 >
@@ -86,7 +89,7 @@ Answer None/No to everything except:
 
 ## App Review notes
 
-> OnlyWorkout works without an account. To try it: under Workouts, create a Workout and add a few Exercises from the built-in catalog; then start it from Today, log Sets with "Done", and finish the Session. Apple Health access is requested before the first Session; declining it doesn't block anything.
+> OnlyWorkout works without an account. On first launch a short tour explains the app (Skip leaves it), then "Already use OnlyWorkout?" offers Sign in with Apple to restore or Start Fresh. Next people pick ready-made Workouts (Full Body, Upper / Lower or Push / Pull / Legs, for gym, dumbbells or bodyweight) or Build My Own, and enter starting weights. Apple Health and notifications (alerts when Rest ends) are each asked on their own page with a single "Continue" button that opens the system prompt; declining either doesn't block anything. To try a Session: start the Workout from Today, log Sets with "Done", and finish it. The tour can be replayed in Settings → About → Welcome Tour.
 >
 > Optional features:
 > • Cloud Sync (Settings → Cloud Sync) uses Sign in with Apple; Delete Account is in the same section. It deletes all cloud data and revokes the Sign in with Apple token.

@@ -7,7 +7,17 @@ final class RestNotifier {
     private let center = UNUserNotificationCenter.current()
 
     func requestAuthorization() {
-        Task { _ = try? await center.requestAuthorization(options: [.alert, .sound]) }
+        Task { await Self.requestPermission() }
+    }
+
+    /// Whether asking would show the system alert, i.e. nobody has answered it yet.
+    static func needsPermission() async -> Bool {
+        await UNUserNotificationCenter.current().notificationSettings().authorizationStatus == .notDetermined
+    }
+
+    /// Asks once; later calls return without an alert.
+    static func requestPermission() async {
+        _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
     }
 
     func schedule(at date: Date, next: String?) {

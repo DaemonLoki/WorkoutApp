@@ -22,7 +22,7 @@ Straight from the original brief:
 8. **Integrations** → Sessions saved to Apple Health; Sessions (with every Set) uploaded to Strava, which derives the muscle groups from each Set's exercise.
 9. **Technical**: native, offline-first, Watch works standalone, database reachable by other tech (future web dashboard).
 10. **Design**: minimal but functional, beautiful, enjoyable, motivating — celebrate progress with animation and specific, number-backed messages.
-11. **A first launch that explains the app** (M6): a short tour of what makes OnlyWorkout different, then Cloud Sync restore and the permissions it needs (§7 Onboarding).
+11. **A first launch that explains the app** (M6): a welcome and a short tour of what makes OnlyWorkout different, then Cloud Sync restore, ready-made first Workouts and the permissions it needs, ending with a Workout ready to start (§7 Onboarding).
 12. **See what you train** (M7): a gender-neutral Muscle Map for every Exercise, Workout and recent stretch of Sessions, showing their Emphasis (§7, §9).
 13. **Help building Workouts** (M8): Recommendations of Exercises, whole Workouts or a whole Rotation from a Focus or a Training Goal, always with a reason (§7 Recommendations, [ADR-0008](docs/adr/0008-rules-choose-recommendations-the-on-device-model-only-words-reasons.md)).
 
@@ -237,22 +237,27 @@ Four tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **History**
 ### Onboarding (M6)
 Shown once, on the first launch of a **fresh install**: no Workouts and no Sessions in the store when the app starts, decided before the Watch link can deliver records (catalog Exercises don't count). A device-local `hasCompletedOnboarding` is set at the end; Settings → About → **Welcome Tour** replays the tour pages (not the setup pages). `-uiTesting` skips it; Debug builds accept `-onboarding` to force it. iPhone only; the Watch keeps its empty state. Apple's rules behind every choice below: [docs/research/onboarding-and-permissions.md](docs/research/onboarding-and-permissions.md).
 
-**Tour** (4 pages, swipeable, **Skip** in the toolbar jumps to Restore). Each page shows a real app component fed with sample values, animated once with purpose (Reduce Motion: a cross-fade):
+**Tour** (a welcome and 5 pages, swipeable, page dots and a visible **Continue**; **Skip** in the toolbar jumps to setup). The welcome page builds the app icon's Step Up plate (tile arrives, plate draws round, chevron steps up). Each tour page shows real app components fed with sample values in a miniature screen, animated once with purpose; the Set, Watch and Step Up demos are interactive and play themselves after a short idle, a fingertip marking each self-played tap on Done, without haptics (Reduce Motion: a cross-fade; at accessibility text sizes the demo makes room for the caption):
 
 | # | Title | Live component | Says |
 |---|---|---|---|
-| 1 | Get stronger, one step at a time | Next Up card of a sample "Push Day" (Targets, a Superset bracket) | Minimal and focused on progressive overload; Workouts are built from the Exercise Catalog; Supersets |
-| 2 | Log a Set with one tap | Set view → Done (press feedback, values roll) → the Rest ring starts | One-tap logging; Rest Timer |
-| 3 | Step Up when you're ready | `OfferCard` slides in; accepting rolls 60 → 62.5 kg with the orange glow | Hit the Target, get offered a Step Up (or a rep), automatically |
-| 4 | On your iPhone or Apple Watch | The Rest ring in a simple watch-shaped frame; rows for Apple Health, Cloud Sync, Strava | Sessions run on either device; saved to Apple Health; synced; uploads to Strava (worded without promising it while the capacity gate is closed, §12) |
+| 0 | Welcome to OnlyWorkout | `StepUpPlateMark` | Plan, log with one tap, get stronger step by step |
+| 1 | Get stronger, one step at a time | Today with the Next Up card of a sample "Push Day" (Targets, a Superset bracket) | Workouts are built from the Exercise Catalog; Targets; Supersets |
+| 2 | Log a Set with one tap | `SetView` clicked through Set 1, 2 and 3 of Bench Press, then `AllSetsDoneView` (Finish starts over) | One-tap logging with the Target prefilled |
+| 3 | Step Up when you're ready | `OfferCard` slides in; accepting rolls 60 → 62.5 kg (or 8 → 9 reps) with the orange glow (`stepUpGlow`) | Hit the Target, get offered a Step Up (or a rep), automatically |
+| 4 | On your iPhone or Apple Watch | The Watch's Set screen (`WatchSetReplica`, kept in step with `WatchSetView`) in a simple watch-shaped frame, clicked through the same Sets with heart rate | Whole Sessions run on the Watch, without the iPhone |
+| 5 | Your Sessions go where you want them | A finished Session card above rows for Apple Health and Cloud Sync (checkmarks draw in) and Strava (no checkmark) | Saved to Apple Health; backed up by Cloud Sync; uploads to Strava (worded without promising it while the capacity gate is closed, §12) |
 
-**Setup** (a plain sequence, no swiping, no Skip):
+**Setup** (a plain sequence: no swiping, no Skip; steps that don't apply are skipped):
 
-5. **Already use OnlyWorkout?** The system `SignInWithAppleButton` (system title, never "Restore") and **Start Fresh** with equal standing; footer: Cloud Sync is optional and can be turned on later in Settings. Signing in runs the normal Cloud Sync sign-in (push, then pull) and shows "Restoring…" while people continue. Failure keeps the page with the existing sign-in alert. The button logic is shared with Settings (one view, one nonce handling).
-6. **Apple Health**: one sentence on what it adds and the official Apple Health icon (no lookalike glyph), one **Continue** that opens the system sheet. No close, back or "Not now" (HIG; App Review 5.1.1(iv)). Skipped when HealthKit reports nothing to ask (`statusForAuthorizationRequest == .unnecessary`).
-7. **Rest alerts**: one sentence, one **Continue** → the notification permission alert. Skipped when already determined.
+5. **Already use OnlyWorkout?** The system `SignInWithAppleButton` (system title, never "Restore") and **Start Fresh** with equal standing; footer: Cloud Sync is optional and can be turned on later in Settings. Signing in runs the normal Cloud Sync sign-in (push, then pull) with "Restoring…" until it's done, then `syncWithCloud()` hands the plan to the Watch. Failure keeps the page with the existing sign-in alert; cancel shows nothing. The button (`CloudSignInButton`) is shared with Settings. Builds without Cloud Sync skip the page.
+6. **Pick your first Workouts** (only while there are no Workouts, so not after a restore or once the Watch sent its plan): **Equipment Access** (Gym · Dumbbells · Bodyweight, stored on the device and reused by Recommendations in M8) and one of three **Starter Rotations**: Full Body (1 Workout, 2–3 Sessions a week, "Best to start"), Upper / Lower (2, 4 a week), Push / Pull / Legs (3, 6 a week). The chosen one is previewed Workout by Workout with every Exercise, Target and Superset. A neutral note says to check with a healthcare professional when that applies (docs/research/training-templates.md §6). **Build My Own** skips to the permissions and ends in the Workout editor instead.
+7. **Starting weights**: every Exercise of the Starter Rotation that uses weight, once, with a kg field ("a weight you could lift for 2–3 more reps than the Target; for dumbbells, the weight of one"); empty is 0 kg. Continue adds the Workouts (`TrainingLog.add(_:names:weights:)`: at the end of the Rotation, the same Exercise in several Workouts linked, ADR-0006). A bodyweight-only Starter Rotation skips this page and is added right away.
+8. **Apple Health**: one sentence on what it adds and the Apple Health icon with its name (no lookalike glyph), one **Continue** that opens the system sheet. No close, back or "Not now" (HIG; App Review 5.1.1(iv)). Skipped when HealthKit reports nothing to ask (`statusForAuthorizationRequest == .unnecessary`).
+9. **Rest alerts**: one sentence, one **Continue** → the notification permission alert. Skipped when already determined.
+10. **You're all set** (or **Welcome back** after a restore): the Session-complete `CelebrationMark`, the Next Up Workout with its Planned Exercises and the rest of the Rotation ("Then: Lower Body"), **Let's Go** → Today, where it's Next Up with Start.
 
-**End**: if Workouts exist by now (restored, or received from the Watch), land on Today; otherwise Today with the Workout editor pushed and its name focused ("Create your first Workout"; M8 adds **Recommend a Rotation** next to it). The in-context Health explanation before the first Session (§11) stays for anyone who quit before page 6.
+**End**: Let's Go lands on Today with the plan ready. After Build My Own, Today opens the Workout editor of a new, empty Workout with its name focused (M8 adds **Recommend a Rotation** to the Starter Rotations). The in-context Health explanation before the first Session (§11) stays for anyone who quit before page 8. Quitting midway shows onboarding again only while there are still no Workouts.
 
 ### Today
 1. **Ready to Step Up** (only when non-empty) — collapsed into one row with the count ("3 Exercises ready to Step Up", Step Downs counted on a second line), closed on every launch; tap to open one row per pending Progression Suggestion: *"Bench Press · Push Day — 3×10 hit at 60 kg"* with **Step Up to 62.5 kg** and **Step Up to 11 reps** buttons (prominent one first, §4) and swipe-to-dismiss. Step Downs appear here too, worded neutrally ("Squat · Leg Day — stalled at 80 kg. Step Down to 77.5 kg?").
@@ -593,17 +598,21 @@ The owner's feedback from using the app is tracked as GitHub issues and shipped 
 - **Done when**: a TestFlight build uploads without App Store Connect warnings, and the app passes App Review with Strava behind the capacity gate.
 
 ### M6 — Onboarding (ships in 1.0)
-**Status:** planned; GitHub milestone "M6 — Onboarding" (DaemonLoki/WorkoutApp#31–#38). The 1.0 submission (DaemonLoki/WorkoutApp#29) waits for it. Research: [docs/research/onboarding-and-permissions.md](docs/research/onboarding-and-permissions.md). Spec: §7 Onboarding, §11.
+**Status:** built on branch `m6-onboarding`, awaiting review; GitHub milestone "M6 — Onboarding" (DaemonLoki/WorkoutApp#31–#38). The 1.0 submission (DaemonLoki/WorkoutApp#29) waits for it. Research: [docs/research/onboarding-and-permissions.md](docs/research/onboarding-and-permissions.md), [docs/research/training-templates.md](docs/research/training-templates.md) (Starter Rotations). Spec: §7 Onboarding, §11, §17.
 
-- **Gate and shell**: fresh-install check at launch (before the Watch link activates), device-local `hasCompletedOnboarding`, `-uiTesting` skips it, `-onboarding` forces it in Debug, Settings → About → Welcome Tour replays the tour.
-- **Tour pages 1–4** from live components with sample values. Components that today need a running Session (Set view, Rest) get a sample-value initialiser, not a fake engine. Motion per `DesignTokens`; Reduce Motion, Dynamic Type and VoiceOver on every page.
-- **Restore page**: the Sign in with Apple button and nonce handling move out of `CloudSyncSection` into one shared view; Start Fresh; restoring continues in the background.
-- **Apple Health and Rest-alert pages**: one Continue each, skipped when already determined; the official Apple Health icon replaces the heart glyph here and in `HealthExplanationView`.
-- **Rest alerts**: add the Time Sensitive Notifications capability. `RestNotifier` already marks alerts `.timeSensitive`, but without the capability they don't break through Focus (research §3).
-- **End destination** (Today vs. the Workout editor); docs: App Review notes in `docs/release/app-store-listing.md` say Apple Health is asked in onboarding.
-- **Test seams**: no new domain logic, so no Core tests. Verified with a preview per page and state, a temporary UI test walking the flow on a fresh simulator (deleted afterwards), and the Session-flow UI test (onboarding skipped).
-- **Owner**: download the Apple Health icon from Apple's resources and check its terms; device check of a fresh install and of a reinstall with restore, with the Watch paired.
-- **Done when**: a fresh install shows the tour; Restore brings everything back without duplicates; the Apple Health and notification sheets each appear once, from their pages; a finished or skipped onboarding never comes back by itself but replays from Settings; and the 1.0 build with onboarding is submitted (#29).
+- **Gate and shell**: fresh-install check at launch (before the Watch link activates), device-local `hasCompletedOnboarding` (a store with data marks it silently), `-uiTesting` skips it, `-onboarding` forces it in Debug, Settings → About → Welcome Tour replays the tour.
+- **Welcome and tour pages 1–5** from live components with sample values (`SetPrompt` and `SessionOffer` got public sample-value initialisers; `NextUpCard` and `PlannedExerciseRow` take plain `PlannedExerciseSummary` values). Motion per `DesignTokens` (`entrance`, `step`, `demoIdle`, `demoStagger`); Reduce Motion, Dynamic Type and VoiceOver on every page.
+- **Restore page**: the Sign in with Apple button and nonce handling moved out of `CloudSyncSection` into `CloudSignInButton`; Start Fresh; the page waits for the restore, so the next steps know whether Workouts came back.
+- **First Workouts**: Starter Rotations (Core: `StarterRotation`, `EquipmentAccess`, `Focus`; Store: `TrainingLog.add(_:names:weights:)`), the starting-weights page, Build My Own. Pulled forward from M8: the 49 new catalog Exercises (§17), without Each Side and in today's Muscle Group model, so 1.0 needs no hosted migration.
+- **Apple Health and Rest-alert pages**: one Continue each, skipped when already determined; a neutral `AppleHealthIcon` replaces the heart glyph here, in `HealthExplanationView` and in Settings, until the official icon is added (#37).
+- **Rest alerts**: the Time Sensitive Notifications capability is in `Config/OnlyWorkout.entitlements`. `RestNotifier` already marks alerts `.timeSensitive`; without the capability they didn't break through Focus (research §3).
+- **End**: the ready page, then Today with the plan Next Up; Build My Own ends in the Workout editor. Docs: App Review notes and description in `docs/release/app-store-listing.md`.
+- **Test seams** (agreed at the start):
+  - Core: every Starter Rotation has its Workouts in Rotation order, 4–7 Exercises each, Targets and Rest the editor can show, Supersets of two neighbours, no Exercise twice in a Workout, one Target per Exercise across a Rotation.
+  - Store: every starter Exercise is in the catalog and fits its Equipment Access; adding appends Workouts with Targets, Rest, Supersets and entered weights; the same Exercise in two Workouts is linked; the catalog seeds 93 Exercises.
+  - UI: a preview per page, a walk through the flow on a fresh simulator, and the Session-flow UI test (onboarding skipped).
+- **Owner**: download the Apple Health icon from Apple's resources and check its terms (#37); device check of a fresh install and of a reinstall with restore, with the Watch paired (#38); read the Starter Rotations and copy.
+- **Done when**: a fresh install shows the tour and ends with a Workout ready on Today; Restore brings everything back without duplicates; the Apple Health and notification sheets each appear once, from their pages; a finished or skipped onboarding never comes back by itself but replays from Settings; and the 1.0 build with onboarding is submitted (#29).
 
 ### M7 — Muscle Map (1.1)
 **Status:** planned; GitHub milestone "M7 — Muscle Map" (DaemonLoki/WorkoutApp#39–#48). Figure: concept E · Glass Mosaic, chosen ([design/muscle-map/](design/muscle-map/)). Research: [docs/research/exercise-muscle-data.md](docs/research/exercise-muscle-data.md). Decision: [ADR-0007](docs/adr/0007-delts-secondary-muscle-groups-and-catalog-revisions.md). Spec: §3, §7, §9, §10, §17.
@@ -624,7 +633,7 @@ The owner's feedback from using the app is tracked as GitHub issues and shipped 
 ### M8 — Recommendations (1.2)
 **Status:** planned; GitHub milestone "M8 — Recommendations" (DaemonLoki/WorkoutApp#49–#58). Research: [docs/research/training-templates.md](docs/research/training-templates.md), [docs/research/foundation-models.md](docs/research/foundation-models.md). Decision: [ADR-0008](docs/adr/0008-rules-choose-recommendations-the-on-device-model-only-words-reasons.md). Spec: §3, §7 Recommendations, §10, §17.
 
-- **Catalog**: a second revision adds the 49 Exercises of §17 with Strava types and Each Side. `eachSide` is a synced column; Custom Exercises get a toggle. "each side" appears in Target text on iPhone, Watch and Live Activity.
+- **Catalog**: the 49 Exercises of §17 are in the catalog since M6 (with Strava types; their Muscle Groups were revised by M7); a second revision adds Each Side. `eachSide` is a synced column; Custom Exercises get a toggle. "each side" appears in Target text on iPhone, Watch and Live Activity.
 - **Focus**: a synced `focus` column on Workouts; the Focus row in the Workout editor.
 - **Core rules**:
   - Focus, Training Goal and Equipment Access.
@@ -635,7 +644,7 @@ The owner's feedback from using the app is tracked as GitHub issues and shipped 
   - The `Recommender` (Exercises and Gaps for a Workout, a whole Workout, a whole Rotation), with facts and reason codes for every Recommendation.
 - **Store**: add recommended Exercises, Workouts or a Rotation with weights and links (ADR-0006); Replace My Workouts; Equipment Access stored on the device.
 - **`OnlyWorkoutIntelligence`**: the `ReasonWriter` seam with a Foundation Models adapter and a template adapter, output checks, the Settings toggle and the label. The module also goes into AGENTS.md, CI and the swift-format paths.
-- **UI**: Recommended and Gaps sections in the Workout editor; the `+` menu flows with preview and review; Recommend a Rotation on Today's empty state and at the end of onboarding.
+- **UI**: Recommended and Gaps sections in the Workout editor; the `+` menu flows with preview and review; Recommend a Rotation on Today's empty state and at the end of onboarding, next to the Starter Rotations (M6), whose weights page it can reuse.
 - **Release order**: the hosted migration (`focus`, `each_side` with checks) runs before the app update ships.
 - **Test seams** (to confirm at the start, `tdd`):
   - Core:
@@ -664,7 +673,7 @@ Researched in [docs/research/3d-muscle-map-realitykit.md](docs/research/3d-muscl
 
 Shipped with deterministic UUIDs (UUIDv5 of the key). Muscle Groups are prime movers (1–3); Secondary Muscle Groups count half (0–3); Each Side marks one-sided Exercises. Dumbbell weights are **per dumbbell**. Strava types are exact values from Strava's 656 (§12).
 
-The table is the **planned** catalog: 44 Exercises since M1, 34 of them revised by the M7 catalog revision (the Delt split plus evidence-based corrections, e.g. Triceps becomes secondary in Bench Press and Biceps in Pull-up and Lat Pulldown), and 49 added by the M8 revision, 93 in all. Sources and the evidence per row: [docs/research/exercise-muscle-data.md](docs/research/exercise-muscle-data.md) (Muscle Groups, Strava types) and [docs/research/training-templates.md](docs/research/training-templates.md) §5.10 (which Blueprints need them). Before M7 ships, `ExerciseCatalog.swift` still holds the M1 values.
+The table is the **planned** catalog: 44 Exercises since M1, 34 of them revised by the M7 catalog revision (the Delt split plus evidence-based corrections, e.g. Triceps becomes secondary in Bench Press and Biceps in Pull-up and Lat Pulldown), and 49 added in M6 for the Starter Rotations, 93 in all. Sources and the evidence per row: [docs/research/exercise-muscle-data.md](docs/research/exercise-muscle-data.md) (Muscle Groups, Strava types) and [docs/research/training-templates.md](docs/research/training-templates.md) §5.10 (which Blueprints need them). Before M7 ships, `ExerciseCatalog.swift` holds the M1 values, and the 49 M6 rows carry only their Muscle Groups in the pre-M7 model (the three Delts as Shoulders), no Secondary Muscle Groups and no Each Side; the M7 revision rewrites them with the rest.
 
 Two deliberate holes: no rep-based Exercise trains Side Delts, Traps or Forearms as a prime mover with Bodyweight Only (they appear only as Secondary there). Left out on purpose: timed holds and carries (non-goals), Upright Row and Power Clean (unfriendly to beginners), medicine-ball throws (no such Equipment).
 
@@ -714,52 +723,52 @@ Two deliberate holes: no rep-based Exercise trains Side Delts, Traps or Forearms
 | hanging-leg-raise | Hanging Leg Raise | bodyweight | Abs | Obliques |  | `HANGING_LEG_RAISE` | M1, revised M7 |
 | cable-crunch | Cable Crunch | cable | Abs | Obliques |  | `CABLE_CRUNCH` | M1, revised M7 |
 | ab-wheel-rollout | Ab Wheel Rollout | bodyweight | Abs, Obliques | Lats |  | `AB_WHEEL_ROLLOUT` | M1, revised M7 |
-| incline-bench-press | Incline Bench Press | barbell | Chest, Front Delts | Triceps |  | `INCLINE_BARBELL_BENCH_PRESS` | M8 |
-| close-grip-bench-press | Close-Grip Bench Press | barbell | Triceps, Chest | Front Delts |  | `CLOSE_GRIP_BARBELL_BENCH_PRESS` | M8 |
-| pike-push-up | Pike Push-up | bodyweight | Front Delts | Triceps, Side Delts |  | `PIKE_PUSH_UP` | M8 |
-| cable-lateral-raise | Cable Lateral Raise | cable | Side Delts | Front Delts, Traps | ✓ | `CABLE_LATERAL_RAISE` | M8 |
-| dumbbell-rear-delt-fly | Dumbbell Rear Delt Fly | dumbbell | Rear Delts | Upper Back, Side Delts |  | `DUMBBELL_REAR_DELT_FLY` | M8 |
-| inverted-row | Inverted Row | bodyweight | Upper Back, Lats | Rear Delts, Biceps |  | `INVERTED_ROW` | M8 |
-| dumbbell-pullover | Dumbbell Pullover | dumbbell | Chest, Lats | Triceps |  | `DUMBBELL_PULLOVER` | M8 |
-| incline-dumbbell-curl | Incline Dumbbell Curl | dumbbell | Biceps | Forearms |  | `INCLINE_DUMBBELL_BICEPS_CURL` | M8 |
-| cable-curl | Cable Curl | cable | Biceps | Forearms |  | `CABLE_BICEPS_CURL` | M8 |
-| dumbbell-overhead-triceps-extension | Dumbbell Overhead Triceps Extension | dumbbell | Triceps | — |  | `OVERHEAD_DUMBBELL_TRICEPS_EXTENSION` | M8 |
-| wrist-curl | Wrist Curl | dumbbell | Forearms | — |  | `DUMBBELL_WRIST_CURL` | M8 |
-| dumbbell-romanian-deadlift | Dumbbell Romanian Deadlift | dumbbell | Hamstrings, Glutes | Lower Back, Adductors |  | `DUMBBELL_ROMANIAN_DEADLIFTS` | M8 |
-| single-leg-romanian-deadlift | Single-Leg Romanian Deadlift | dumbbell | Hamstrings, Glutes | Adductors, Lower Back | ✓ | `SINGLE_LEG_DUMBBELL_ROMANIAN_DEADLIFTS` | M8 |
-| nordic-hamstring-curl | Nordic Hamstring Curl | bodyweight | Hamstrings | — |  | `NORDIC_CURL` | M8 |
-| step-up | Step-up | dumbbell | Quads, Glutes | Adductors, Hamstrings | ✓ | `STEP_UP` | M8 |
-| copenhagen-adduction | Copenhagen Adduction | bodyweight | Adductors | Obliques | ✓ | `LL_COPENHAGEN_PLANK` | M8 |
-| single-leg-calf-raise | Single-Leg Calf Raise | bodyweight | Calves | — | ✓ | `SINGLE_LEG_STANDING_CALF_RAISE` | M8 |
-| box-jump | Box Jump | bodyweight | Quads, Glutes | Calves |  | `BOX_JUMP` | M8 |
-| jump-squat | Jump Squat | bodyweight | Quads, Glutes | Calves |  | `BODY_WEIGHT_JUMP_SQUAT` | M8 |
-| kettlebell-swing | Kettlebell Swing | kettlebell | Glutes, Hamstrings | Lower Back |  | `KETTLEBELL_SWING` | M8 |
-| pallof-press | Pallof Press | cable | Obliques | Abs | ✓ | `PALLOF_PRESS` | M8 |
-| dumbbell-side-bend | Dumbbell Side Bend | dumbbell | Obliques | Lower Back | ✓ | `DUMBBELL_SIDE_BEND` | M8 |
-| bicycle-crunch | Bicycle Crunch | bodyweight | Abs, Obliques | — | ✓ | `BICYCLE_CRUNCH` | M8 |
-| decline-push-up | Decline Push-up | bodyweight | Chest, Front Delts | Triceps |  | `DECLINE_PUSH_UP` | M8 |
-| dumbbell-fly | Dumbbell Fly | dumbbell | Chest | Front Delts |  | `DUMBBELL_FLYE` | M8 |
-| bench-dip | Bench Dip | bodyweight | Triceps | Chest, Front Delts |  | `BENCH_DIP` | M8 |
-| chest-supported-dumbbell-row | Chest-Supported Dumbbell Row | dumbbell | Upper Back, Lats | Rear Delts, Biceps |  | `CHEST_SUPPORTED_ROW` | M8 |
-| reverse-curl | Reverse Curl | barbell | Forearms, Biceps | — |  | `BARBELL_REVERSE_CURL` | M8 |
-| bodyweight-squat | Bodyweight Squat | bodyweight | Quads, Glutes | Adductors |  | `AIR_SQUAT` | M8 |
-| split-squat | Split Squat | bodyweight | Quads, Glutes | Adductors | ✓ | `STATIC_LUNGE` | M8 |
-| single-leg-glute-bridge | Single-Leg Glute Bridge | bodyweight | Glutes | Hamstrings | ✓ | `SINGLE_LEG_GLUTE_BRIDGE` | M8 |
-| lateral-bound | Lateral Bound | bodyweight | Glutes, Quads | Adductors, Calves | ✓ | `LATERAL_LEAP_AND_HOP` | M8 |
-| pogo-jump | Pogo Jump | bodyweight | Calves | — |  | `POGO_JUMPS` | M8 |
-| plyometric-push-up | Plyometric Push-up | bodyweight | Chest | Triceps, Front Delts |  | `CLAP_PUSH_UPS` | M8 |
-| push-press | Push Press | barbell | Front Delts, Side Delts | Triceps, Quads |  | `BARBELL_PUSH_PRESS` | M8 |
-| crunch | Crunch | bodyweight | Abs | — |  | `CRUNCH` | M8 |
-| dead-bug | Dead Bug | bodyweight | Abs | — | ✓ | `DEADBUG` | M8 |
-| bird-dog | Bird Dog | bodyweight | Lower Back, Glutes | Abs | ✓ | `BIRD_DOG` | M8 |
-| cable-woodchop | Cable Woodchop | cable | Obliques | Abs | ✓ | `CABLE_WOODCHOP` | M8 |
-| pec-deck | Pec Deck | machine | Chest | Front Delts |  | `PEC_DECK_BUTTERFLY` | M8 |
-| diamond-push-up | Diamond Push-up | bodyweight | Triceps, Chest | Front Delts |  | `DIAMOND_PUSH_UP` | M8 |
-| prone-t-raise | Prone T Raise | bodyweight | Rear Delts, Upper Back | — |  | `FLOOR_T_RAISE` | M8 |
-| straight-arm-pulldown | Straight-Arm Pulldown | cable | Lats | Triceps, Rear Delts |  | `STRAIGHT_ARM_PULLDOWN` | M8 |
-| preacher-curl | Preacher Curl | barbell | Biceps | Forearms |  | `EZ_BAR_PREACHER_CURL` | M8 |
-| hack-squat | Hack Squat | machine | Quads, Glutes | Adductors |  | `MACHINE_HACK_SQUAT` | M8 |
-| good-morning | Good Morning | barbell | Hamstrings, Glutes | Lower Back, Adductors |  | `BARBELL_GOOD_MORNING` | M8 |
-| glute-bridge | Glute Bridge | bodyweight | Glutes | Hamstrings |  | `GLUTE_BRIDGE` | M8 |
-| hip-abduction | Hip Abduction | machine | Glutes | — |  | `MACHINE_HIP_ABDUCTION` | M8 |
-| reverse-lunge | Reverse Lunge | bodyweight | Quads, Glutes | Adductors | ✓ | `REVERSE_LUNGE` | M8 |
+| incline-bench-press | Incline Bench Press | barbell | Chest, Front Delts | Triceps |  | `INCLINE_BARBELL_BENCH_PRESS` | M6 |
+| close-grip-bench-press | Close-Grip Bench Press | barbell | Triceps, Chest | Front Delts |  | `CLOSE_GRIP_BARBELL_BENCH_PRESS` | M6 |
+| pike-push-up | Pike Push-up | bodyweight | Front Delts | Triceps, Side Delts |  | `PIKE_PUSH_UP` | M6 |
+| cable-lateral-raise | Cable Lateral Raise | cable | Side Delts | Front Delts, Traps | ✓ | `CABLE_LATERAL_RAISE` | M6 |
+| dumbbell-rear-delt-fly | Dumbbell Rear Delt Fly | dumbbell | Rear Delts | Upper Back, Side Delts |  | `DUMBBELL_REAR_DELT_FLY` | M6 |
+| inverted-row | Inverted Row | bodyweight | Upper Back, Lats | Rear Delts, Biceps |  | `INVERTED_ROW` | M6 |
+| dumbbell-pullover | Dumbbell Pullover | dumbbell | Chest, Lats | Triceps |  | `DUMBBELL_PULLOVER` | M6 |
+| incline-dumbbell-curl | Incline Dumbbell Curl | dumbbell | Biceps | Forearms |  | `INCLINE_DUMBBELL_BICEPS_CURL` | M6 |
+| cable-curl | Cable Curl | cable | Biceps | Forearms |  | `CABLE_BICEPS_CURL` | M6 |
+| dumbbell-overhead-triceps-extension | Dumbbell Overhead Triceps Extension | dumbbell | Triceps | — |  | `OVERHEAD_DUMBBELL_TRICEPS_EXTENSION` | M6 |
+| wrist-curl | Wrist Curl | dumbbell | Forearms | — |  | `DUMBBELL_WRIST_CURL` | M6 |
+| dumbbell-romanian-deadlift | Dumbbell Romanian Deadlift | dumbbell | Hamstrings, Glutes | Lower Back, Adductors |  | `DUMBBELL_ROMANIAN_DEADLIFTS` | M6 |
+| single-leg-romanian-deadlift | Single-Leg Romanian Deadlift | dumbbell | Hamstrings, Glutes | Adductors, Lower Back | ✓ | `SINGLE_LEG_DUMBBELL_ROMANIAN_DEADLIFTS` | M6 |
+| nordic-hamstring-curl | Nordic Hamstring Curl | bodyweight | Hamstrings | — |  | `NORDIC_CURL` | M6 |
+| step-up | Step-up | dumbbell | Quads, Glutes | Adductors, Hamstrings | ✓ | `STEP_UP` | M6 |
+| copenhagen-adduction | Copenhagen Adduction | bodyweight | Adductors | Obliques | ✓ | `LL_COPENHAGEN_PLANK` | M6 |
+| single-leg-calf-raise | Single-Leg Calf Raise | bodyweight | Calves | — | ✓ | `SINGLE_LEG_STANDING_CALF_RAISE` | M6 |
+| box-jump | Box Jump | bodyweight | Quads, Glutes | Calves |  | `BOX_JUMP` | M6 |
+| jump-squat | Jump Squat | bodyweight | Quads, Glutes | Calves |  | `BODY_WEIGHT_JUMP_SQUAT` | M6 |
+| kettlebell-swing | Kettlebell Swing | kettlebell | Glutes, Hamstrings | Lower Back |  | `KETTLEBELL_SWING` | M6 |
+| pallof-press | Pallof Press | cable | Obliques | Abs | ✓ | `PALLOF_PRESS` | M6 |
+| dumbbell-side-bend | Dumbbell Side Bend | dumbbell | Obliques | Lower Back | ✓ | `DUMBBELL_SIDE_BEND` | M6 |
+| bicycle-crunch | Bicycle Crunch | bodyweight | Abs, Obliques | — | ✓ | `BICYCLE_CRUNCH` | M6 |
+| decline-push-up | Decline Push-up | bodyweight | Chest, Front Delts | Triceps |  | `DECLINE_PUSH_UP` | M6 |
+| dumbbell-fly | Dumbbell Fly | dumbbell | Chest | Front Delts |  | `DUMBBELL_FLYE` | M6 |
+| bench-dip | Bench Dip | bodyweight | Triceps | Chest, Front Delts |  | `BENCH_DIP` | M6 |
+| chest-supported-dumbbell-row | Chest-Supported Dumbbell Row | dumbbell | Upper Back, Lats | Rear Delts, Biceps |  | `CHEST_SUPPORTED_ROW` | M6 |
+| reverse-curl | Reverse Curl | barbell | Forearms, Biceps | — |  | `BARBELL_REVERSE_CURL` | M6 |
+| bodyweight-squat | Bodyweight Squat | bodyweight | Quads, Glutes | Adductors |  | `AIR_SQUAT` | M6 |
+| split-squat | Split Squat | bodyweight | Quads, Glutes | Adductors | ✓ | `STATIC_LUNGE` | M6 |
+| single-leg-glute-bridge | Single-Leg Glute Bridge | bodyweight | Glutes | Hamstrings | ✓ | `SINGLE_LEG_GLUTE_BRIDGE` | M6 |
+| lateral-bound | Lateral Bound | bodyweight | Glutes, Quads | Adductors, Calves | ✓ | `LATERAL_LEAP_AND_HOP` | M6 |
+| pogo-jump | Pogo Jump | bodyweight | Calves | — |  | `POGO_JUMPS` | M6 |
+| plyometric-push-up | Plyometric Push-up | bodyweight | Chest | Triceps, Front Delts |  | `CLAP_PUSH_UPS` | M6 |
+| push-press | Push Press | barbell | Front Delts, Side Delts | Triceps, Quads |  | `BARBELL_PUSH_PRESS` | M6 |
+| crunch | Crunch | bodyweight | Abs | — |  | `CRUNCH` | M6 |
+| dead-bug | Dead Bug | bodyweight | Abs | — | ✓ | `DEADBUG` | M6 |
+| bird-dog | Bird Dog | bodyweight | Lower Back, Glutes | Abs | ✓ | `BIRD_DOG` | M6 |
+| cable-woodchop | Cable Woodchop | cable | Obliques | Abs | ✓ | `CABLE_WOODCHOP` | M6 |
+| pec-deck | Pec Deck | machine | Chest | Front Delts |  | `PEC_DECK_BUTTERFLY` | M6 |
+| diamond-push-up | Diamond Push-up | bodyweight | Triceps, Chest | Front Delts |  | `DIAMOND_PUSH_UP` | M6 |
+| prone-t-raise | Prone T Raise | bodyweight | Rear Delts, Upper Back | — |  | `FLOOR_T_RAISE` | M6 |
+| straight-arm-pulldown | Straight-Arm Pulldown | cable | Lats | Triceps, Rear Delts |  | `STRAIGHT_ARM_PULLDOWN` | M6 |
+| preacher-curl | Preacher Curl | barbell | Biceps | Forearms |  | `EZ_BAR_PREACHER_CURL` | M6 |
+| hack-squat | Hack Squat | machine | Quads, Glutes | Adductors |  | `MACHINE_HACK_SQUAT` | M6 |
+| good-morning | Good Morning | barbell | Hamstrings, Glutes | Lower Back, Adductors |  | `BARBELL_GOOD_MORNING` | M6 |
+| glute-bridge | Glute Bridge | bodyweight | Glutes | Hamstrings |  | `GLUTE_BRIDGE` | M6 |
+| hip-abduction | Hip Abduction | machine | Glutes | — |  | `MACHINE_HIP_ABDUCTION` | M6 |
+| reverse-lunge | Reverse Lunge | bodyweight | Quads, Glutes | Adductors | ✓ | `REVERSE_LUNGE` | M6 |
