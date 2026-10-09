@@ -22,10 +22,13 @@ Straight from the original brief:
 8. **Integrations** → Sessions saved to Apple Health; Sessions (with every Set) uploaded to Strava, which derives the muscle groups from each Set's exercise.
 9. **Technical**: native, offline-first, Watch works standalone, database reachable by other tech (future web dashboard).
 10. **Design**: minimal but functional, beautiful, enjoyable, motivating — celebrate progress with animation and specific, number-backed messages.
+11. **A first launch that explains the app** (M6): a short tour of what makes OnlyWorkout different, then Cloud Sync restore and the permissions it needs (§7 Onboarding).
+12. **See what you train** (M7): a gender-neutral Muscle Map for every Exercise, Workout and recent stretch of Sessions, showing their Emphasis (§7, §9).
+13. **Help building Workouts** (M8): Recommendations of Exercises, whole Workouts or a whole Rotation from a Focus or a Training Goal, always with a reason (§7 Recommendations, [ADR-0008](docs/adr/0008-rules-choose-recommendations-the-on-device-model-only-words-reasons.md)).
 
 ### Non-goals (deliberately out of scope)
 
-Cardio/GPS tracking · timed Exercises (planks) · rep ranges / RPE / percentage-based programs · AI coaching or generated text · social features · pounds (kg only) · iPad/Mac apps · reading workouts *from* Health · body-weight/nutrition tracking · streaks · the web dashboard itself (only the database is designed for it).
+Cardio/GPS tracking · timed Exercises (planks) · rep ranges / RPE / percentage-based programs · AI coaching or generated text (the one exception: a Recommendation's one-sentence reason may be worded on device by Apple Intelligence, ADR-0008) · schedules or weekday plans (Weekly Sessions only shapes a recommended Rotation) · social features · pounds (kg only) · iPad/Mac apps · reading workouts *from* Health · body-weight/nutrition tracking · streaks · the web dashboard itself (only the database is designed for it).
 
 ---
 
@@ -41,6 +44,7 @@ Cardio/GPS tracking · timed Exercises (planks) · rep ranges / RPE / percentage
 | Phone ↔ Watch | WatchConnectivity + HealthKit mirrored workout sessions |
 | Cloud | Supabase (Postgres + Auth + Edge Functions), free tier |
 | Third-party deps | **Only** [`supabase-swift`](https://github.com/supabase/supabase-swift). Anything else needs explicit approval. |
+| On-device AI (M8) | Apple's Foundation Models framework, iPhone only, for a Recommendation's reason text and nothing else ([ADR-0008](docs/adr/0008-rules-choose-recommendations-the-on-device-model-only-words-reasons.md), [docs/research/foundation-models.md](docs/research/foundation-models.md)) |
 | Tests | Swift Testing, test-first for all logic |
 | Distribution | Personal + TestFlight now; everything built to pass App Store review later (§14) |
 
@@ -57,14 +61,18 @@ All synced records share: `id: UUID`, `createdAt`, `updatedAt` (client clock, dr
 |---|---|---|
 | name | String | |
 | equipment | enum | `barbell, dumbbell, machine, cable, bodyweight, kettlebell` |
-| muscleGroups | [MuscleGroup] | primary muscle groups, 1–3 |
+| muscleGroups | [MuscleGroup] | prime movers, 1–3 |
+| secondaryMuscleGroups (M7) | [MuscleGroup] | Secondary Muscle Groups, 0–3, none also in `muscleGroups`; count half for Emphasis |
+| eachSide (M8) | Bool | default false; reps are counted Each Side (Target text reads "3 × 10 each side") |
 | catalogKey | String? | set for Exercise Catalog entries (e.g. `barbell-back-squat`); nil for Custom Exercises |
 | stravaExerciseType | String? | Strava exercise type picked for a Custom Exercise; catalog Exercises fall back to their built-in one (§12) |
 | archivedAt | Date? | "Deleting" an Exercise that has history archives it |
 
 `isBodyweight` is derived: `equipment == .bodyweight`. Weight is then **Added Weight**.
 
-**MuscleGroup** (fixed): Chest, Lats, Upper Back, Lower Back, Traps, Shoulders, Biceps, Triceps, Forearms, Abs, Obliques, Glutes, Quads, Hamstrings, Adductors, Calves.
+**MuscleGroup** (fixed, 18 since M7): Chest, Lats, Upper Back, Lower Back, Traps, Front Delts, Side Delts, Rear Delts, Biceps, Triceps, Forearms, Abs, Obliques, Glutes, Quads, Hamstrings, Adductors, Calves. Until M7 the three Delts were one `shoulders`; decoding still maps a stray `shoulders` to Front + Side Delts ([ADR-0007](docs/adr/0007-delts-secondary-muscle-groups-and-catalog-revisions.md)). What each group covers anatomically: [docs/research/exercise-muscle-data.md](docs/research/exercise-muscle-data.md) §1.2.
+
+Catalog Exercises can't be edited in the app; their Muscle Groups, Secondary Muscle Groups and Each Side come from `ExerciseCatalog` and are rewritten by **catalog revisions** (ADR-0007, §17).
 
 ### Workout
 | Field | Type | Notes |
@@ -72,6 +80,7 @@ All synced records share: `id: UUID`, `createdAt`, `updatedAt` (client clock, dr
 | name | String | e.g. "Pull Day" |
 | rotationIndex | Int | position in the Rotation; the Workouts list order *is* the Rotation |
 | usesRestTimer | Bool | default true; off, this Workout's Sessions time no Rest (§6) |
+| focus (M8) | Focus? | `push, pull, legs, upperBody, lowerBody, fullBody, arms, core`; optional; drives Recommendations and Gaps (§7) |
 
 ### Planned Exercise
 | Field | Type | Default | Notes |
@@ -225,11 +234,31 @@ The in-progress Session is saved after every event. After a crash/termination, t
 
 Four tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **History**, **Progress**. Settings is a sheet from Today's toolbar.
 
+### Onboarding (M6)
+Shown once, on the first launch of a **fresh install**: no Workouts and no Sessions in the store when the app starts, decided before the Watch link can deliver records (catalog Exercises don't count). A device-local `hasCompletedOnboarding` is set at the end; Settings → About → **Welcome Tour** replays the tour pages (not the setup pages). `-uiTesting` skips it; Debug builds accept `-onboarding` to force it. iPhone only; the Watch keeps its empty state. Apple's rules behind every choice below: [docs/research/onboarding-and-permissions.md](docs/research/onboarding-and-permissions.md).
+
+**Tour** (4 pages, swipeable, **Skip** in the toolbar jumps to Restore). Each page shows a real app component fed with sample values, animated once with purpose (Reduce Motion: a cross-fade):
+
+| # | Title | Live component | Says |
+|---|---|---|---|
+| 1 | Get stronger, one step at a time | Next Up card of a sample "Push Day" (Targets, a Superset bracket) | Minimal and focused on progressive overload; Workouts are built from the Exercise Catalog; Supersets |
+| 2 | Log a Set with one tap | Set view → Done (press feedback, values roll) → the Rest ring starts | One-tap logging; Rest Timer |
+| 3 | Step Up when you're ready | `OfferCard` slides in; accepting rolls 60 → 62.5 kg with the orange glow | Hit the Target, get offered a Step Up (or a rep), automatically |
+| 4 | On your iPhone or Apple Watch | The Rest ring in a simple watch-shaped frame; rows for Apple Health, Cloud Sync, Strava | Sessions run on either device; saved to Apple Health; synced; uploads to Strava (worded without promising it while the capacity gate is closed, §12) |
+
+**Setup** (a plain sequence, no swiping, no Skip):
+
+5. **Already use OnlyWorkout?** The system `SignInWithAppleButton` (system title, never "Restore") and **Start Fresh** with equal standing; footer: Cloud Sync is optional and can be turned on later in Settings. Signing in runs the normal Cloud Sync sign-in (push, then pull) and shows "Restoring…" while people continue. Failure keeps the page with the existing sign-in alert. The button logic is shared with Settings (one view, one nonce handling).
+6. **Apple Health**: one sentence on what it adds and the official Apple Health icon (no lookalike glyph), one **Continue** that opens the system sheet. No close, back or "Not now" (HIG; App Review 5.1.1(iv)). Skipped when HealthKit reports nothing to ask (`statusForAuthorizationRequest == .unnecessary`).
+7. **Rest alerts**: one sentence, one **Continue** → the notification permission alert. Skipped when already determined.
+
+**End**: if Workouts exist by now (restored, or received from the Watch), land on Today; otherwise Today with the Workout editor pushed and its name focused ("Create your first Workout"; M8 adds **Recommend a Rotation** next to it). The in-context Health explanation before the first Session (§11) stays for anyone who quit before page 6.
+
 ### Today
 1. **Ready to Step Up** (only when non-empty) — collapsed into one row with the count ("3 Exercises ready to Step Up", Step Downs counted on a second line), closed on every launch; tap to open one row per pending Progression Suggestion: *"Bench Press · Push Day — 3×10 hit at 60 kg"* with **Step Up to 62.5 kg** and **Step Up to 11 reps** buttons (prominent one first, §4) and swipe-to-dismiss. Step Downs appear here too, worded neutrally ("Squat · Leg Day — stalled at 80 kg. Step Down to 77.5 kg?").
-2. **Next Up** card — Workout name, its Planned Exercises with Targets (`3×12 @ 40 kg`, Supersets visually bracketed), large orange **Start** button.
+2. **Next Up** card — Workout name, a compact Muscle Map of its Emphasis next to it (M7), its Planned Exercises with Targets (`3×12 @ 40 kg`, Supersets visually bracketed), large orange **Start** button.
 3. **Other Workouts** — compact list; tap → start.
-4. Empty state: `ContentUnavailableView` "No Workouts yet" + **Create Workout**.
+4. Empty state: `ContentUnavailableView` "No Workouts yet" + **Create Workout** (and **Recommend a Rotation**, M8).
 
 ### Workouts
 - List in Rotation order; drag to reorder, swipe to delete (soft delete), `+` to create.
@@ -237,17 +266,33 @@ Four tabs (`Tab` API) with specific labels: **Today**, **Workouts**, **History**
 - **Adding an Exercise that is already in another Workout** asks "Bench Press is already in another Workout — use the same settings?" with one button per existing setup ("Same as Push Day · 3 × 8 · 60 kg") and **Set Up Separately**. Choosing one links them (see §4).
 - **Planned Exercise editor** of a linked one shows "Linked with Push Day" and **Unlink**; every edit is applied to all linked Planned Exercises.
 - **Planned Exercise editor**: Sets (stepper), reps (stepper), weight (`TextField` bound to `Double` with `.decimalPad`, kg), Weight Step (menu: 0.5, 1, 1.25, 2, 2.5, 4, 5, 10), Rest (menu: 0:30 … 5:00).
-- **Exercises** (toolbar) → Exercise Catalog + Custom Exercises; searchable (`localizedStandardContains`), filter by Muscle Group; create/edit Custom Exercise (name, equipment, Muscle Groups).
+- **Exercises** (toolbar) → Exercise Catalog + Custom Exercises; searchable (`localizedStandardContains`), filter by Muscle Group (matches `muscleGroups` only, not Secondary Muscle Groups); create/edit Custom Exercise (name, equipment, Muscle Groups; M7: Secondary Muscle Groups with a live Muscle Map; M8: Each Side).
+- **Muscle Map in the Workout editor** (M7): a header with the Workout's Emphasis (front and back) and a one-line summary ("Mostly Chest, Front Delts and Triceps"); changed muscles cross-fade as Exercises are added or removed.
+- **Exercise rows and detail** (M7): every Exercise row (library, picker) shows a tiny map of its own Emphasis. Tapping a catalog Exercise opens a new **Exercise detail**: large map, Muscle Groups and Secondary Muscle Groups as text, equipment, Each Side, and the Workouts it's planned in; a Custom Exercise's detail has **Edit**. In the picker, tapping still picks; the detail is one level deeper (info button).
+
+### Recommendations (M8)
+Rule-based, offline, explainable ([ADR-0008](docs/adr/0008-rules-choose-recommendations-the-on-device-model-only-words-reasons.md); evidence and tables in [docs/research/training-templates.md](docs/research/training-templates.md)). Every Recommendation shows its reason; nothing is added until the user taps **Add**.
+
+- **Focus** row in the Workout editor (menu: None + the eight Focuses). With a Focus set:
+  - **Empty Workout** → a **Recommended** section lists the Focus's Blueprint filled for the user's Equipment Access: Exercise, Target, reason ("Horizontal push — trains Chest and Front Delts"), **Add** per row and **Add All**.
+  - **Workout with Exercises** → **Gaps** under the Muscle Map: each required Muscle Group no Planned Exercise trains, with the best fitting Exercise ("No Exercise trains Rear Delts yet — Face Pull?") and **Add**. Unfilled required Needs show the same way. Nothing when the Workout is complete.
+- **Workouts tab `+`** becomes a menu: **New Workout** · **Recommend a Workout** · **Recommend a Rotation**.
+  - **Recommend a Workout**: Focus → (Equipment Access, the first time) → preview: Muscle Map, Planned Exercises with Targets and Supersets, the reason → **review** → added at the end of the Rotation.
+  - **Recommend a Rotation**: Training Goal → Weekly Sessions (2–6) → (Equipment Access) → preview: one card per Workout with its Muscle Map, the reason, and for Running/Cycling the neutral note that endurance athletes usually do 2–3 strength Sessions a week → **review** → **Add to Rotation** or **Replace My Workouts** (soft-deletes the current Workouts; Sessions keep their history, ADR-0005; Next Up becomes the first new Workout). Only asked when Workouts exist.
+  - **Review**: every recommended Planned Exercise with its Target and an optional weight field (blank = 0 kg, editable any time). An Exercise already planned elsewhere offers its existing setup to link (ADR-0006) instead; the same Exercise in several recommended Workouts is linked by default.
+- **Equipment Access**: Full Gym (everything) · Dumbbells & Bench (dumbbells, kettlebells, bodyweight) · Bodyweight Only (bodyweight; assumes a pull-up bar and a bench or box, which the Exercise detail mentions). Asked once, stored device-locally, changeable in every recommendation flow.
+- **Rules** (pure, in `OnlyWorkoutCore`): each Focus has a **Blueprint** of Needs (role, candidate Exercises per Equipment Access, optional or required) and required/optional Muscle Groups; the Training Goal sets each role's Target and adds/removes Needs; Weekly Sessions picks the split; bodyweight Exercises at 0 kg get at least 8 or 12 reps; a Session-length estimate keeps a Workout within 45–75 min by dropping optional Needs, then pairing accessories into Supersets (antagonists only; never power or long-Rest Needs), then trimming accessory Sets. The tables are research §2–§5, encoded once.
+- **Reasons**: the rules return facts and reason codes; a handwritten String Catalog sentence always exists. On iPhones with Apple Intelligence and **Settings → Recommendations → Write reasons with Apple Intelligence** on (default; hidden when not eligible), the on-device model words the same facts in one or two sentences, marked with a small "Written by Apple Intelligence" label. Any failure, timeout, refusal or failed check shows the handwritten one, silently. Reasons are never stored or synced. No health claims (e.g. never "prevents running injuries").
 
 ### Active Session (full-screen cover)
-- **Set view**: Exercise name, "Set 2 of 3" (Superset: "A · Set 2 of 3"), reps and weight in huge rounded monospaced digits, tap either to adjust (steppers); full-width **Done**; a small **Skip** menu below it with **Skip Set** and **Skip ‹Exercise›**. During the last Set of a Superset pair it also shows what follows the Rest ("After Rest: Curl · Set 2 of 3 · 10 × 14 kg"), so the next Exercise can be prepared.
+- **Set view**: Exercise name, "Set 2 of 3" (Superset: "A · Set 2 of 3"), reps and weight in huge rounded monospaced digits ("each side" under the reps for Each Side Exercises, M8; also on the Watch, in the Live Activity and in Target text everywhere), tap either to adjust (steppers); full-width **Done**; a small **Skip** menu below it with **Skip Set** and **Skip ‹Exercise›**. During the last Set of a Superset pair it also shows what follows the Rest ("After Rest: Curl · Set 2 of 3 · 10 × 14 kg"), so the next Exercise can be prepared.
 - **Rest view**: countdown ring, time remaining, **+30 s** / **Skip**; below: "Next: Lat Pulldown · 3×12 @ 55 kg". Step Up / Step Down cards slide in here (or over the Set view without Rest); a Step Up card offers both changes (§4).
 - Header: elapsed time, heart rate (when Watch-mirrored), per-Exercise progress dots.
 - **Overview** sheet: queue with Skip / Do later / Add Set / edit logged Sets. **End** with confirmation only if Sets remain.
 - When the Watch is primary, this same UI is shown mirrored; taps become commands to the Watch.
 
 ### Session Summary (end of every Session)
-Celebration (§9), then: duration, Sets, volume, heart rate & calories (if recorded), and a card per progress event (Step Ups accepted, new bests, Target Hits). **Done** returns to Today.
+Celebration (§9), then: duration, Sets, volume, heart rate & calories (if recorded), a Muscle Map of what this Session trained (M7; muscles fill in on the stagger rhythm after the celebration), and a card per progress event (Step Ups accepted, new bests, Target Hits). **Done** returns to Today.
 
 ### History
 - Every finished Session, newest first, in month sections (date, Workout, duration, Sets); Muscle Group filter; search by Workout or Exercise name. Swipe a Session to delete it (with confirmation; same as deleting it in the detail).
@@ -255,11 +300,12 @@ Celebration (§9), then: duration, Sets, volume, heart rate & calories (if recor
 
 ### Progress
 - Filters: time range `4W · 3M · 6M · 1Y · All`; Muscle Group; search.
+- **Muscle Coverage** (M7), above the Exercises: a Muscle Map of the Emphasis of all Sets in the last **7 days** or **4 weeks** (its own small picker, independent of the range filter), with Sets per Muscle Group listed below, largest first, and untrained groups named at the end. Descriptive only: no targets, no warnings, no guilt (§9).
 - **Exercises**: every Exercise performed at least once — sparkline, current weight, change within range ("+7.5 kg").
 - **Exercise detail** (Swift Charts): line of working weight per Session (max weight of its Sets), Step Up markers (annotated points), selection scrubbing (`chartXSelection`); best Set (heaviest weight, then most reps); total volume (Σ reps × weight; bodyweight Exercises with 0 kg show total reps instead); list of past Sets grouped by Session.
 
 ### Settings
-Sync (Sign in with Apple / status / sign out) · Apple Health status · Sessions (**Rest Timer**, on by default; off times no Rest in any Workout, also on the Watch) · Apple Watch (**Start Sessions on Apple Watch**, on by default; off runs Sessions started on iPhone on the iPhone, without heart rate) · Strava (connect, auto-upload, disconnect) · Delete account & cloud data · About / privacy.
+Sync (Sign in with Apple / status / sign out) · Apple Health status · Sessions (**Rest Timer**, on by default; off times no Rest in any Workout, also on the Watch) · Apple Watch (**Start Sessions on Apple Watch**, on by default; off runs Sessions started on iPhone on the iPhone, without heart rate) · Strava (connect, auto-upload, disconnect) · Recommendations (**Write reasons with Apple Intelligence**, M8; hidden on ineligible devices) · Delete account & cloud data · About / privacy, **Welcome Tour** (M6).
 
 ### Live Activity & rest notifications
 - A Live Activity runs for every Session: Lock Screen shows Workout name, current step ("Bench Press · Set 2 of 3 · 10 @ 60 kg" or Rest countdown via `Text(timerInterval:)`) and what's next; Dynamic Island compact shows the Rest countdown / Set indicator.
@@ -310,6 +356,14 @@ Guided by the `apple-design` and `emil-design-eng` skills. Principles: simplicit
 - All motion uses springs or `ease-out`; never `ease-in`; UI transitions < 300 ms except the celebration.
 - **Reduce Motion**: celebrations become a cross-fade + checkmark without scale/morph; haptics remain.
 - Haptics via `sensoryFeedback()` only.
+
+### Muscle Map (M7)
+A gender-neutral figure, front and back side by side (never a flip: hiding half the body hides half the answer), each Muscle Group drawn as its natural heads, drawn as SwiftUI `Shape`s in `OnlyWorkoutDesign` from the chosen concept in [design/muscle-map/](design/muscle-map/) (encoding, colour steps and motion are specified there).
+
+- **Emphasis** per Muscle Group = Σ Sets × (1 for a Muscle Group, ½ for a Secondary Muscle Group), normalised to the largest; shown in three steps (strong ≥ 0.75, medium ≥ 0.45, light > 0) of solid colours mixed from the accent over the neutral body, defined per appearance in `DesignTokens`. One hue, more is more orange. A Workout counts its planned Sets; Sessions count their logged Sets (extras included).
+- This is a deliberate use of orange as a "progress picture"; no other orange element sits beside a map.
+- Never colour alone: each map has a text summary ("Mostly Chest, Front Delts and Triceps"), which is also its VoiceOver label; large maps get a three-step legend; Increase Contrast outlines trained regions.
+- Sizes: compact (list rows and cards, ~50 pt tall: only the view carrying more Emphasis, no effects) and full (headers, detail, Summary, Progress: front and back with sheen and the glow on strong Emphasis). Tapping a region on a full map selects it and shows its name and Sets. Chosen design: concept E · Glass Mosaic.
 
 ### Motivational messages
 Handwritten templates filled with real numbers — no generated text. The message is chosen deterministically (seeded by Session id) from 2–4 variants per trigger so it doesn't repeat every time.
@@ -362,8 +416,8 @@ primary key (user_id, id)
 
 | Table | Extra columns |
 |---|---|
-| `exercises` | `name text, equipment text, muscle_groups text[], catalog_key text, strava_exercise_type text, archived_at timestamptz` |
-| `workouts` | `name text, rotation_index int` |
+| `exercises` | `name text, equipment text, muscle_groups text[], secondary_muscle_groups text[]` (M7), `each_side bool` (M8), `catalog_key text, strava_exercise_type text, archived_at timestamptz` |
+| `workouts` | `name text, rotation_index int, uses_rest_timer bool, focus text` (M8, nullable) |
 | `planned_exercises` | `workout_id uuid, exercise_id uuid, position int, superset_id uuid, link_id uuid, target_sets int, target_reps int, weight numeric(6,2), weight_step numeric(5,2), rest_seconds int` |
 | `sessions` | `workout_id uuid, workout_name text, started_at timestamptz, ended_at timestamptz, recorded_on text, strava_uploaded_at timestamptz` |
 | `session_exercises` | `session_id uuid, exercise_id uuid, planned_exercise_id uuid, exercise_name text, position int, superset_id uuid, target_sets int, target_reps int, target_weight numeric(6,2), status text, skipped_sets int` |
@@ -373,7 +427,7 @@ primary key (user_id, id)
 
 - **Row Level Security** on every table: `using (user_id = auth.uid()) with check (user_id = auth.uid())`.
 - Cross-table references are plain columns (no FK constraints between synced tables) so partial or out-of-order pushes can never fail; the app guarantees integrity.
-- Check constraints on enums (`equipment`, `kind`, `status`, …) and `muscle_groups <@ array[...]`.
+- Check constraints on enums (`equipment`, `kind`, `status`, `focus`, …) and `muscle_groups <@ array[...]` (same for `secondary_muscle_groups`). Since M7 the array lists the 18 Muscle Groups **plus the legacy `shoulders`**, so records from not-yet-updated devices still push (ADR-0007). This migration must reach the hosted project **before** the app update that uses it.
 - The future web dashboard reads these tables directly with the user's Supabase session — no extra API needed.
 
 ### Configuration & secrets
@@ -388,7 +442,7 @@ primary key (user_id, id)
 ## 11. Apple Health
 
 - **Write only.** Each Session is saved as an `HKWorkout` (`.traditionalStrengthTraining`, indoor), including heart rate and active energy when recorded on the Watch. No workouts are read from Health.
-- Permission is requested at the **first Session start**, with a one-line explanation screen before the system sheet.
+- Permission is requested in **onboarding** (M6, §7), on its own page with one **Continue** button. HealthKit shows its sheet only once per set of types, so the explanation before the **first Session start** remains only for people who left onboarding before that page; after any answer, changes happen in Settings or the Health app.
 - Deleting a Session in the app also deletes the Health workout it created — on any device, also when the deletion arrives via sync. HealthKit lets an app delete only what it saved, so each device deletes the workouts of the Sessions it recorded: the iPhone right away (or after the next pull), the Watch when the tombstone reaches it in the plan snapshot (§8). The local `healthWorkoutID` is cleared once the workout is gone; until then a failed attempt (e.g. no Health access) is retried.
 - Health-derived values (heart rate, calories) are shown in the app but **never leave the device** (not synced to Supabase) — keeps App Review simple (§14).
 
@@ -423,7 +477,7 @@ OnlyWorkout.xcodeproj           # Xcode project using synchronized folders
 OnlyWorkout/                    # iOS app — com.stefanblos.OnlyWorkouts
   App/                          # @main, root TabView, dependency setup
   Features/
-    Today/  Workouts/  Exercises/  Session/  Summary/  History/  Progress/  Settings/
+    Onboarding/ (M6)  Today/  Workouts/  Recommendations/ (M8)  Exercises/  Session/  Summary/  History/  Progress/  Settings/
   Resources/                    # Assets (AccentColor), Localizable.xcstrings, PrivacyInfo.xcprivacy
 OnlyWorkoutWatch/               # watchOS app — com.stefanblos.OnlyWorkouts.watchkitapp
   App/  Features/Home/  Features/Session/  Features/Summary/  Resources/
@@ -437,10 +491,11 @@ Packages/OnlyWorkoutKit/        # local Swift package
     OnlyWorkoutStore/           # SwiftData @Model types, mapping to Core, Exercise Catalog seeding
     OnlyWorkoutConnectivity/    # WorkoutRecorder (HealthKit + mirroring), PhoneWatchLink (WatchConnectivity), MirrorMessage
     OnlyWorkoutSync/            # Supabase client, auth, push/pull (iOS only — the only module importing supabase-swift)
-    OnlyWorkoutDesign/          # DesignTokens, shared components (rings, number views, celebration)
+    OnlyWorkoutDesign/          # DesignTokens, shared components (rings, number views, celebration, Muscle Map shapes — M7)
+    OnlyWorkoutIntelligence/    # M8, iOS only: the sole importer of FoundationModels; words Recommendation reasons (ADR-0008)
     OnlyWorkoutLiveActivity/    # ActivityAttributes shared by the app and the widget extension (iOS only)
   Tests/
-    OnlyWorkoutCoreTests/  OnlyWorkoutStoreTests/
+    OnlyWorkoutCoreTests/  OnlyWorkoutStoreTests/  OnlyWorkoutSyncTests/  OnlyWorkoutIntelligenceTests/ (M8)
 supabase/
   config.toml
   migrations/                   # schema, RLS, sync RPCs
@@ -452,6 +507,7 @@ docs/adr/  docs/research/       # decisions; researched facts with sources
 docs/release/                   # App Store listing, App Privacy answers and App Review notes
 site/onlyworkout/               # Privacy Policy and Support pages, copied by the owner to stefanblos.com/onlyworkout/
 design/icon/                    # app icon layers (source of AppIcon.icon), concepts, Icon Composer notes
+design/muscle-map/              # Muscle Map anatomy generator, concepts and encoding (M7)
 .github/workflows/ci.yml
 ```
 
@@ -484,6 +540,10 @@ What is still missing for a release, checked against Apple's current requirement
 | 2 | ~~Exact Strava API for structured strength uploads and its exercise-type list~~ | **Resolved (M4):** `POST /uploads` with `data_type=json` (Strava's "Strength Training (Limited)" file) and 656 exercise types; see [docs/research/strava-api.md](docs/research/strava-api.md). |
 | 3 | Strava muscle map reportedly inconsistent for API uploads | Accept. Strava derives muscles from each Set's exercise type (the upload has no muscle-group field); a Strava staff member acknowledged the July 2026 report without a fix. On the owner's account the map showed correctly for the first test upload (M4). Our own stats keep the Muscle Groups. |
 | 4 | ~~Undocumented upload details~~ | **Resolved (M4, tried on the owner's account):** Strava shows `weight` exactly as sent and its own logging doesn't say whether dumbbell weight is per hand, so we keep sending it per dumbbell as stored. A bodyweight Set without weight shows as plain bodyweight, Added Weight as that weight. Strava lists Sets in the order sent, so we group them per exercise. Exercises without a Strava type don't appear. Muscle map, title, elapsed time, volume, Set and rep totals all came through. Watch Sessions upload too; with auto-upload off nothing is uploaded. Duplicate detection is untested (no way to re-upload from the app). |
+| 5 | Apple Health permission in onboarding goes against a HIG "should" (ask when needed) | Accept (owner's call, M6): page after the tour, one neutral button, never blocks on "no"; research says no review rule forbids it. Watch App Review feedback. |
+| 6 | Catalog revision vs. old app versions (M7) | Hosted migration first (legacy `shoulders` allowed), then the app; old versions skip unknown Muscle Groups without losing them (ADR-0007). |
+| 7 | Foundation Models output quality changes with each OS model update; only about half of devices have Apple Intelligence | Handwritten reasons are the primary experience; model text is checked, labelled and optional; opt-in evaluation suite re-run on each iOS x.y (ADR-0008). |
+| 8 | Recommendations read as health advice | Neutral wording, no claims beyond the research (training-templates.md §6); review copy before M8 ships. Age rating stays 9+ (Health or Wellness Topics). |
 
 ---
 
@@ -526,61 +586,180 @@ Each milestone ships a usable app. Build test-first (`mattpocock-skills:tdd`) fo
 The owner's feedback from using the app is tracked as GitHub issues and shipped in rounds: round 1 (DaemonLoki/WorkoutApp#13: History tab, deleting a Session also deletes its Health workout, Superset preview, start a Session from the Workout editor or on the Watch) and round 2 (DaemonLoki/WorkoutApp#16: Rest Timer that can be turned off, rep Step Ups, collapsible Ready to Step Up).
 
 ### M5 — App Store readiness
-**Status:** in progress on branch `release-readiness-research`; GitHub milestone "M5 — App Store readiness" (DaemonLoki/WorkoutApp#17–#29). Research: [docs/research/app-store-readiness.md](docs/research/app-store-readiness.md), [docs/research/strava-athlete-capacity.md](docs/research/strava-athlete-capacity.md).
+**Status:** code merged into `main` (DaemonLoki/WorkoutApp#30); the owner's tasks (#26–#29) remain, and the submission (#29) now waits for M6, which ships in 1.0. GitHub milestone "M5 — App Store readiness" (DaemonLoki/WorkoutApp#17–#29). Research: [docs/research/app-store-readiness.md](docs/research/app-store-readiness.md), [docs/research/strava-athlete-capacity.md](docs/research/strava-athlete-capacity.md).
 
 - In code: privacy manifests for every target (#17); export compliance key, version 1.0, `-sampleData` in Debug only (#18); Privacy Policy and Support pages in `site/`, linked in Settings (#19); Health purpose strings mention calories (#20); no email scope at Sign in with Apple (#21); Strava capacity gate and athlete-limit message (#22); accessibility pass (#23); app icon `AppIcon.icon` (concept A, the Step Up plate; #24); App Store listing and review notes in `docs/release/` (#25).
 - Owner: Strava capacity check, self-upgrade and Developer Program application (#26); hosted Supabase ready for review (#27); device check (#28); App Store Connect record, screenshots, TestFlight and submission (#29).
 - **Done when**: a TestFlight build uploads without App Store Connect warnings, and the app passes App Review with Strava behind the capacity gate.
 
+### M6 — Onboarding (ships in 1.0)
+**Status:** planned; GitHub milestone "M6 — Onboarding" (DaemonLoki/WorkoutApp#31–#38). The 1.0 submission (DaemonLoki/WorkoutApp#29) waits for it. Research: [docs/research/onboarding-and-permissions.md](docs/research/onboarding-and-permissions.md). Spec: §7 Onboarding, §11.
+
+- **Gate and shell**: fresh-install check at launch (before the Watch link activates), device-local `hasCompletedOnboarding`, `-uiTesting` skips it, `-onboarding` forces it in Debug, Settings → About → Welcome Tour replays the tour.
+- **Tour pages 1–4** from live components with sample values. Components that today need a running Session (Set view, Rest) get a sample-value initialiser, not a fake engine. Motion per `DesignTokens`; Reduce Motion, Dynamic Type and VoiceOver on every page.
+- **Restore page**: the Sign in with Apple button and nonce handling move out of `CloudSyncSection` into one shared view; Start Fresh; restoring continues in the background.
+- **Apple Health and Rest-alert pages**: one Continue each, skipped when already determined; the official Apple Health icon replaces the heart glyph here and in `HealthExplanationView`.
+- **Rest alerts**: add the Time Sensitive Notifications capability. `RestNotifier` already marks alerts `.timeSensitive`, but without the capability they don't break through Focus (research §3).
+- **End destination** (Today vs. the Workout editor); docs: App Review notes in `docs/release/app-store-listing.md` say Apple Health is asked in onboarding.
+- **Test seams**: no new domain logic, so no Core tests. Verified with a preview per page and state, a temporary UI test walking the flow on a fresh simulator (deleted afterwards), and the Session-flow UI test (onboarding skipped).
+- **Owner**: download the Apple Health icon from Apple's resources and check its terms; device check of a fresh install and of a reinstall with restore, with the Watch paired.
+- **Done when**: a fresh install shows the tour; Restore brings everything back without duplicates; the Apple Health and notification sheets each appear once, from their pages; a finished or skipped onboarding never comes back by itself but replays from Settings; and the 1.0 build with onboarding is submitted (#29).
+
+### M7 — Muscle Map (1.1)
+**Status:** planned; GitHub milestone "M7 — Muscle Map" (DaemonLoki/WorkoutApp#39–#48). Figure: concept E · Glass Mosaic, chosen ([design/muscle-map/](design/muscle-map/)). Research: [docs/research/exercise-muscle-data.md](docs/research/exercise-muscle-data.md). Decision: [ADR-0007](docs/adr/0007-delts-secondary-muscle-groups-and-catalog-revisions.md). Spec: §3, §7, §9, §10, §17.
+
+- **Artwork**: concept E · Glass Mosaic (chosen). Its anatomy lives in `design/muscle-map/mosaic.py`, which also emits the SwiftUI `Path` code, so drawing and app never drift. `MuscleMap` view in `OnlyWorkoutDesign` (compact/full, selection, legend, accessibility); colour steps per appearance in `DesignTokens`.
+- **Core**: 18 Muscle Groups with legacy `shoulders` decoding; `Emphasis` (Sets → share per Muscle Group → step, plus the groups the text summary names).
+- **Data**: `secondaryMuscleGroups` on Exercise (model, record, `CloudCoding`, migration with the 18 + legacy check, pgTAP); catalog revisions (ADR-0007) and the first revision (the 44 revised per §17); Custom Exercises' `shoulders` rewritten once.
+- **UI**: Exercise rows, the new Exercise detail and the Custom Exercise editor (Secondary Muscle Groups picker with a live map); Workout editor header; Next Up card; Session Summary; Progress → Muscle Coverage; every Muscle Group filter lists the 18.
+- **Release order**: the hosted migration runs **before** the app update ships (ADR-0007), the opposite of M4/M5.
+- **Test seams** (to confirm at the start, `tdd`):
+  - Core: `Emphasis` (half weight for Secondary, normalisation, step thresholds, empty input, extras count for Sessions); `MuscleGroup` legacy decoding.
+  - Store: a catalog revision rewrites changed rows once with its date, leaves newer rows alone, is idempotent, and two stores converge after merging; the `shoulders` rewrite; record round trip.
+  - Sync: `CloudCoding` of the new column.
+  - pgTAP: the column and constraint (18 + legacy accepted, unknown rejected), `sync_push`/`sync_pull` carry it.
+- **Owner**: run the hosted migration first; check maps against his own Workouts on device.
+- **Done when**: every Exercise, Workout, Next Up card, Session Summary and Progress show a Muscle Map whose Emphasis matches §9; a Push and a Pull Workout are told apart at a glance; and after the update, the owner's catalog Exercises carry the revised Muscle Groups on the iPhone, the Watch and in Supabase, without duplicates or sync loops.
+
+### M8 — Recommendations (1.2)
+**Status:** planned; GitHub milestone "M8 — Recommendations" (DaemonLoki/WorkoutApp#49–#58). Research: [docs/research/training-templates.md](docs/research/training-templates.md), [docs/research/foundation-models.md](docs/research/foundation-models.md). Decision: [ADR-0008](docs/adr/0008-rules-choose-recommendations-the-on-device-model-only-words-reasons.md). Spec: §3, §7 Recommendations, §10, §17.
+
+- **Catalog**: a second revision adds the 49 Exercises of §17 with Strava types and Each Side. `eachSide` is a synced column; Custom Exercises get a toggle. "each side" appears in Target text on iPhone, Watch and Live Activity.
+- **Focus**: a synced `focus` column on Workouts; the Focus row in the Workout editor.
+- **Core rules**:
+  - Focus, Training Goal and Equipment Access.
+  - Blueprints and Focus coverage (research §2, §5).
+  - Targets per Training Goal and role (§3.6, §3.7), plus the split table (§4).
+  - Bodyweight rep floors.
+  - The Session-length estimate and trimming (§1.5), and Superset rules (§2.3).
+  - The `Recommender` (Exercises and Gaps for a Workout, a whole Workout, a whole Rotation), with facts and reason codes for every Recommendation.
+- **Store**: add recommended Exercises, Workouts or a Rotation with weights and links (ADR-0006); Replace My Workouts; Equipment Access stored on the device.
+- **`OnlyWorkoutIntelligence`**: the `ReasonWriter` seam with a Foundation Models adapter and a template adapter, output checks, the Settings toggle and the label. The module also goes into AGENTS.md, CI and the swift-format paths.
+- **UI**: Recommended and Gaps sections in the Workout editor; the `+` menu flows with preview and review; Recommend a Rotation on Today's empty state and at the end of onboarding.
+- **Release order**: the hosted migration (`focus`, `each_side` with checks) runs before the app update ships.
+- **Test seams** (to confirm at the start, `tdd`):
+  - Core:
+    - A Blueprint filled per Equipment Access, with Gaps instead of invented Exercises.
+    - Targets per Training Goal and role; rep floors.
+    - Trimming to 45–75 min; Superset pairing rules.
+    - Split per Training Goal × 2–6 Weekly Sessions (Running ≤ 3, Cycling ≤ 2 Workouts).
+    - Linking the same Exercise across a Rotation; reason codes.
+    - Catalog consistency: every Blueprint candidate exists in the catalog with a fitting Equipment, every Strava type is one of the 656, at most 3 + 3 Muscle Groups.
+  - Store: Add and Replace (soft delete, Next Up), weights, links.
+  - Intelligence: `ReasonProvider` against fake writers. The model's text is used only when it passes the checks; every unavailability reason, error, timeout and failed check falls back to the template. Opt-in model tests only on an eligible Mac or device.
+  - pgTAP: the new columns and checks.
+- **Owner**: review the reasons and notes copy; try with Apple Intelligence on and off on an eligible iPhone.
+- **Done when**:
+  - Choosing a Focus on an empty Workout fills it sensibly at every Equipment Access.
+  - A Workout missing a required Muscle Group shows that Gap with an Exercise to add.
+  - Recommend a Rotation, for every Training Goal and 2–6 Weekly Sessions, adds or replaces Workouts that fit 45–75 min and cover their Focus, with weights and links.
+  - Reasons read well with Apple Intelligence on and off.
+
+### Later (not scheduled) — 3D figure and animated Exercises
+Researched in [docs/research/3d-muscle-map-realitykit.md](docs/research/3d-muscle-map-realitykit.md): a RealityKit figure is possible on iPhone (iOS 27 `RealityView` with a virtual camera, orbit controls, per-region materials, skeletal animation) but **impossible on the Watch** (no RealityKit on watchOS 27) and wrong for list rows, so it could only ever be a hero view (Exercise detail, Session Summary) beside the 2D Muscle Map, never replace it. It needs a licensed base body (MakeHuman/MPFB output is CC0) with the 18 regions painted on, and owner approval for the asset. Animated Exercises are a project of their own (93 clips, most with props, a form review per clip, several MB). M7 keeps the door open at no cost: region IDs are the `MuscleGroup` raw values, and `MuscleMap` takes Emphasis, not artwork. Start with the 1–2 day spike in that research's §7.3 if wanted.
+
 ---
 
 ## 17. Exercise Catalog (seed)
 
-Shipped with deterministic UUIDs (UUIDv5 of the key). Muscle Groups are primary movers. Dumbbell weights are **per dumbbell**.
+Shipped with deterministic UUIDs (UUIDv5 of the key). Muscle Groups are prime movers (1–3); Secondary Muscle Groups count half (0–3); Each Side marks one-sided Exercises. Dumbbell weights are **per dumbbell**. Strava types are exact values from Strava's 656 (§12).
 
-| Key | Name | Equipment | Muscle Groups |
-|---|---|---|---|
-| barbell-bench-press | Bench Press | barbell | Chest, Triceps, Shoulders |
-| incline-dumbbell-press | Incline Dumbbell Press | dumbbell | Chest, Shoulders |
-| dumbbell-bench-press | Dumbbell Bench Press | dumbbell | Chest, Triceps |
-| machine-chest-press | Machine Chest Press | machine | Chest, Triceps |
-| cable-fly | Cable Fly | cable | Chest |
-| push-up | Push-up | bodyweight | Chest, Triceps |
-| dip | Dip | bodyweight | Chest, Triceps |
-| pull-up | Pull-up | bodyweight | Lats, Biceps |
-| chin-up | Chin-up | bodyweight | Lats, Biceps |
-| lat-pulldown | Lat Pulldown | cable | Lats, Biceps |
-| seated-cable-row | Seated Cable Row | cable | Upper Back, Lats |
-| barbell-row | Barbell Row | barbell | Upper Back, Lats |
-| one-arm-dumbbell-row | One-Arm Dumbbell Row | dumbbell | Lats, Upper Back |
-| chest-supported-row | Chest-Supported Row | machine | Upper Back |
-| face-pull | Face Pull | cable | Shoulders, Upper Back |
-| deadlift | Deadlift | barbell | Hamstrings, Glutes, Lower Back |
-| back-extension | Back Extension | bodyweight | Lower Back, Glutes |
-| overhead-press | Overhead Press | barbell | Shoulders, Triceps |
-| seated-dumbbell-press | Seated Dumbbell Shoulder Press | dumbbell | Shoulders, Triceps |
-| lateral-raise | Lateral Raise | dumbbell | Shoulders |
-| rear-delt-fly | Rear Delt Fly | machine | Shoulders, Upper Back |
-| dumbbell-shrug | Dumbbell Shrug | dumbbell | Traps |
-| barbell-curl | Barbell Curl | barbell | Biceps |
-| dumbbell-curl | Dumbbell Curl | dumbbell | Biceps |
-| hammer-curl | Hammer Curl | dumbbell | Biceps, Forearms |
-| triceps-pushdown | Triceps Pushdown | cable | Triceps |
-| overhead-triceps-extension | Overhead Triceps Extension | cable | Triceps |
-| skull-crusher | Skull Crusher | barbell | Triceps |
-| back-squat | Back Squat | barbell | Quads, Glutes |
-| front-squat | Front Squat | barbell | Quads |
-| goblet-squat | Goblet Squat | kettlebell | Quads, Glutes |
-| leg-press | Leg Press | machine | Quads, Glutes |
-| romanian-deadlift | Romanian Deadlift | barbell | Hamstrings, Glutes |
-| bulgarian-split-squat | Bulgarian Split Squat | dumbbell | Quads, Glutes |
-| walking-lunge | Walking Lunge | dumbbell | Quads, Glutes |
-| leg-extension | Leg Extension | machine | Quads |
-| leg-curl | Leg Curl | machine | Hamstrings |
-| hip-thrust | Hip Thrust | barbell | Glutes |
-| hip-adduction | Hip Adduction | machine | Adductors |
-| standing-calf-raise | Standing Calf Raise | machine | Calves |
-| seated-calf-raise | Seated Calf Raise | machine | Calves |
-| hanging-leg-raise | Hanging Leg Raise | bodyweight | Abs |
-| cable-crunch | Cable Crunch | cable | Abs |
-| ab-wheel-rollout | Ab Wheel Rollout | bodyweight | Abs, Obliques |
+The table is the **planned** catalog: 44 Exercises since M1, 34 of them revised by the M7 catalog revision (the Delt split plus evidence-based corrections, e.g. Triceps becomes secondary in Bench Press and Biceps in Pull-up and Lat Pulldown), and 49 added by the M8 revision, 93 in all. Sources and the evidence per row: [docs/research/exercise-muscle-data.md](docs/research/exercise-muscle-data.md) (Muscle Groups, Strava types) and [docs/research/training-templates.md](docs/research/training-templates.md) §5.10 (which Blueprints need them). Before M7 ships, `ExerciseCatalog.swift` still holds the M1 values.
+
+Two deliberate holes: no rep-based Exercise trains Side Delts, Traps or Forearms as a prime mover with Bodyweight Only (they appear only as Secondary there). Left out on purpose: timed holds and carries (non-goals), Upright Row and Power Clean (unfriendly to beginners), medicine-ball throws (no such Equipment).
+
+| Key | Name | Equipment | Muscle Groups | Secondary Muscle Groups | Each side | Strava type | Since |
+|---|---|---|---|---|---|---|---|
+| barbell-bench-press | Bench Press | barbell | Chest | Front Delts, Triceps |  | `BARBELL_BENCH_PRESS` | M1, revised M7 |
+| incline-dumbbell-press | Incline Dumbbell Press | dumbbell | Chest, Front Delts | Triceps |  | `INCLINE_DUMBBELL_BENCH_PRESS` | M1, revised M7 |
+| dumbbell-bench-press | Dumbbell Bench Press | dumbbell | Chest | Front Delts, Triceps |  | `DUMBBELL_BENCH_PRESS` | M1, revised M7 |
+| machine-chest-press | Machine Chest Press | machine | Chest | Front Delts, Triceps |  | `MACHINE_CHEST_PRESS` | M1, revised M7 |
+| cable-fly | Cable Fly | cable | Chest | Front Delts |  | `CABLE_CROSSOVER` | M1, revised M7 |
+| push-up | Push-up | bodyweight | Chest | Front Delts, Triceps |  | `PUSH_UP_GENERIC` | M1, revised M7 |
+| dip | Dip | bodyweight | Chest, Triceps | Front Delts |  | `CHEST_DIP` | M1, revised M7 |
+| pull-up | Pull-up | bodyweight | Lats | Biceps, Upper Back, Forearms |  | `PULL_UP_GENERIC` | M1, revised M7 |
+| chin-up | Chin-up | bodyweight | Lats, Biceps | Upper Back, Forearms |  | `CLOSE_GRIP_CHIN_UP` | M1, revised M7 |
+| lat-pulldown | Lat Pulldown | cable | Lats | Biceps, Upper Back |  | `LAT_PULLDOWN` | M1, revised M7 |
+| seated-cable-row | Seated Cable Row | cable | Upper Back, Lats | Biceps, Rear Delts |  | `SEATED_CABLE_ROW` | M1, revised M7 |
+| barbell-row | Barbell Row | barbell | Upper Back, Lats | Rear Delts, Biceps, Lower Back |  | `BENT_OVER_BARBELL_ROW` | M1, revised M7 |
+| one-arm-dumbbell-row | One-Arm Dumbbell Row | dumbbell | Lats, Upper Back | Biceps, Rear Delts | ✓ | `DUMBBELL_ROW` | M1, revised M7 |
+| chest-supported-row | Chest-Supported Row | machine | Upper Back | Lats, Rear Delts, Biceps |  | `MACHINE_CHEST_SUPPORTED_ROW` | M1, revised M7 |
+| face-pull | Face Pull | cable | Rear Delts, Upper Back | Side Delts |  | `FACE_PULL` | M1, revised M7 |
+| deadlift | Deadlift | barbell | Glutes, Hamstrings, Lower Back | Quads, Adductors, Traps |  | `BARBELL_DEADLIFT` | M1, revised M7 |
+| back-extension | Back Extension | bodyweight | Lower Back, Glutes | Hamstrings |  | `BACK_EXTENSION` | M1, revised M7 |
+| overhead-press | Overhead Press | barbell | Front Delts, Side Delts | Triceps |  | `OVERHEAD_BARBELL_PRESS` | M1, revised M7 |
+| seated-dumbbell-press | Seated Dumbbell Shoulder Press | dumbbell | Front Delts, Side Delts | Triceps |  | `SEATED_DUMBBELL_SHOULDER_PRESS` | M1, revised M7 |
+| lateral-raise | Lateral Raise | dumbbell | Side Delts | Front Delts, Traps |  | `LATERAL_RAISE_GENERIC` | M1, revised M7 |
+| rear-delt-fly | Rear Delt Fly | machine | Rear Delts | Upper Back |  | `MACHINE_REAR_DELT_REVERSE_FLY` | M1, revised M7 |
+| dumbbell-shrug | Dumbbell Shrug | dumbbell | Traps | — |  | `DUMBBELL_SHRUG` | M1 |
+| barbell-curl | Barbell Curl | barbell | Biceps | Forearms |  | `BARBELL_BICEPS_CURL` | M1, revised M7 |
+| dumbbell-curl | Dumbbell Curl | dumbbell | Biceps | Forearms |  | `STANDING_DUMBBELL_BICEPS_CURL` | M1, revised M7 |
+| hammer-curl | Hammer Curl | dumbbell | Biceps, Forearms | — |  | `DUMBBELL_HAMMER_CURL` | M1 |
+| triceps-pushdown | Triceps Pushdown | cable | Triceps | — |  | `CABLE_TRICEPS_PUSHDOWN` | M1 |
+| overhead-triceps-extension | Overhead Triceps Extension | cable | Triceps | — |  | `CABLE_OVERHEAD_TRICEPS_EXTENSION` | M1 |
+| skull-crusher | Skull Crusher | barbell | Triceps | — |  | `SKULL_CRUSHER` | M1 |
+| back-squat | Back Squat | barbell | Quads, Glutes | Adductors |  | `BARBELL_BACK_SQUAT` | M1, revised M7 |
+| front-squat | Front Squat | barbell | Quads | Glutes, Adductors |  | `BARBELL_FRONT_SQUAT` | M1, revised M7 |
+| goblet-squat | Goblet Squat | kettlebell | Quads, Glutes | Adductors |  | `GOBLET_SQUAT` | M1, revised M7 |
+| leg-press | Leg Press | machine | Quads, Glutes | Adductors |  | `MACHINE_LEG_PRESS` | M1, revised M7 |
+| romanian-deadlift | Romanian Deadlift | barbell | Hamstrings, Glutes | Lower Back, Adductors |  | `BARBELL_ROMANIAN_DEADLIFT` | M1, revised M7 |
+| bulgarian-split-squat | Bulgarian Split Squat | dumbbell | Quads, Glutes | Adductors | ✓ | `DUMBBELL_BULGARIAN_SPLIT_SQUATS` | M1, revised M7 |
+| walking-lunge | Walking Lunge | dumbbell | Quads, Glutes | Adductors | ✓ | `DUMBBELL_WALKING_LUNGES` | M1, revised M7 |
+| leg-extension | Leg Extension | machine | Quads | — |  | `MACHINE_LEG_EXTENSION` | M1 |
+| leg-curl | Leg Curl | machine | Hamstrings | — |  | `LEG_CURL_GENERIC` | M1 |
+| hip-thrust | Hip Thrust | barbell | Glutes | Hamstrings, Quads |  | `BARBELL_HIP_THRUST` | M1, revised M7 |
+| hip-adduction | Hip Adduction | machine | Adductors | — |  | `MACHINE_HIP_ADDUCTION` | M1 |
+| standing-calf-raise | Standing Calf Raise | machine | Calves | — |  | `STANDING_CALF_RAISE` | M1 |
+| seated-calf-raise | Seated Calf Raise | machine | Calves | — |  | `SEATED_CALF_RAISE` | M1 |
+| hanging-leg-raise | Hanging Leg Raise | bodyweight | Abs | Obliques |  | `HANGING_LEG_RAISE` | M1, revised M7 |
+| cable-crunch | Cable Crunch | cable | Abs | Obliques |  | `CABLE_CRUNCH` | M1, revised M7 |
+| ab-wheel-rollout | Ab Wheel Rollout | bodyweight | Abs, Obliques | Lats |  | `AB_WHEEL_ROLLOUT` | M1, revised M7 |
+| incline-bench-press | Incline Bench Press | barbell | Chest, Front Delts | Triceps |  | `INCLINE_BARBELL_BENCH_PRESS` | M8 |
+| close-grip-bench-press | Close-Grip Bench Press | barbell | Triceps, Chest | Front Delts |  | `CLOSE_GRIP_BARBELL_BENCH_PRESS` | M8 |
+| pike-push-up | Pike Push-up | bodyweight | Front Delts | Triceps, Side Delts |  | `PIKE_PUSH_UP` | M8 |
+| cable-lateral-raise | Cable Lateral Raise | cable | Side Delts | Front Delts, Traps | ✓ | `CABLE_LATERAL_RAISE` | M8 |
+| dumbbell-rear-delt-fly | Dumbbell Rear Delt Fly | dumbbell | Rear Delts | Upper Back, Side Delts |  | `DUMBBELL_REAR_DELT_FLY` | M8 |
+| inverted-row | Inverted Row | bodyweight | Upper Back, Lats | Rear Delts, Biceps |  | `INVERTED_ROW` | M8 |
+| dumbbell-pullover | Dumbbell Pullover | dumbbell | Chest, Lats | Triceps |  | `DUMBBELL_PULLOVER` | M8 |
+| incline-dumbbell-curl | Incline Dumbbell Curl | dumbbell | Biceps | Forearms |  | `INCLINE_DUMBBELL_BICEPS_CURL` | M8 |
+| cable-curl | Cable Curl | cable | Biceps | Forearms |  | `CABLE_BICEPS_CURL` | M8 |
+| dumbbell-overhead-triceps-extension | Dumbbell Overhead Triceps Extension | dumbbell | Triceps | — |  | `OVERHEAD_DUMBBELL_TRICEPS_EXTENSION` | M8 |
+| wrist-curl | Wrist Curl | dumbbell | Forearms | — |  | `DUMBBELL_WRIST_CURL` | M8 |
+| dumbbell-romanian-deadlift | Dumbbell Romanian Deadlift | dumbbell | Hamstrings, Glutes | Lower Back, Adductors |  | `DUMBBELL_ROMANIAN_DEADLIFTS` | M8 |
+| single-leg-romanian-deadlift | Single-Leg Romanian Deadlift | dumbbell | Hamstrings, Glutes | Adductors, Lower Back | ✓ | `SINGLE_LEG_DUMBBELL_ROMANIAN_DEADLIFTS` | M8 |
+| nordic-hamstring-curl | Nordic Hamstring Curl | bodyweight | Hamstrings | — |  | `NORDIC_CURL` | M8 |
+| step-up | Step-up | dumbbell | Quads, Glutes | Adductors, Hamstrings | ✓ | `STEP_UP` | M8 |
+| copenhagen-adduction | Copenhagen Adduction | bodyweight | Adductors | Obliques | ✓ | `LL_COPENHAGEN_PLANK` | M8 |
+| single-leg-calf-raise | Single-Leg Calf Raise | bodyweight | Calves | — | ✓ | `SINGLE_LEG_STANDING_CALF_RAISE` | M8 |
+| box-jump | Box Jump | bodyweight | Quads, Glutes | Calves |  | `BOX_JUMP` | M8 |
+| jump-squat | Jump Squat | bodyweight | Quads, Glutes | Calves |  | `BODY_WEIGHT_JUMP_SQUAT` | M8 |
+| kettlebell-swing | Kettlebell Swing | kettlebell | Glutes, Hamstrings | Lower Back |  | `KETTLEBELL_SWING` | M8 |
+| pallof-press | Pallof Press | cable | Obliques | Abs | ✓ | `PALLOF_PRESS` | M8 |
+| dumbbell-side-bend | Dumbbell Side Bend | dumbbell | Obliques | Lower Back | ✓ | `DUMBBELL_SIDE_BEND` | M8 |
+| bicycle-crunch | Bicycle Crunch | bodyweight | Abs, Obliques | — | ✓ | `BICYCLE_CRUNCH` | M8 |
+| decline-push-up | Decline Push-up | bodyweight | Chest, Front Delts | Triceps |  | `DECLINE_PUSH_UP` | M8 |
+| dumbbell-fly | Dumbbell Fly | dumbbell | Chest | Front Delts |  | `DUMBBELL_FLYE` | M8 |
+| bench-dip | Bench Dip | bodyweight | Triceps | Chest, Front Delts |  | `BENCH_DIP` | M8 |
+| chest-supported-dumbbell-row | Chest-Supported Dumbbell Row | dumbbell | Upper Back, Lats | Rear Delts, Biceps |  | `CHEST_SUPPORTED_ROW` | M8 |
+| reverse-curl | Reverse Curl | barbell | Forearms, Biceps | — |  | `BARBELL_REVERSE_CURL` | M8 |
+| bodyweight-squat | Bodyweight Squat | bodyweight | Quads, Glutes | Adductors |  | `AIR_SQUAT` | M8 |
+| split-squat | Split Squat | bodyweight | Quads, Glutes | Adductors | ✓ | `STATIC_LUNGE` | M8 |
+| single-leg-glute-bridge | Single-Leg Glute Bridge | bodyweight | Glutes | Hamstrings | ✓ | `SINGLE_LEG_GLUTE_BRIDGE` | M8 |
+| lateral-bound | Lateral Bound | bodyweight | Glutes, Quads | Adductors, Calves | ✓ | `LATERAL_LEAP_AND_HOP` | M8 |
+| pogo-jump | Pogo Jump | bodyweight | Calves | — |  | `POGO_JUMPS` | M8 |
+| plyometric-push-up | Plyometric Push-up | bodyweight | Chest | Triceps, Front Delts |  | `CLAP_PUSH_UPS` | M8 |
+| push-press | Push Press | barbell | Front Delts, Side Delts | Triceps, Quads |  | `BARBELL_PUSH_PRESS` | M8 |
+| crunch | Crunch | bodyweight | Abs | — |  | `CRUNCH` | M8 |
+| dead-bug | Dead Bug | bodyweight | Abs | — | ✓ | `DEADBUG` | M8 |
+| bird-dog | Bird Dog | bodyweight | Lower Back, Glutes | Abs | ✓ | `BIRD_DOG` | M8 |
+| cable-woodchop | Cable Woodchop | cable | Obliques | Abs | ✓ | `CABLE_WOODCHOP` | M8 |
+| pec-deck | Pec Deck | machine | Chest | Front Delts |  | `PEC_DECK_BUTTERFLY` | M8 |
+| diamond-push-up | Diamond Push-up | bodyweight | Triceps, Chest | Front Delts |  | `DIAMOND_PUSH_UP` | M8 |
+| prone-t-raise | Prone T Raise | bodyweight | Rear Delts, Upper Back | — |  | `FLOOR_T_RAISE` | M8 |
+| straight-arm-pulldown | Straight-Arm Pulldown | cable | Lats | Triceps, Rear Delts |  | `STRAIGHT_ARM_PULLDOWN` | M8 |
+| preacher-curl | Preacher Curl | barbell | Biceps | Forearms |  | `EZ_BAR_PREACHER_CURL` | M8 |
+| hack-squat | Hack Squat | machine | Quads, Glutes | Adductors |  | `MACHINE_HACK_SQUAT` | M8 |
+| good-morning | Good Morning | barbell | Hamstrings, Glutes | Lower Back, Adductors |  | `BARBELL_GOOD_MORNING` | M8 |
+| glute-bridge | Glute Bridge | bodyweight | Glutes | Hamstrings |  | `GLUTE_BRIDGE` | M8 |
+| hip-abduction | Hip Abduction | machine | Glutes | — |  | `MACHINE_HIP_ABDUCTION` | M8 |
+| reverse-lunge | Reverse Lunge | bodyweight | Quads, Glutes | Adductors | ✓ | `REVERSE_LUNGE` | M8 |
