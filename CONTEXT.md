@@ -15,8 +15,28 @@ The built-in list of common Exercises shipped with the app; any Exercise the use
 _Avoid_: Library, database, presets
 
 **Muscle Group**:
-One entry from a fixed list of body regions (e.g. Chest, Lats, Quads) that an Exercise trains.
-_Avoid_: Body part, muscle
+One entry from a fixed list of body regions (e.g. Chest, Lats, Front Delts, Quads) that an Exercise trains; an Exercise's Muscle Groups are its prime movers.
+_Avoid_: Body part, muscle, Shoulders (now Front, Side and Rear Delts)
+
+**Secondary Muscle Group**:
+A Muscle Group an Exercise trains meaningfully as a helper but not as a prime mover (e.g. Triceps in Bench Press); it counts for less than a Muscle Group.
+_Avoid_: Synergist, stabiliser, assisting muscle
+
+**Emphasis**:
+How strongly an Exercise, a Workout or a period of Sessions trains each Muscle Group relative to the others, derived from Sets and shown in three steps.
+_Avoid_: Load, volume, intensity, focus
+
+**Muscle Map**:
+The drawn, gender-neutral figure (front and back) that shows Emphasis by highlighting Muscle Groups.
+_Avoid_: Body map, heat map, muscle chart
+
+**Focus**:
+The optional kind of a Workout (Push, Pull, Legs, Upper Body, Lower Body, Full Body, Arms, Core), which says which Muscle Groups it should train.
+_Avoid_: Goal, workout type, split, category
+
+**Gap**:
+A Muscle Group a Workout's Focus calls for that none of its Planned Exercises trains.
+_Avoid_: Missing muscle, hole, imbalance
 
 **Workout**:
 A named, reusable plan (e.g. "Pull Day") made of an ordered list of Planned Exercises.
@@ -40,7 +60,11 @@ _Avoid_: Circuit, pairing, alternating exercises
 
 **Target**:
 The fixed number of Sets, the fixed number of reps per Set, and the current weight of a Planned Exercise.
-_Avoid_: Goal, rep range, prescription
+_Avoid_: Goal (that word alone is never used; see Training Goal), rep range, prescription
+
+**Each Side**:
+How reps are counted for a one-sided Exercise (e.g. Split Squat): the Target's reps are done with each side.
+_Avoid_: Per leg, per arm, unilateral reps
 
 **Added Weight**:
 For bodyweight Exercises (e.g. Pull-up), the weight recorded is only what is added on top of the body (belt, vest); 0 kg means bodyweight alone.
@@ -93,3 +117,29 @@ _Avoid_: Plateau, failure
 **Layoff**:
 More than 21 days since a Planned Exercise was last performed.
 _Avoid_: Break, gap, detraining
+
+### Recommending
+
+**Recommendation**:
+An Exercise, Workout or Rotation the app proposes from a Focus or a Training Goal, always with its reason; nothing changes until the user adds it.
+_Avoid_: Suggestion (reserved for Step Up and Step Down), AI pick, template
+
+**Blueprint**:
+The ordered list of Needs that makes up a good Workout of one Focus, from which the app recommends Exercises.
+_Avoid_: Template, slot list, program
+
+**Need**:
+One entry of a Blueprint, such as "a horizontal pull" or "Rear Delts", filled by one Exercise the user's Equipment Access allows.
+_Avoid_: Slot, movement pattern, position
+
+**Training Goal**:
+What a person trains for (Overall Health, Bigger Arms, Athleticism, Running, Cycling), used only to shape a recommended Rotation.
+_Avoid_: Goal, program, plan, objective
+
+**Weekly Sessions**:
+How many Sessions a week someone means to train, used only to shape a recommended Rotation; the app never tracks it.
+_Avoid_: Frequency, schedule, training days
+
+**Equipment Access**:
+Which Equipment someone can train with (Full Gym, Dumbbells & Bench, Bodyweight Only), so Recommendations only use Exercises they can do.
+_Avoid_: Gym profile, equipment filter, setup
